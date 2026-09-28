@@ -47,7 +47,6 @@
 }
 .help b{color:var(--text);font-weight:600;}
 
-/* ---------- Import zone ---------- */
 .import{
   background:var(--panel);
   border:1px solid var(--line);
@@ -84,7 +83,6 @@
 .importlog .warn{color:var(--status-warn-fg);}
 .importlog .err{color:var(--status-crit-fg);}
 
-/* ---------- Summary ---------- */
 .summary{
   background:var(--panel-raised);
   border:1px solid var(--line);
@@ -115,9 +113,7 @@
   font-size:12.5px;color:var(--text-muted);
   font-family:'IBM Plex Mono',monospace;
 }
-.summary-stats{
-  display:flex;gap:10px;flex-wrap:wrap;
-}
+.summary-stats{display:flex;gap:10px;flex-wrap:wrap;}
 .statbox{
   padding:8px 14px;border:1px solid var(--line);
   background:var(--panel);text-align:center;
@@ -126,6 +122,7 @@
 .statbox.ok  {border-color:var(--status-ok-line);}
 .statbox.warn{border-color:var(--status-warn-line);background:var(--status-warn-bg);}
 .statbox.crit{border-color:var(--status-crit-line);background:var(--status-crit-bg);}
+.statbox.new {border-color:var(--brand-yellow);background:rgba(240,185,74,0.20);}
 .statbox .num{
   font-family:'IBM Plex Mono',monospace;
   font-size:20px;font-weight:700;line-height:1;
@@ -133,6 +130,7 @@
 .statbox.ok  .num{color:var(--status-ok-fg);}
 .statbox.warn .num{color:var(--status-warn-fg);}
 .statbox.crit .num{color:var(--status-crit-fg);}
+.statbox.new  .num{color:#8A5A00;}
 .statbox .lbl{
   font-size:10.5px;font-weight:700;
   color:var(--text-muted);text-transform:uppercase;
@@ -145,7 +143,6 @@
 }
 .summary-actions .btn{flex:1;justify-content:center;min-width:150px;}
 
-/* ---------- Preview table ---------- */
 .tablewrap{
   border:1px solid var(--line);
   background:var(--panel);
@@ -179,6 +176,7 @@ table.preview{
 .preview tbody tr.flagged-ok   {border-left:4px solid var(--status-ok-line);}
 .preview tbody tr.flagged-warn {border-left:4px solid var(--status-warn-line);background:var(--status-warn-bg);}
 .preview tbody tr.flagged-crit {border-left:4px solid var(--status-crit-line);background:var(--status-crit-bg);}
+.preview tbody tr.flagged-new  {border-left:4px solid var(--brand-yellow);background:rgba(240,185,74,0.12);}
 .preview td.mono{font-family:'IBM Plex Mono',monospace;}
 .preview td.center{text-align:center;}
 .preview td.name{font-weight:600;}
@@ -191,6 +189,7 @@ table.preview{
 .match-pill.ok  {background:var(--status-ok-bg);color:var(--status-ok-fg);}
 .match-pill.warn{background:var(--status-warn-bg);color:var(--status-warn-fg);}
 .match-pill.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);}
+.match-pill.new {background:rgba(240,185,74,0.30);color:#8A5A00;}
 
 .picker{
   padding:6px 8px;
@@ -219,25 +218,6 @@ table.preview{
 }
 .empty-state b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
 
-/* ---------- Saved section ---------- */
-.saved-block{
-  background:var(--panel-raised);
-  border:1px solid var(--line);
-  border-left:5px solid var(--status-ok-line);
-  padding:16px 18px;
-  box-shadow:var(--shadow);
-  margin-bottom:16px;
-}
-.saved-block h3{
-  margin:0 0 6px;font-size:14px;font-weight:800;
-  color:var(--status-ok-fg);
-}
-.saved-block .desc{
-  font-size:13px;color:var(--text-muted);
-  line-height:1.5;
-}
-.saved-block .btn{margin-top:12px;}
-
 .toast{
   position:fixed;
   bottom:24px;left:50%;
@@ -250,6 +230,22 @@ table.preview{
   z-index:200;
 }
 .toast.show{transform:translateX(-50%) translateY(0);}
+
+.loading-overlay{
+  position:fixed;inset:0;
+  background:rgba(20,24,29,0.6);
+  display:none;align-items:center;justify-content:center;
+  z-index:150;
+}
+.loading-overlay.show{display:flex;}
+.loading-overlay .spinner{
+  width:48px;height:48px;
+  border:4px solid var(--accent);
+  border-top-color:transparent;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
 
 @media (max-width:640px){
   .header{flex-direction:column;align-items:stretch;}
@@ -283,17 +279,19 @@ table.preview{
   </div>
 
   <div class="help">
-    <b>Importation d'un rapport quotidien de la pointeuse.</b>
+    <b>Importation d'un rapport quotidien.</b>
     Déposez le PDF du jour. L'application lit chaque ligne, associe le badge (colonne <b>Bno</b>)
-    à un employé déjà enregistré, et affiche un aperçu. <b>Aucune donnée n'est enregistrée avant
-    que vous ne cliquiez sur « Enregistrer dans la base »</b>. Un pointage existant pour la même
-    date sera automatiquement remplacé.
+    à un employé existant, et affiche un aperçu. <b>Les employés qui ne sont pas encore
+    enregistrés seront automatiquement créés</b> avec leur badge et leur nom quand vous cliquez
+    sur « Enregistrer ». Un pointage existant pour la même date sera automatiquement remplacé.
   </div>
 
-  <!-- Import zone -->
   <div class="import" id="importZone">
     <div class="import-head">
       <div class="import-title">Étape 1 — Charger le rapport quotidien</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" id="btnNewFile" style="display:none;">Charger un autre PDF</button>
+      </div>
     </div>
     <div class="dropzone" id="dropzone">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
@@ -304,14 +302,12 @@ table.preview{
     <div class="importlog" id="importLog"></div>
   </div>
 
-  <!-- Empty state -->
   <div class="empty-state" id="emptyState">
     <b>Aucun aperçu en cours</b>
     Chargez un PDF ci-dessus pour voir les pointages du jour.<br>
     Rien n'est enregistré tant que vous n'aurez pas confirmé.
   </div>
 
-  <!-- Preview (filled by JS) -->
   <div id="previewWrap" style="display:none;">
 
     <div class="summary" id="summary">
@@ -350,16 +346,13 @@ table.preview{
 
   </div>
 
-  <!-- Saved state (shown after successful save) -->
-  <div class="saved-block" id="savedBlock" style="display:none;">
-    <h3 id="savedTitle">✓ Import enregistré</h3>
-    <div class="desc" id="savedDesc">—</div>
-    <button class="btn" id="btnNewImport">Importer un autre rapport</button>
-  </div>
-
 </div>
 
 <div class="toast" id="toast">—</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -373,7 +366,6 @@ table.preview{
 
   const $ = function(id){ return document.getElementById(id); };
   const R = window.CSMRules;
-  const STORAGE_KEY = 'csm_daily_import';
 
   if(window['pdfjsLib']){
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -381,8 +373,9 @@ table.preview{
 
   // ---------- State ----------
   let staffList = [];
-  let currentImport = null;  // { date, store, rows: [{...}] }
   let staffByBadge = {};
+  let currentImport = null;   // { date, store, location, rows: [...], savedAt }
+  let unsubImport = null;
 
   // ---------- Theme ----------
   const THEME_KEY = 'csct_manager_theme';
@@ -391,7 +384,8 @@ table.preview{
     try{ t = localStorage.getItem(THEME_KEY) || 'light'; }catch(e){}
     document.documentElement.classList.toggle('theme-light', t === 'light');
     document.documentElement.classList.toggle('theme-dark', t === 'dark');
-    $('btnTheme').textContent = t === 'light' ? '🌙' : '☀️';
+    const b = $('btnTheme');
+    if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
   }
   function wireThemeToggle(){
     $('btnTheme').addEventListener('click', function(){
@@ -426,8 +420,9 @@ table.preview{
         wireThemeToggle();
         wireImport();
         wireActions();
-        restoreSavedPreview();
-        loadStaff();
+        loadStaff().then(function(){
+          subscribeCurrentImport();
+        });
       });
     }).catch(function(err){
       console.error('Auth gating:', err);
@@ -437,22 +432,42 @@ table.preview{
 
   $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
 
-  // ---------- Load staff once ----------
+  // ---------- Load staff (returns a Promise) ----------
   function loadStaff(){
-    CSM.refs.staffColl().get().then(function(snap){
+    return CSM.refs.staffColl().get().then(function(snap){
       staffList = [];
       staffByBadge = {};
       snap.forEach(function(doc){
         const s = Object.assign({ _id: doc.id }, doc.data());
-        if(s.active === false) return; // skip deactivated
+        if(s.active === false) return;
         staffList.push(s);
         staffByBadge[String(s.badge)] = s;
       });
       staffList.sort(function(a,b){
         return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
       });
+      console.log('loadStaff: ' + staffList.length + ' active employees loaded');
     }).catch(function(err){
       console.warn('loadStaff:', err);
+    });
+  }
+
+  // ---------- Firestore subscription to current import ----------
+  function subscribeCurrentImport(){
+    if(unsubImport) unsubImport();
+    const ref = CSM.refs.dailyImport('current');
+    unsubImport = ref.onSnapshot(function(doc){
+      if(doc.exists && doc.data().rows && doc.data().rows.length){
+        currentImport = Object.assign({ _id: 'current' }, doc.data());
+        // Reapply match logic in case staff changed
+        matchAgainstStaff();
+        render();
+      } else {
+        currentImport = null;
+        render();
+      }
+    }, function(err){
+      console.warn('subscribeCurrentImport:', err);
     });
   }
 
@@ -480,35 +495,42 @@ table.preview{
       if(file && file.type === 'application/pdf') handleFile(file);
       else if(file) alert('Veuillez déposer un fichier PDF.');
     });
+    $('btnNewFile').addEventListener('click', function(){ $('fileInput').click(); });
   }
 
   async function handleFile(file){
     clearLog();
     log('Lecture du fichier "' + file.name + '"…');
+    $('loadingOverlay').classList.add('show');
     try{
       if(!window['pdfjsLib']) throw new Error('Le lecteur PDF n\'est pas chargé.');
-            const text = await extractPdfText(await file.arrayBuffer());
-
-      // TEMP DEBUG — remove after we fix the parser
-      console.log('===== RAW PDF TEXT =====');
-      console.log(text);
-      console.log('===== END RAW PDF TEXT =====');
-      // Also show a small preview so you can screenshot it
-      log('--- Aperçu du texte extrait (premières 2000 caractères) ---');
-      log(text.slice(0, 2000));
-
+      const text = await extractPdfText(await file.arrayBuffer());
       const parsed = parseDailyReport(text);
       if(!parsed.rows.length){
         throw new Error('Aucun employé détecté dans le PDF. Vérifiez le format.');
       }
-      currentImport = parsed;
       log('PDF analysé — ' + parsed.rows.length + ' employés trouvés.', 'ok');
-      matchAgainstStaff();
-      render();
+
+      // Save to Firestore as 'current' (this is the persistent preview)
+      const payload = {
+        date: parsed.date,
+        store: parsed.store,
+        location: parsed.location,
+        rows: parsed.rows,
+        importedAt: new Date().toISOString(),
+        importedBy: auth.currentUser ? auth.currentUser.uid : null,
+        fileName: file.name,
+        savedAt: null,
+        savedCount: 0
+      };
+      await CSM.refs.dailyImport('current').set(payload);
+      log('Aperçu enregistré dans la base. Il restera visible jusqu\'à ce que vous l\'effaciez.', 'ok');
     }catch(err){
       console.error('handleFile:', err);
       log('Erreur : ' + err.message, 'err');
       alert('Import impossible : ' + err.message);
+    }finally{
+      $('loadingOverlay').classList.remove('show');
     }
   }
 
@@ -519,7 +541,6 @@ table.preview{
     for(let p = 1; p <= pdf.numPages; p++){
       const page = await pdf.getPage(p);
       const content = await page.getTextContent();
-      // Group items by y-position (line), sort within line by x
       const lineMap = new Map();
       content.items.forEach(function(item){
         const y = Math.round(item.transform[5]);
@@ -536,18 +557,12 @@ table.preview{
   }
 
   // ---------- Parser ----------
-  // Each employee row looks like:
-  //   <Bno><Empl-No><Name>(<Role>)<Date> <Day> <Time1>[G/P] - <Time2>[G/P] - ...
-  // The PDF sometimes wraps a name/role onto a second line; we join
-  // continuation lines to the previous row.
-      function parseDailyReport(text){
-    // Header info
+  function parseDailyReport(text){
     const dateMatch = /Date\s*(\d{2}\/\d{2}\/\d{4})/.exec(text);
     const storeMatch = /Store\s*(\d+)/.exec(text);
     const locationMatch = /\d{2}\/\d{2}\/\d{4}([A-Z][A-Z\s]+?)Store/.exec(text);
     const date = dateMatch ? dateMatch[1] : null;
 
-    // Strategy: split into employee blocks by the "SUM x.xx" separator.
     const lines = text.split(/\r?\n/);
     const blocks = [];
     let buffer = [];
@@ -556,7 +571,6 @@ table.preview{
       const trimmed = line.trim();
       if(!trimmed) return;
 
-      // Skip header/footer
       if(/^Bno\b/i.test(trimmed)) return;
       if(/^No\s*$/i.test(trimmed)) return;
       if(/^Sum Of Worked/i.test(trimmed)) return;
@@ -578,30 +592,20 @@ table.preview{
       }
       buffer.push(trimmed);
     });
-    // Catch any trailing buffer (in case the file ends without a final SUM)
     if(buffer.length) blocks.push(buffer.join(' '));
 
-    // Parse each block
     const rows = [];
     blocks.forEach(function(blockText){
-      // 1. Badge + Empl-No at the start
       const startMatch = /^(\d{5,10})\s+/.exec(blockText);
       if(!startMatch) return;
       const rawNum = startMatch[1];
 
-      // 2. Date + day anywhere in the block.
-      //    FIXED: the "Sat" is followed immediately by a digit (08:00),
-      //    so we look ahead for whitespace, digit, or end-of-string
-      //    rather than requiring a word boundary.
       const dateDay = /(\d{2}\/\d{2}\/\d{4})\s*(Mon|Tue|Wed|Thu|Fri|Sat|Sun|Lun|Mar|Mer|Jeu|Ven|Sam|Dim)(?=\s|\d|$)/i.exec(blockText);
       if(!dateDay) return;
 
-      // 3. Extract the name.
       const afterNum = blockText.slice(startMatch[0].length);
       const dateIdx = afterNum.indexOf(dateDay[1]);
       let namePart = dateIdx > 0 ? afterNum.slice(0, dateIdx) : afterNum;
-
-      // Name fragments that appear AFTER the date/times
       const afterDate = afterNum.slice(dateIdx + dateDay[0].length);
       let nameTail = afterDate
         .replace(/\d{1,2}:\d{2}[GPKMSAC]/gi, ' ')
@@ -614,36 +618,28 @@ table.preview{
       fullName = stripParens(fullName);
       fullName = fullName.replace(/\s+/g, ' ').trim();
 
-      // 4. Extract time tokens with a G/P/K/M/S/A/C tag
       const times = [];
       const TIME_TAG_RE = /(\d{1,2}):(\d{2})([GPKMSAC])/gi;
       let m;
       while((m = TIME_TAG_RE.exec(blockText)) !== null){
-        times.push({
-          h: parseInt(m[1], 10),
-          min: parseInt(m[2], 10),
-          tag: m[3].toUpperCase()
-        });
+        times.push({ h: parseInt(m[1],10), min: parseInt(m[2],10), tag: m[3].toUpperCase() });
       }
 
-      // 5. Assign times: G1=clockIn, P=breakStart, G2=breakReturn, G3=clockOut
       let clockIn = null, breakStart = null, breakReturn = null, clockOut = null;
       let gSeen = 0;
       times.forEach(function(t){
         if(t.tag === 'G'){
           gSeen++;
-          if(gSeen === 1) clockIn = t.h * 60 + t.min;
-          else if(gSeen === 2) breakReturn = t.h * 60 + t.min;
-          else if(gSeen === 3) clockOut = t.h * 60 + t.min;
+          if(gSeen === 1) clockIn = t.h*60 + t.min;
+          else if(gSeen === 2) breakReturn = t.h*60 + t.min;
+          else if(gSeen === 3) clockOut = t.h*60 + t.min;
         } else if(t.tag === 'P'){
-          if(breakStart === null) breakStart = t.h * 60 + t.min;
+          if(breakStart === null) breakStart = t.h*60 + t.min;
         }
       });
 
       rows.push({
         rawNum: rawNum,
-        badgePdf: null,
-        emplNo: null,
         namePdf: fullName,
         date: dateDay[1],
         day: dateDay[2],
@@ -652,13 +648,13 @@ table.preview{
         breakReturn: breakReturn,
         clockOut: clockOut,
         match: null,
-        chosenBadge: null
+        chosenBadge: null,
+        isNew: false
       });
     });
 
-    // Debug — log how many rows we got so you can see it in the console
-    console.log('parseDailyReport: found ' + rows.length + ' rows from ' + blocks.length + ' blocks');
-    if(rows.length > 0){
+    console.log('parseDailyReport: ' + rows.length + ' rows from ' + blocks.length + ' blocks');
+    if(rows.length){
       console.log('First row:', rows[0]);
       console.log('Last row:', rows[rows.length - 1]);
     }
@@ -671,7 +667,6 @@ table.preview{
     };
   }
 
-  // Strip every balanced parenthetical group from a string, including nested.
   function stripParens(s){
     let out = '';
     let depth = 0;
@@ -683,58 +678,92 @@ table.preview{
     }
     return out;
   }
+
+  // ---------- Match against staff ----------
   function matchAgainstStaff(){
     if(!currentImport) return;
     currentImport.rows.forEach(function(row){
+      // Preserve manually chosen badge if already set
+      const chosen = row.chosenBadge || null;
+      const prevLevel = row.match ? row.match.level : null;
       row.match = resolveRow(row);
+      // If user previously chose a badge, keep it
+      if(chosen) row.chosenBadge = chosen;
     });
   }
 
-  function resolveRow(row){
-    const raw = row.rawNum;
-    // Try longest badge first: 3 digits, then 2, then 1
+  function splitBadge(raw){
+    // The PDF concatenates Bno + Empl-No. The Empl-No has 5-6 digits.
+    // Try longest badge (3) first, then 2, then 1.
     const candidates = [];
     for(let len = 3; len >= 1; len--){
       if(raw.length <= len) continue;
       const prefix = raw.slice(0, len);
       const rest = raw.slice(len);
-      if(staffByBadge[prefix]){
-        candidates.push({ badge: prefix, staff: staffByBadge[prefix], emplNo: rest });
-      }
+      // Empl-No typically 5 or 6 digits
+      if(rest.length < 5 || rest.length > 6) continue;
+      candidates.push({ badge: prefix, emplNo: rest });
     }
-    if(candidates.length === 1){
-      const c = candidates[0];
-      const nameOk = R.sameName(c.staff.name, row.namePdf);
+    return candidates;
+  }
+
+  function resolveRow(row){
+    const raw = row.rawNum;
+
+    // Try splitting and matching by staff badge
+    const splits = splitBadge(raw);
+    const matchedSplits = splits.filter(function(s){ return !!staffByBadge[s.badge]; });
+
+    if(matchedSplits.length === 1){
+      const s = matchedSplits[0];
+      const staff = staffByBadge[s.badge];
+      const nameOk = R.sameName(staff.name, row.namePdf);
       return {
-        badge: c.badge,
-        staffName: c.staff.name,
+        badge: s.badge,
+        emplNo: s.emplNo,
+        staffName: staff.name,
         level: nameOk ? 'ok' : 'warn',
-        reason: nameOk ? 'badge + nom' : 'badge seul (nom différent)'
+        reason: nameOk ? 'badge + nom' : 'badge seulement (nom différent)'
       };
     }
-    if(candidates.length > 1){
-      return {
-        badge: null,
-        staffName: null,
-        level: 'crit',
-        reason: 'plusieurs badges possibles'
-      };
+    if(matchedSplits.length > 1){
+      return { badge: null, emplNo: null, staffName: null, level: 'crit', reason: 'plusieurs badges possibles' };
     }
-    // No badge match — try name only
+
+    // No badge match — try by name
     const byName = staffList.find(function(s){ return R.sameName(s.name, row.namePdf); });
     if(byName){
+      // We know the name — but the badge from the split may be wrong.
+      // Use the staff badge as the source of truth.
       return {
         badge: String(byName.badge),
+        emplNo: null,
         staffName: byName.name,
         level: 'warn',
-        reason: 'nom seulement (badge non reconnu)'
+        reason: 'nom seulement (badge déduit)'
       };
     }
+
+    // Truly new employee — auto-create on save.
+    // Best guess for badge: the 3-digit split (or 2, or 1) that leaves
+    // a 5-6 digit Empl-No. Default to first candidate.
+    const best = splits[0]; // longest badge first
+    if(best){
+      return {
+        badge: best.badge,
+        emplNo: best.emplNo,
+        staffName: null,
+        level: 'new',
+        reason: 'nouvel employé (créé à l\'enregistrement)'
+      };
+    }
+    // Fallback: use entire raw as badge (shouldn't happen with our PDFs)
     return {
-      badge: null,
+      badge: raw,
+      emplNo: null,
       staffName: null,
-      level: 'crit',
-      reason: 'employé introuvable'
+      level: 'new',
+      reason: 'nouvel employé (badge = numéro complet)'
     };
   }
 
@@ -743,52 +772,48 @@ table.preview{
     if(!currentImport){
       $('previewWrap').style.display = 'none';
       $('emptyState').style.display = 'block';
+      $('btnNewFile').style.display = 'none';
       return;
     }
     $('previewWrap').style.display = 'block';
     $('emptyState').style.display = 'none';
+    $('btnNewFile').style.display = 'inline-flex';
 
-    // Summary
-    const dateStr = currentImport.date || '—';
-    $('sumDate').textContent = dateStr;
+    $('sumDate').textContent = currentImport.date || '—';
     const store = currentImport.store ? ('Store ' + currentImport.store) : '';
     const loc = currentImport.location || CSM.restaurantName || '';
     $('sumStore').textContent = [loc, store].filter(Boolean).join(' · ') || '—';
 
     const rows = currentImport.rows;
-    const okRows = rows.filter(function(r){ return effectiveLevel(r) === 'ok'; }).length;
+    const okRows   = rows.filter(function(r){ return effectiveLevel(r) === 'ok'; }).length;
     const warnRows = rows.filter(function(r){ return effectiveLevel(r) === 'warn'; }).length;
+    const newRows  = rows.filter(function(r){ return effectiveLevel(r) === 'new'; }).length;
     const critRows = rows.filter(function(r){ return effectiveLevel(r) === 'crit'; }).length;
 
     const stats = $('sumStats');
     stats.innerHTML =
       statBox(okRows, 'Reconnues', 'ok') +
+      (newRows ? statBox(newRows, 'Nouveaux', 'new') : '') +
       (warnRows ? statBox(warnRows, 'À vérifier', 'warn') : '') +
-      (critRows ? statBox(critRows, 'Inconnues', 'crit') : '');
+      (critRows ? statBox(critRows, 'Introuvables', 'crit') : '');
 
-    // Table
     const body = $('previewBody');
     body.innerHTML = '';
     rows.forEach(function(row, idx){
       body.appendChild(buildRow(row, idx));
     });
 
-    // Save button disabled if there are critical rows not manually resolved
-    const unresolved = rows.filter(function(r){ return !currentImportChosenBadge(r); }).length;
     const saveBtn = $('btnSaveAll');
-    saveBtn.disabled = unresolved > 0;
-    if(unresolved > 0){
-      saveBtn.textContent = '⚠ ' + unresolved + ' ligne(s) à associer';
-    } else {
-      saveBtn.textContent = '✓ Enregistrer dans la base (' + rows.length + ')';
+    saveBtn.disabled = rows.length === 0;
+    saveBtn.textContent = '✓ Enregistrer dans la base (' + rows.length + ')';
+
+    if(currentImport.savedAt){
+      saveBtn.textContent = '✓ Enregistré (' + (currentImport.savedCount || 0) + ') — réenregistrer';
     }
   }
 
   function effectiveLevel(row){
-    if(row.chosenBadge){
-      // If user manually picked, treat as OK
-      return 'ok';
-    }
+    if(row.chosenBadge) return 'ok';
     return row.match ? row.match.level : 'crit';
   }
 
@@ -810,23 +835,24 @@ table.preview{
     const level = effectiveLevel(row);
     tr.className = 'flagged-' + level;
 
+    const badgeDisplay = currentImportChosenBadge(row) || '—';
+
     const matchLabel = {
       ok:   'Reconnu',
       warn: 'À vérifier',
+      new:  'Nouveau',
       crit: 'Introuvable'
     }[level];
 
-    // Badge column — show what we detected
-    const badgeDisplay = currentImportChosenBadge(row) || '—';
-
-    // Employee column — the associated staff name, with a picker dropdown
-    const staffName = row.match && row.match.staffName ? row.match.staffName : '';
-
     let employeeCell = '';
     if(level === 'ok' && !row.chosenBadge){
-      employeeCell = '<div class="match-pill ok">✓ ' + esc(staffName || badgeDisplay) + '</div>';
+      const name = row.match && row.match.staffName ? row.match.staffName : badgeDisplay;
+      employeeCell = '<div class="match-pill ok">✓ ' + esc(name) + '</div>';
+    } else if(level === 'new' && !row.chosenBadge){
+      employeeCell =
+        '<div class="match-pill new">+ ' + esc(row.namePdf) + ' sera créé</div>' +
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + esc(row.match ? row.match.reason : '') + '</div>';
     } else {
-      // Show a picker
       const options = ['<option value="">— Choisir un employé —</option>']
         .concat(staffList.map(function(s){
           const sel = (currentImportChosenBadge(row) === String(s.badge)) ? ' selected' : '';
@@ -835,8 +861,7 @@ table.preview{
         .join('');
       employeeCell =
         '<div class="match-pill ' + level + '" style="margin-bottom:6px;">' +
-          (level === 'warn' ? '⚠ ' : '✗ ') + esc(matchLabel) +
-          (row.match && row.match.reason ? ' · ' + esc(row.match.reason) : '') +
+          esc(matchLabel) + (row.match && row.match.reason ? ' · ' + esc(row.match.reason) : '') +
         '</div>' +
         '<select class="picker" data-idx="' + idx + '">' + options + '</select>';
     }
@@ -852,13 +877,11 @@ table.preview{
       '<td class="mono center"><b>' + esc(fmtHrsFromTimes(row)) + '</b></td>' +
       '<td class="center"><button class="rowaction" data-idx="' + idx + '" data-act="ignore">Ignorer</button></td>';
 
-    // Wire picker
     const picker = tr.querySelector('.picker');
     if(picker){
       picker.addEventListener('change', function(e){
-        const chosen = e.target.value;
-        currentImport.rows[idx].chosenBadge = chosen || null;
-        persistPreview();
+        currentImport.rows[idx].chosenBadge = e.target.value || null;
+        saveCurrentImport();
         render();
       });
     }
@@ -866,7 +889,7 @@ table.preview{
     if(ignoreBtn){
       ignoreBtn.addEventListener('click', function(){
         currentImport.rows.splice(idx, 1);
-        persistPreview();
+        saveCurrentImport();
         render();
       });
     }
@@ -875,54 +898,23 @@ table.preview{
   }
 
   function fmtHrsFromTimes(row){
-    let total = 0;
-    const t = {
+    const calc = R.computeShift({
       clockIn: row.clockIn,
       breakStart: row.breakStart,
       breakReturn: row.breakReturn,
       clockOut: row.clockOut
-    };
-    const calc = R.computeShift(t);
-    total = calc.totalMinutes || 0;
-    return R.fmtHrs(total);
+    });
+    return R.fmtHrs(calc.totalMinutes || 0);
   }
 
-  // ---------- Persist preview to localStorage ----------
-  function persistPreview(){
-    try{
-      if(currentImport){
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentImport));
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    }catch(e){}
-  }
-
-  function restoreSavedPreview(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return;
-      const parsed = JSON.parse(raw);
-      if(parsed && Array.isArray(parsed.rows) && parsed.rows.length){
-        currentImport = parsed;
-        // Wait for staff load to complete before rendering match
-        const tick = setInterval(function(){
-          if(staffList.length || Object.keys(staffByBadge).length){
-            clearInterval(tick);
-            matchAgainstStaff();
-            render();
-          }
-        }, 100);
-        // Safety timeout
-        setTimeout(function(){
-          clearInterval(tick);
-          if(currentImport && !$('previewWrap').dataset.rendered){
-            matchAgainstStaff();
-            render();
-          }
-        }, 3000);
-      }
-    }catch(e){}
+  // ---------- Persist preview to Firestore ----------
+  function saveCurrentImport(){
+    if(!currentImport) return Promise.resolve();
+    const payload = Object.assign({}, currentImport);
+    delete payload._id;
+    return CSM.refs.dailyImport('current').set(payload).catch(function(err){
+      console.warn('saveCurrentImport:', err);
+    });
   }
 
   // ---------- Actions ----------
@@ -930,46 +922,83 @@ table.preview{
     $('btnClearPreview').addEventListener('click', function(){
       if(!currentImport) return;
       if(!confirm('Effacer le tableau d\'aperçu ?\n\nLes pointages déjà enregistrés dans la base ne seront pas supprimés.')) return;
-      currentImport = null;
-      persistPreview();
-      render();
-      $('savedBlock').style.display = 'none';
+      CSM.refs.dailyImport('current').delete().then(function(){
+        currentImport = null;
+        render();
+      }).catch(function(err){
+        alert('Erreur : ' + err.message);
+      });
     });
 
     $('btnSaveAll').addEventListener('click', saveAll);
-    $('btnNewImport').addEventListener('click', function(){
-      $('savedBlock').style.display = 'none';
-      currentImport = null;
-      persistPreview();
-      render();
-    });
   }
 
   async function saveAll(){
     if(!currentImport) return;
     const rows = currentImport.rows;
-    // Verify all have a badge
-    for(const row of rows){
-      if(!currentImportChosenBadge(row)){
-        alert('Certaines lignes n\'ont pas d\'employé associé. Corrigez-les avant d\'enregistrer.');
-        return;
-      }
+    if(!rows.length) return;
+
+    // Confirm creation of new employees
+    const newRows = rows.filter(function(r){ return effectiveLevel(r) === 'new'; });
+    if(newRows.length > 0){
+      const names = newRows.slice(0, 8).map(function(r){ return '• ' + r.namePdf + ' (badge ' + currentImportChosenBadge(r) + ')'; });
+      const extra = newRows.length > 8 ? '\n• … et ' + (newRows.length - 8) + ' autre(s)' : '';
+      if(!confirm(
+        newRows.length + ' nouvel/nouveaux employé(s) seront créés :\n\n' +
+        names.join('\n') + extra + '\n\n' +
+        'Ces employés pourront se connecter au portail avec leur badge.'
+      )) return;
     }
 
     const btn = $('btnSaveAll');
     btn.disabled = true;
     const originalText = btn.textContent;
     btn.textContent = 'Enregistrement…';
+    $('loadingOverlay').classList.add('show');
 
-    let saved = 0, failed = 0;
+    let saved = 0, created = 0, failed = 0;
     const errors = [];
 
     for(const row of rows){
       const badge = String(currentImportChosenBadge(row));
-      const staff = staffByBadge[badge] || { name: row.match ? row.match.staffName : '' };
-      const dateIso = toIsoDate(currentImport.date, row.date) || toIsoDate(currentImport.date, null) || R.todayKey();
+      if(!badge){ failed++; errors.push(row.namePdf + ': badge manquant'); continue; }
 
-      // Compute totalMinutes using the shared rules
+      let staff = staffByBadge[badge];
+
+      // Auto-create new staff if this is a new employee
+      if(!staff && effectiveLevel(row) === 'new'){
+        try{
+          const newStaff = {
+            badge: badge,
+            name: row.namePdf || 'Employé',
+            active: true,
+            source: 'daily-import',
+            createdAt: new Date().toISOString(),
+            photo: null
+          };
+          await CSM.refs.staff(badge).set(newStaff);
+          staff = newStaff;
+          staffByBadge[badge] = newStaff;
+          staffList.push(newStaff);
+          staffList.sort(function(a,b){
+            return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
+          });
+          created++;
+        }catch(err){
+          failed++;
+          errors.push(badge + ' (création): ' + err.message);
+          continue;
+        }
+      }
+
+      if(!staff){
+        failed++;
+        errors.push(badge + ': employé introuvable et non créable');
+        continue;
+      }
+
+      // Save the shift
+      const dateIso = toIsoDate(row.date) || toIsoDate(currentImport.date) || R.todayKey();
       const shiftData = {
         clockIn: row.clockIn,
         breakStart: row.breakStart,
@@ -979,7 +1008,6 @@ table.preview{
       const calc = R.computeShift(shiftData);
       const status = (row.clockOut !== null && row.clockOut !== undefined) ? 'closed' : 'open';
 
-      // Find an existing shift for badge+date (per Q2: overwrite silently)
       try{
         const existing = await CSM.refs.shifts()
           .where('badge', '==', badge)
@@ -1017,20 +1045,30 @@ table.preview{
 
     btn.disabled = false;
     btn.textContent = originalText;
+    $('loadingOverlay').classList.remove('show');
 
+    // Mark the current import as saved
     if(failed === 0){
-      showToast('✓ ' + saved + ' pointage(s) enregistré(s)');
-      $('savedBlock').style.display = 'block';
-      $('savedTitle').textContent = '✓ Import enregistré';
-      $('savedDesc').textContent = saved + ' pointage(s) écrit(s) dans la base pour le ' +
-        (currentImport.date || '') + '. Vous pouvez fermer cette page ou importer un autre rapport.';
+      currentImport.savedAt = new Date().toISOString();
+      currentImport.savedCount = saved;
+      await saveCurrentImport();
+      showToast('✓ ' + saved + ' pointage(s) enregistré(s)' + (created ? ' · ' + created + ' employé(s) créé(s)' : ''));
+      // Reload staff to reflect newly created
+      await loadStaff();
+      render();
     } else {
-      alert('Enregistré : ' + saved + ' — Échecs : ' + failed + '\n\n' + errors.join('\n'));
+      alert(
+        'Terminé avec des erreurs.\n\n' +
+        'Enregistrés : ' + saved + '\n' +
+        'Employés créés : ' + created + '\n' +
+        'Échecs : ' + failed + '\n\n' +
+        errors.slice(0, 10).join('\n') +
+        (errors.length > 10 ? '\n… et ' + (errors.length - 10) + ' autre(s)' : '')
+      );
     }
   }
 
-  function toIsoDate(dateStrFromHeader, dateStrFromRow){
-    const s = dateStrFromRow || dateStrFromHeader;
+  function toIsoDate(s){
     if(!s) return null;
     const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
     if(!m) return null;
@@ -1044,9 +1082,7 @@ table.preview{
     t.textContent = msg;
     t.classList.add('show');
     if(toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){
-      t.classList.remove('show');
-    }, 3000);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3500);
   }
 
   // ---------- Log ----------
