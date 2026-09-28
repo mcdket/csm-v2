@@ -219,6 +219,8 @@ tbody tr.st-done{opacity:0.55;}
         <a class="btn" href="planning.html">Planning</a>
         <a class="btn" href="staff.html">Employés</a>
         <a class="btn" href="requests.html" id="requestsBtn">Demandes <span id="requestsCount" class="pill crit" style="padding:1px 7px;font-size:10.5px;display:none;"></span></a>
+        <a class="btn" href="daily-import.html">Importer quotidien</a>
+        <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
         <button class="btn" id="btnAdd">Ajouter</button>
         <button class="btn btn-primary" id="btnPrint">Imprimer</button>
         <a class="btn" href="../employee/" target="_blank">Portail Employés ↗</a>
@@ -799,6 +801,29 @@ tbody tr.st-done{opacity:0.55;}
 
   // ---------- Print ----------
   $('btnPrint').addEventListener('click', function(){ window.print(); });
+    // ---------- Theme toggle ----------
+  (function(){
+    const K = 'csct_manager_theme';
+    function apply(){
+      let t = 'light';
+      try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
+      document.documentElement.classList.toggle('theme-light', t === 'light');
+      document.documentElement.classList.toggle('theme-dark', t === 'dark');
+      const b = document.getElementById('btnTheme');
+      if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
+    }
+    apply();
+    const btn = document.getElementById('btnTheme');
+    if(btn){
+      btn.addEventListener('click', function(){
+        let t = 'light';
+        try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
+        const next = t === 'light' ? 'dark' : 'light';
+        try{ localStorage.setItem(K, next); }catch(e){}
+        apply();
+      });
+    }
+  })();
 
 })();
 </script>
