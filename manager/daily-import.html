@@ -487,7 +487,16 @@ table.preview{
     log('Lecture du fichier "' + file.name + '"…');
     try{
       if(!window['pdfjsLib']) throw new Error('Le lecteur PDF n\'est pas chargé.');
-      const text = await extractPdfText(await file.arrayBuffer());
+            const text = await extractPdfText(await file.arrayBuffer());
+
+      // TEMP DEBUG — remove after we fix the parser
+      console.log('===== RAW PDF TEXT =====');
+      console.log(text);
+      console.log('===== END RAW PDF TEXT =====');
+      // Also show a small preview so you can screenshot it
+      log('--- Aperçu du texte extrait (premières 2000 caractères) ---');
+      log(text.slice(0, 2000));
+
       const parsed = parseDailyReport(text);
       if(!parsed.rows.length){
         throw new Error('Aucun employé détecté dans le PDF. Vérifiez le format.');
