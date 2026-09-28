@@ -177,14 +177,6 @@ h2{
   min-height:18px;
   text-align:center;
 }
-.ok-msg{
-  color:#6FD79C;
-  font-size:13px;
-  font-weight:600;
-  margin-top:12px;
-  min-height:18px;
-  text-align:center;
-}
 
 .linkbtn{
   display:block;
@@ -226,22 +218,41 @@ h2{
   opacity:.7;
 }
 
-.spinner{
-  display:inline-block;
-  width:16px;height:16px;
-  border:2px solid currentColor;
-  border-top-color:transparent;
-  border-radius:50%;
-  animation:spin .7s linear infinite;
+/* Resume session card */
+.resume-card{
+  background:linear-gradient(180deg, var(--panel-raised) 0%, var(--panel) 100%);
+  border:1px solid var(--line);
+  border-top:4px solid var(--brand-yellow);
+  padding:24px 22px;
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
 }
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* PIN dot entry: 4 boxes */
-.pin-hint{
+.resume-card .rc-label{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--brand-yellow);
+  text-align:center;
+  margin-bottom:10px;
+}
+.resume-card .rc-name{
+  font-size:22px;
+  font-weight:800;
+  text-align:center;
+  margin-bottom:4px;
+}
+.resume-card .rc-badge{
+  font-family:'IBM Plex Mono',monospace;
   font-size:12px;
   color:var(--text-muted);
   text-align:center;
-  margin-top:8px;
+  margin-bottom:20px;
+}
+.resume-card .rc-actions{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 </style>
 </head>
@@ -255,8 +266,19 @@ h2{
     <div class="sub">Contract Social Manager</div>
   </div>
 
+  <!-- ===================== STEP 0 : Resume session ===================== -->
+  <div class="card resume-card step" id="stepResume">
+    <div class="rc-label">Session enregistrée</div>
+    <div class="rc-name" id="resumeName">—</div>
+    <div class="rc-badge" id="resumeBadge">Badge —</div>
+    <div class="rc-actions">
+      <button class="btn primary" id="btnResumeContinue">Ouvrir mon espace</button>
+      <button class="btn ghost" id="btnResumeSwitch">Utiliser un autre badge</button>
+    </div>
+  </div>
+
   <!-- ===================== STEP 1 : Badge ===================== -->
-  <div class="card step active" id="stepBadge">
+  <div class="card step" id="stepBadge">
     <h2>Bonjour</h2>
     <p class="helper">
       Entrez votre numéro de badge pour accéder à votre espace personnel :
@@ -276,7 +298,6 @@ h2{
     <h2>Première connexion</h2>
     <p class="helper">
       Choisissez un code PIN à 4 chiffres. Il protégera votre espace sur ce téléphone uniquement.
-      Vous pourrez le changer plus tard.
     </p>
 
     <div class="badge-preview">
@@ -286,18 +307,18 @@ h2{
 
     <label class="field-label">Nouveau PIN (4 chiffres)</label>
     <div class="pinrow" id="pinRow1">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="0">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="1">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="2">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="3">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="0">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="1">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="2">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="3">
     </div>
 
     <label class="field-label">Confirmer le PIN</label>
     <div class="pinrow" id="pinRow2">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="0">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="1">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="2">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="3">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="0">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="1">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="2">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="3">
     </div>
 
     <div class="err" id="pinErr"></div>
@@ -308,7 +329,7 @@ h2{
   <!-- ===================== STEP 3 : Enter PIN (returning) ===================== -->
   <div class="card step" id="stepEnterPin">
     <h2>Bon retour</h2>
-    <p class="helper" id="enterPinHelper">Entrez votre code PIN à 4 chiffres.</p>
+    <p class="helper">Entrez votre code PIN à 4 chiffres.</p>
 
     <div class="badge-preview">
       <div class="name" id="enterPinName">—</div>
@@ -316,10 +337,10 @@ h2{
     </div>
 
     <div class="pinrow" id="pinRowEnter">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="0">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="1">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="2">
-      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="3">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="0">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="1">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="2">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" autocomplete="off" data-idx="3">
     </div>
 
     <div class="err" id="enterPinErr"></div>
@@ -344,41 +365,17 @@ h2{
   'use strict';
 
   const $ = function(id){ return document.getElementById(id); };
-  const R = window.CSMRules;
 
-  // Local keys — per phone, per employee
-  const PIN_KEY_PREFIX = 'csm_pin_';       // + badge → hashed PIN
-  const SESSION_KEY = 'csm_session_badge'; // badge of the currently logged-in employee
+  const PIN_KEY_PREFIX = 'csm_pin_';
+  const SESSION_KEY = 'csm_session_badge';
 
-  // ---------- Session check on load ----------
-  // If a session exists for a valid badge, redirect straight to the portal.
-  function checkExistingSession(){
-    let badge = null;
-    try{ badge = localStorage.getItem(SESSION_KEY); }catch(e){}
-    if(!badge) return false;
-    // Verify the badge still exists and is active — don't blindly trust localStorage.
-    CSM.ready.then(function(){
-      CSM.refs.staff(badge).get().then(function(doc){
-        if(doc.exists && doc.data().active !== false){
-          window.location.replace('index.html');
-        } else {
-          try{
-            localStorage.removeItem(SESSION_KEY);
-            localStorage.removeItem(PIN_KEY_PREFIX + badge);
-          }catch(e){}
-        }
-      }).catch(function(){
-        // Network failure — trust the local session and let index.html handle it
-        window.location.replace('index.html');
-      });
-    });
-    return true;
-  }
+  // ---------- State ----------
+  let pendingBadge = null;
+  let pendingStaff = null;
+  let attempts = 0;
 
-  // ---------- Simple hash (not crypto-grade, but fine for a PIN on a phone) ----------
+  // ---------- Simple hash ----------
   function hashPin(badge, pin){
-    // Mixing badge + pin prevents the same PIN from producing the same hash on
-    // two phones for two different employees.
     const s = String(badge) + ':' + String(pin) + ':csm';
     let h = 5381;
     for(let i = 0; i < s.length; i++){
@@ -387,34 +384,81 @@ h2{
     return 'h' + (h >>> 0).toString(36);
   }
 
-  // ---------- State ----------
-  let pendingBadge = null;
-  let pendingStaff = null;
-
-  // ---------- Boot ----------
-  auth.signInAnonymously().then(function(){
-    return CSM.ready;
-  }).then(function(){
-    if(!checkExistingSession()){
-      $('badgeInput').focus();
-    }
-  }).catch(function(err){
-    console.error('Auth boot:', err);
-  });
-
   // ---------- Step navigation ----------
   function showStep(id){
     document.querySelectorAll('.step').forEach(function(s){
       s.classList.toggle('active', s.id === id);
     });
-    // Focus the first input of the step
-    const firstInput = document.querySelector('#' + id + ' input');
-    if(firstInput) setTimeout(function(){ firstInput.focus(); }, 80);
+    // Only auto-focus inputs that are part of the shown step
+    const first = document.querySelector('#' + id + ' input');
+    if(first) setTimeout(function(){ try{ first.focus(); }catch(e){} }, 100);
   }
 
-  function setErr(el, msg){
-    el.textContent = msg || '';
+  function setErr(el, msg){ el.textContent = msg || ''; }
+
+  // ---------- Session check on load ----------
+  // IMPORTANT: this does NOT auto-redirect. It only offers to resume.
+  // Auto-redirecting here caused the "back from a 404" loop users saw before.
+  function checkSession(){
+    let badge = null;
+    try{ badge = localStorage.getItem(SESSION_KEY); }catch(e){}
+    if(!badge){
+      showStep('stepBadge');
+      return;
+    }
+    // Verify the badge is still valid before offering to resume
+    CSM.ready.then(function(){
+      CSM.refs.staff(badge).get().then(function(doc){
+        if(doc.exists && doc.data().active !== false){
+          const s = doc.data();
+          $('resumeName').textContent = s.name || 'Employé';
+          $('resumeBadge').textContent = 'Badge ' + badge;
+          showStep('stepResume');
+        } else {
+          // Badge removed or deactivated — clear the session
+          try{
+            localStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem(PIN_KEY_PREFIX + badge);
+          }catch(e){}
+          showStep('stepBadge');
+        }
+      }).catch(function(){
+        // Network failure — offer to resume anyway; index.html will handle it
+        $('resumeName').textContent = 'Employé';
+        $('resumeBadge').textContent = 'Badge ' + badge;
+        showStep('stepResume');
+      });
+    });
   }
+
+  // ---------- Boot ----------
+  auth.signInAnonymously().then(function(){
+    return CSM.ready;
+  }).then(function(){
+    checkSession();
+  }).catch(function(err){
+    console.error('Boot:', err);
+    showStep('stepBadge');
+  });
+
+  // ---------- STEP 0 : Resume ----------
+  $('btnResumeContinue').addEventListener('click', function(){
+    // Send to index.html — it will handle further validation.
+    window.location.replace('index.html');
+  });
+  $('btnResumeSwitch').addEventListener('click', function(){
+    let badge = null;
+    try{ badge = localStorage.getItem(SESSION_KEY); }catch(e){}
+    if(badge){
+      try{
+        localStorage.removeItem(SESSION_KEY);
+        // Intentionally KEEP the PIN so the badge can be re-used with the same PIN
+      }catch(e){}
+    }
+    $('badgeInput').value = '';
+    setErr($('badgeErr'), '');
+    showStep('stepBadge');
+  });
 
   // ---------- STEP 1 : badge entry ----------
   $('badgeInput').addEventListener('input', function(e){
@@ -437,36 +481,33 @@ h2{
       const snap = await CSM.refs.staff(badge).get();
       if(!snap.exists){
         setErr($('badgeErr'), 'Badge inconnu. Demandez à votre responsable.');
-        $('btnBadgeNext').disabled = false;
         return;
       }
       const staff = snap.data();
       if(staff.active === false){
         setErr($('badgeErr'), 'Ce badge est désactivé. Contactez votre responsable.');
-        $('btnBadgeNext').disabled = false;
         return;
       }
 
       pendingBadge = badge;
       pendingStaff = staff;
+      attempts = 0;
 
-      // Do we already have a PIN for this badge on this phone?
       let storedHash = null;
       try{ storedHash = localStorage.getItem(PIN_KEY_PREFIX + badge); }catch(e){}
 
       if(storedHash){
-        // Returning user — ask for PIN
         $('enterPinName').textContent = staff.name || 'Employé';
         $('enterPinBadge').textContent = 'Badge ' + badge;
-        $('enterPinHelper').textContent = 'Entrez votre code PIN à 4 chiffres.';
         clearPins('pinRowEnter');
+        setErr($('enterPinErr'), '');
         showStep('stepEnterPin');
       } else {
-        // First time on this phone — set a PIN
         $('setPinName').textContent = staff.name || 'Employé';
         $('setPinBadge').textContent = 'Badge ' + badge;
         clearPins('pinRow1');
         clearPins('pinRow2');
+        setErr($('pinErr'), '');
         showStep('stepSetPin');
       }
     }catch(err){
@@ -485,9 +526,9 @@ h2{
         inp.value = inp.value.replace(/\D/g, '').slice(0, 1);
         inp.classList.toggle('filled', !!inp.value);
         if(inp.value && idx < inputs.length - 1) inputs[idx + 1].focus();
-        // Auto-submit when all 4 are filled
         if([].every.call(inputs, function(i){ return i.value; })){
-          onComplete(readPin(rowId));
+          // All four filled — small delay so the last digit renders
+          setTimeout(function(){ onComplete(readPin(rowId)); }, 50);
         }
       });
       inp.addEventListener('keydown', function(e){
@@ -502,7 +543,7 @@ h2{
         if(/^\d{4}$/.test(txt)){
           e.preventDefault();
           inputs.forEach(function(x, i){ x.value = txt[i]; x.classList.add('filled'); });
-          onComplete(txt);
+          setTimeout(function(){ onComplete(txt); }, 50);
         }
       });
     });
@@ -519,13 +560,14 @@ h2{
   }
 
   // ---------- STEP 2 : set PIN ----------
-  wirePinRow('pinRow1', function(){ /* just focus next row */ setTimeout(function(){ document.querySelector('#pinRow2 input').focus(); }, 80); });
-  wirePinRow('pinRow2', function(){ /* last row done — ready to save */ });
+  wirePinRow('pinRow1', function(){ /* just focus row 2 */ setTimeout(function(){ try{ document.querySelector('#pinRow2 input').focus(); }catch(e){} }, 100); });
+  wirePinRow('pinRow2', function(){ /* ready to save */ });
 
   $('btnSetPinBack').addEventListener('click', function(){
     clearPins('pinRow1');
     clearPins('pinRow2');
     setErr($('pinErr'), '');
+    $('badgeInput').value = '';
     showStep('stepBadge');
   });
 
@@ -538,6 +580,7 @@ h2{
     if(p1.length !== 4){ setErr($('pinErr'), 'Entrez 4 chiffres.'); return; }
     if(p2.length !== 4){ setErr($('pinErr'), 'Confirmez les 4 chiffres.'); return; }
     if(p1 !== p2){ setErr($('pinErr'), 'Les deux codes ne correspondent pas.'); return; }
+    if(!pendingBadge){ setErr($('pinErr'), 'Erreur interne — recommencez.'); return; }
 
     const hash = hashPin(pendingBadge, p1);
 
@@ -559,12 +602,13 @@ h2{
     tryEnterPin(readPin('pinRowEnter'));
   });
 
-  let attempts = 0;
   function tryEnterPin(pin){
     if(pin.length !== 4){ setErr($('enterPinErr'), 'Entrez 4 chiffres.'); return; }
+    if(!pendingBadge){ setErr($('enterPinErr'), 'Rechargez la page.'); return; }
+
     let stored = null;
     try{ stored = localStorage.getItem(PIN_KEY_PREFIX + pendingBadge); }catch(e){}
-    if(!stored){ setErr($('enterPinErr'), 'Aucun PIN enregistré. Rechargez la page.'); return; }
+    if(!stored){ setErr($('enterPinErr'), 'Aucun PIN enregistré sur ce téléphone.'); return; }
 
     const candidate = hashPin(pendingBadge, pin);
     if(candidate === stored){
@@ -572,16 +616,17 @@ h2{
       window.location.replace('index.html');
     } else {
       attempts++;
-      setErr($('enterPinErr'), 'PIN incorrect.' + (attempts >= 3 ? ' Touchez « PIN oublié ? » si vous ne vous en souvenez plus.' : ''));
+      setErr($('enterPinErr'), 'PIN incorrect.' + (attempts >= 3 ? ' Touchez « PIN oublié ? » si nécessaire.' : ''));
       clearPins('pinRowEnter');
-      document.querySelector('#pinRowEnter input').focus();
+      try{ document.querySelector('#pinRowEnter input').focus(); }catch(e){}
     }
   }
 
   $('btnForgotPin').addEventListener('click', function(){
+    if(!pendingBadge) return;
     const ok = confirm(
       'Réinitialiser votre PIN ?\n\n' +
-      'Vous en définirez un nouveau à la prochaine connexion. ' +
+      'Vous en définirez un nouveau maintenant. ' +
       'Vos données (heures, plannings, demandes) ne sont pas perdues.'
     );
     if(!ok) return;
@@ -591,12 +636,17 @@ h2{
     }catch(e){}
     clearPins('pinRow1');
     clearPins('pinRow2');
+    setErr($('pinErr'), '');
+    // Show set-pin step directly, keeping pendingBadge
+    $('setPinName').textContent = (pendingStaff && pendingStaff.name) || 'Employé';
+    $('setPinBadge').textContent = 'Badge ' + pendingBadge;
     showStep('stepSetPin');
   });
 
   $('btnDifferentBadge').addEventListener('click', function(){
     pendingBadge = null;
     pendingStaff = null;
+    attempts = 0;
     $('badgeInput').value = '';
     clearPins('pinRowEnter');
     setErr($('enterPinErr'), '');
