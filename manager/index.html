@@ -402,29 +402,62 @@ tbody tr.st-done{opacity:0.55;}
       String(d.getSeconds()).padStart(2,'0');
   }
 
-  // ---------- Auth gating ----------
+   // ---------- Auth gating ----------
+  let dashboardStarted = false;
+
   auth.onAuthStateChanged(function(user){
-    if(!user){ window.location.replace('login.html'); return; }
+    if(!user){
+      window.location.replace('login.html');
+      return;
+    }
+    if(dashboardStarted) return; // don't re-run if already booted
+    dashboardStarted = true;
+
     db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
-      if(!doc.exists){ window.location.replace('login.html'); return; }
-      return CSM.ready.then(function(){
+      if(!doc.exists){
+        // Signed in but not a manager — sign out cleanly and go to login
+        auth.signOut().then(function(){
+          window.location.replace('login.html');
+        });
+        return;
+      }
+
+      // Wait for CSM.ready with an 8-second hard timeout so we never hang.
+      return Promise.race([
+        CSM.ready,
+        new Promise(function(_, reject){
+          setTimeout(function(){ reject(new Error('Timeout de chargement')); }, 8000);
+        })
+      ]).then(function(){
         if(!CSM.restaurantId){
+          // Manager doc exists but no restaurant resolved — show the
+          // config panel. Do NOT redirect (that causes the loop).
+          document.querySelector('.app').style.display = 'block';
           $('blockedState').classList.remove('hidden');
           return;
         }
+
+        // All good — show the dashboard.
+        document.querySelector('.app').style.display = 'block';
         $('app').style.display = 'block';
         $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
         $('restaurantBadge').style.display = 'inline-block';
         paintTimeMode();
         tickClock();
         setInterval(tickClock, 1000);
-        setInterval(render, 15000); // refresh statuses every 15s
+        setInterval(render, 15000);
         startLiveShifts();
         watchPendingRequests();
       });
     }).catch(function(err){
       console.error('Auth gating:', err);
-      window.location.replace('login.html');
+      // Timeout or network failure — show the config panel, don't loop.
+      document.querySelector('.app').style.display = 'block';
+      $('blockedState').classList.remove('hidden');
+      const p = $('blockedState').querySelector('p');
+      if(p) p.innerHTML =
+        'Erreur de chargement : <b>' + (err.message || err) + '</b><br><br>' +
+        'Vérifiez votre connexion et rechargez la page.';
     });
   });
 
