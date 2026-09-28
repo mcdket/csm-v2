@@ -540,7 +540,7 @@ table.preview{
   //   <Bno><Empl-No><Name>(<Role>)<Date> <Day> <Time1>[G/P] - <Time2>[G/P] - ...
   // The PDF sometimes wraps a name/role onto a second line; we join
   // continuation lines to the previous row.
-    function parseDailyReport(text){
+      function parseDailyReport(text){
     // Header info
     const dateMatch = /Date\s*(\d{2}\/\d{2}\/\d{4})/.exec(text);
     const storeMatch = /Store\s*(\d+)/.exec(text);
@@ -548,12 +548,9 @@ table.preview{
     const date = dateMatch ? dateMatch[1] : null;
 
     // Strategy: split into employee blocks by the "SUM x.xx" separator.
-    // Everything before the first SUM is the header; everything after
-    // the last SUM is the footer. Each block between SUMs is one employee.
     const lines = text.split(/\r?\n/);
     const blocks = [];
     let buffer = [];
-    let headerSeen = false;
 
     lines.forEach(function(line){
       const trimmed = line.trim();
@@ -577,58 +574,49 @@ table.preview{
           blocks.push(buffer.join(' '));
           buffer = [];
         }
-        headerSeen = true;
         return;
       }
-      if(!headerSeen) return; // only start collecting once we've passed the first SUM
       buffer.push(trimmed);
     });
+    // Catch any trailing buffer (in case the file ends without a final SUM)
+    if(buffer.length) blocks.push(buffer.join(' '));
 
     // Parse each block
     const rows = [];
     blocks.forEach(function(blockText){
-      // Block looks like:
-      //   396642 IMANE AGDOUD09/08/2025 Sat08:00G-12:59P0.004.984.98 13:51G- (Equipier)
-      // or:
-      //   1491466 YOUSSF 12:17G-0.001.981.98 LACHGUAR 09/08/2025 Sat (Form)
-      // (The extraction order isn't always clean, so we grab things by pattern.)
-
       // 1. Badge + Empl-No at the start
       const startMatch = /^(\d{5,10})\s+/.exec(blockText);
       if(!startMatch) return;
       const rawNum = startMatch[1];
 
-      // 2. Date + day anywhere in the block
-      const dateDay = /(\d{2}\/\d{2}\/\d{4})\s*(Mon|Tue|Wed|Thu|Fri|Sat|Sun|Lun|Mar|Mer|Jeu|Ven|Sam|Dim)\b/i.exec(blockText);
+      // 2. Date + day anywhere in the block.
+      //    FIXED: the "Sat" is followed immediately by a digit (08:00),
+      //    so we look ahead for whitespace, digit, or end-of-string
+      //    rather than requiring a word boundary.
+      const dateDay = /(\d{2}\/\d{2}\/\d{4})\s*(Mon|Tue|Wed|Thu|Fri|Sat|Sun|Lun|Mar|Mer|Jeu|Ven|Sam|Dim)(?=\s|\d|$)/i.exec(blockText);
       if(!dateDay) return;
 
-      // 3. Extract the name: text between the number and the date,
-      //    then remove any role in parentheses.
+      // 3. Extract the name.
       const afterNum = blockText.slice(startMatch[0].length);
       const dateIdx = afterNum.indexOf(dateDay[1]);
       let namePart = dateIdx > 0 ? afterNum.slice(0, dateIdx) : afterNum;
 
-      // Also pick up name fragments that appear AFTER the date/times
-      // (e.g. "LACHGUAR" or "SAID" wrapping to a second line).
+      // Name fragments that appear AFTER the date/times
       const afterDate = afterNum.slice(dateIdx + dateDay[0].length);
-      // Remove time tokens and everything that looks like hours (X.XX)
       let nameTail = afterDate
-        .replace(/\d{1,2}:\d{2}[GPKMSAC]/gi, ' ')   // times
-        .replace(/\d+\.\d+/g, ' ')                  // hours like 4.98
-        .replace(/[-]/g, ' ')                       // separators
-        .replace(/\((?:[^()]|\([^()]*\))*\)/g, ' ') // parenthetical roles (nested-safe)
+        .replace(/\d{1,2}:\d{2}[GPKMSAC]/gi, ' ')
+        .replace(/\d+\.\d+/g, ' ')
+        .replace(/-/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
 
-      // Combine name pieces
       let fullName = (namePart + ' ' + nameTail).replace(/\s+/g, ' ').trim();
-      // Strip the role inside parentheses with nested awareness
       fullName = stripParens(fullName);
       fullName = fullName.replace(/\s+/g, ' ').trim();
 
-      // 4. Extract all time tokens with a G/P/K/M/S/A/C tag
+      // 4. Extract time tokens with a G/P/K/M/S/A/C tag
       const times = [];
-      const TIME_TAG_RE = /(\d{1,2}):(\d{2})([GPKMSAC])\b/gi;
+      const TIME_TAG_RE = /(\d{1,2}):(\d{2})([GPKMSAC])/gi;
       let m;
       while((m = TIME_TAG_RE.exec(blockText)) !== null){
         times.push({
@@ -638,13 +626,7 @@ table.preview{
         });
       }
 
-      // 5. Assign times to slots.
-      //    For a normal single-shift day:
-      //      G1 = clockIn
-      //      P1 = breakStart
-      //      G2 = breakReturn
-      //      G3 = clockOut (if present)
-      //    If no P is present, we still treat G1 as clockIn and any later G as clockOut (rare).
+      // 5. Assign times: G1=clockIn, P=breakStart, G2=breakReturn, G3=clockOut
       let clockIn = null, breakStart = null, breakReturn = null, clockOut = null;
       let gSeen = 0;
       times.forEach(function(t){
@@ -657,9 +639,6 @@ table.preview{
           if(breakStart === null) breakStart = t.h * 60 + t.min;
         }
       });
-      // If there's only 1 G and no P, that's fine — a simple clockIn.
-      // If there's 1 G and 1 P, clockIn and breakStart, no clockOut (still on break).
-      // If there's 2 G and 1 P — clean arrival, break, return (still working).
 
       rows.push({
         rawNum: rawNum,
@@ -676,6 +655,13 @@ table.preview{
         chosenBadge: null
       });
     });
+
+    // Debug — log how many rows we got so you can see it in the console
+    console.log('parseDailyReport: found ' + rows.length + ' rows from ' + blocks.length + ' blocks');
+    if(rows.length > 0){
+      console.log('First row:', rows[0]);
+      console.log('Last row:', rows[rows.length - 1]);
+    }
 
     return {
       date: date,
