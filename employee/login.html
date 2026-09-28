@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Connexion — Mon espace</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14181D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#14181D;
+  --panel:#1B2129;
+  --panel-raised:#232B35;
+  --line:#2C333C;
+  --line-soft:#242A32;
+  --text:#F1F3F6;
+  --text-muted:#8B94A3;
+  --accent:#D9822E;
+  --accent-strong:#A85A15;
+  --brand-yellow:#F0B94A;
+  --brand-yellow-strong:#D89B2E;
+  --ok-bg:#DCEEE1; --ok-fg:#1E7A46; --ok-line:#3DAE72;
+  --crit-bg:#FBDAD3;--crit-fg:#8C2A17;--crit-line:#DA291C;
+  --shadow:0 4px 20px rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:linear-gradient(180deg, #0E1116 0%, var(--bg) 40%, #0B0E12 100%);
+  color:var(--text);
+  font-family:'Space Grotesk',-apple-system,sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  -webkit-tap-highlight-color:transparent;
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+button{font-family:inherit;cursor:pointer;border:none;}
+input{font-family:inherit;}
+
+.shell{
+  max-width:440px;
+  margin:0 auto;
+  width:100%;
+  padding:32px 22px 40px;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+
+.brand{
+  text-align:center;
+  margin-bottom:32px;
+}
+.brand .arches{
+  width:64px;height:64px;
+  border-radius:50%;
+  border:3px solid #FFF;
+  box-shadow:0 2px 10px rgba(0,0,0,0.4);
+  margin:0 auto 14px;
+  display:block;
+  object-fit:cover;
+}
+.brand h1{
+  font-size:22px;
+  font-weight:800;
+  margin:0 0 4px;
+  letter-spacing:-0.01em;
+}
+.brand .sub{
+  font-size:13px;
+  color:var(--text-muted);
+  font-weight:600;
+}
+
+.card{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  padding:26px 22px;
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+}
+
+.step{display:none;}
+.step.active{display:block;}
+
+h2{
+  font-size:19px;
+  font-weight:700;
+  margin:0 0 6px;
+}
+.helper{
+  color:var(--text-muted);
+  font-size:13.5px;
+  line-height:1.5;
+  margin:0 0 20px;
+}
+
+.field-label{
+  display:block;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  margin:0 0 8px;
+}
+
+.bignum{
+  width:100%;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:34px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-align:center;
+  padding:16px 12px;
+  background:var(--panel);
+  color:var(--text);
+  border:2px solid var(--line);
+  margin-bottom:14px;
+}
+.bignum:focus{outline:none;border-color:var(--accent);}
+
+.pinrow{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:14px;
+}
+.pinrow .pin-box{
+  width:52px;height:64px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:28px;
+  font-weight:700;
+  text-align:center;
+  background:var(--panel);
+  color:var(--text);
+  border:2px solid var(--line);
+  padding:0;
+  -webkit-text-security:disc;
+}
+.pinrow .pin-box:focus{outline:none;border-color:var(--accent);}
+.pinrow .pin-box.filled{border-color:var(--accent);}
+
+.btn{
+  width:100%;
+  padding:16px;
+  font-size:15px;
+  font-weight:800;
+  letter-spacing:0.01em;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:transform .06s ease, filter .15s ease, background .15s ease;
+  border:2px solid transparent;
+}
+.btn:active{transform:translateY(1px);}
+.btn svg{width:18px;height:18px;flex:none;}
+.btn[disabled]{opacity:.45;pointer-events:none;}
+.btn.primary{background:var(--brand-yellow);color:var(--accent-strong);border-color:var(--brand-yellow-strong);}
+.btn.primary:hover{background:var(--brand-yellow-strong);}
+.btn.ghost{background:var(--panel);color:var(--text);border-color:var(--line);}
+.btn.ghost:hover{border-color:var(--accent);}
+
+.err{
+  color:#FF8B77;
+  font-size:13px;
+  font-weight:600;
+  margin-top:12px;
+  min-height:18px;
+  text-align:center;
+}
+.ok-msg{
+  color:#6FD79C;
+  font-size:13px;
+  font-weight:600;
+  margin-top:12px;
+  min-height:18px;
+  text-align:center;
+}
+
+.linkbtn{
+  display:block;
+  background:none;
+  color:var(--text-muted);
+  font-size:13px;
+  text-decoration:underline;
+  padding:10px 0;
+  width:100%;
+  text-align:center;
+  margin-top:6px;
+}
+.linkbtn:hover{color:var(--accent);}
+
+.badge-preview{
+  text-align:center;
+  padding:14px 12px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  margin-bottom:18px;
+}
+.badge-preview .name{
+  font-size:18px;
+  font-weight:700;
+}
+.badge-preview .num{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  color:var(--text-muted);
+  margin-top:3px;
+}
+
+.footer{
+  text-align:center;
+  font-size:11px;
+  color:var(--text-muted);
+  padding:18px 0 0;
+  margin-top:auto;
+  opacity:.7;
+}
+
+.spinner{
+  display:inline-block;
+  width:16px;height:16px;
+  border:2px solid currentColor;
+  border-top-color:transparent;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* PIN dot entry: 4 boxes */
+.pin-hint{
+  font-size:12px;
+  color:var(--text-muted);
+  text-align:center;
+  margin-top:8px;
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="brand">
+    <img class="arches" src="../shared/200.webp" alt="McDonald's">
+    <h1>Mon espace</h1>
+    <div class="sub">Contract Social Manager</div>
+  </div>
+
+  <!-- ===================== STEP 1 : Badge ===================== -->
+  <div class="card step active" id="stepBadge">
+    <h2>Bonjour</h2>
+    <p class="helper">
+      Entrez votre numéro de badge pour accéder à votre espace personnel :
+      vos heures, vos plannings et vos demandes.
+    </p>
+    <label class="field-label" for="badgeInput">N° de badge</label>
+    <input class="bignum" type="text" id="badgeInput" inputmode="numeric" pattern="[0-9]*" placeholder="4021" autocomplete="off" maxlength="10">
+    <div class="err" id="badgeErr"></div>
+    <button class="btn primary" id="btnBadgeNext" style="margin-top:14px;">
+      Continuer
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+
+  <!-- ===================== STEP 2 : Set PIN (first time) ===================== -->
+  <div class="card step" id="stepSetPin">
+    <h2>Première connexion</h2>
+    <p class="helper">
+      Choisissez un code PIN à 4 chiffres. Il protégera votre espace sur ce téléphone uniquement.
+      Vous pourrez le changer plus tard.
+    </p>
+
+    <div class="badge-preview">
+      <div class="name" id="setPinName">—</div>
+      <div class="num" id="setPinBadge">Badge —</div>
+    </div>
+
+    <label class="field-label">Nouveau PIN (4 chiffres)</label>
+    <div class="pinrow" id="pinRow1">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="0">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="1">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="2">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="3">
+    </div>
+
+    <label class="field-label">Confirmer le PIN</label>
+    <div class="pinrow" id="pinRow2">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="0">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="1">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="2">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="3">
+    </div>
+
+    <div class="err" id="pinErr"></div>
+    <button class="btn primary" id="btnSavePin" style="margin-top:14px;">Créer mon espace</button>
+    <button class="linkbtn" id="btnSetPinBack">← Retour</button>
+  </div>
+
+  <!-- ===================== STEP 3 : Enter PIN (returning) ===================== -->
+  <div class="card step" id="stepEnterPin">
+    <h2>Bon retour</h2>
+    <p class="helper" id="enterPinHelper">Entrez votre code PIN à 4 chiffres.</p>
+
+    <div class="badge-preview">
+      <div class="name" id="enterPinName">—</div>
+      <div class="num" id="enterPinBadge">Badge —</div>
+    </div>
+
+    <div class="pinrow" id="pinRowEnter">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="0">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="1">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="2">
+      <input class="pin-box" type="tel" inputmode="numeric" maxlength="1" data-idx="3">
+    </div>
+
+    <div class="err" id="enterPinErr"></div>
+    <button class="btn primary" id="btnEnterPin" style="margin-top:14px;">Se connecter</button>
+    <button class="linkbtn" id="btnForgotPin">PIN oublié ?</button>
+    <button class="linkbtn" id="btnDifferentBadge">← Utiliser un autre badge</button>
+  </div>
+
+  <div class="footer">
+    Contract Social Manager — Portail Employé
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  // Local keys — per phone, per employee
+  const PIN_KEY_PREFIX = 'csm_pin_';       // + badge → hashed PIN
+  const SESSION_KEY = 'csm_session_badge'; // badge of the currently logged-in employee
+
+  // ---------- Session check on load ----------
+  // If a session exists for a valid badge, redirect straight to the portal.
+  function checkExistingSession(){
+    let badge = null;
+    try{ badge = localStorage.getItem(SESSION_KEY); }catch(e){}
+    if(!badge) return false;
+    // Verify the badge still exists and is active — don't blindly trust localStorage.
+    CSM.ready.then(function(){
+      CSM.refs.staff(badge).get().then(function(doc){
+        if(doc.exists && doc.data().active !== false){
+          window.location.replace('index.html');
+        } else {
+          try{
+            localStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem(PIN_KEY_PREFIX + badge);
+          }catch(e){}
+        }
+      }).catch(function(){
+        // Network failure — trust the local session and let index.html handle it
+        window.location.replace('index.html');
+      });
+    });
+    return true;
+  }
+
+  // ---------- Simple hash (not crypto-grade, but fine for a PIN on a phone) ----------
+  function hashPin(badge, pin){
+    // Mixing badge + pin prevents the same PIN from producing the same hash on
+    // two phones for two different employees.
+    const s = String(badge) + ':' + String(pin) + ':csm';
+    let h = 5381;
+    for(let i = 0; i < s.length; i++){
+      h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    }
+    return 'h' + (h >>> 0).toString(36);
+  }
+
+  // ---------- State ----------
+  let pendingBadge = null;
+  let pendingStaff = null;
+
+  // ---------- Boot ----------
+  auth.signInAnonymously().then(function(){
+    return CSM.ready;
+  }).then(function(){
+    if(!checkExistingSession()){
+      $('badgeInput').focus();
+    }
+  }).catch(function(err){
+    console.error('Auth boot:', err);
+  });
+
+  // ---------- Step navigation ----------
+  function showStep(id){
+    document.querySelectorAll('.step').forEach(function(s){
+      s.classList.toggle('active', s.id === id);
+    });
+    // Focus the first input of the step
+    const firstInput = document.querySelector('#' + id + ' input');
+    if(firstInput) setTimeout(function(){ firstInput.focus(); }, 80);
+  }
+
+  function setErr(el, msg){
+    el.textContent = msg || '';
+  }
+
+  // ---------- STEP 1 : badge entry ----------
+  $('badgeInput').addEventListener('input', function(e){
+    e.target.value = e.target.value.replace(/\D/g, '');
+    setErr($('badgeErr'), '');
+  });
+  $('badgeInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') $('btnBadgeNext').click();
+  });
+  $('btnBadgeNext').addEventListener('click', submitBadge);
+
+  async function submitBadge(){
+    const badge = $('badgeInput').value.trim();
+    if(!badge){ setErr($('badgeErr'), 'Entrez votre numéro de badge.'); return; }
+
+    $('btnBadgeNext').disabled = true;
+    setErr($('badgeErr'), '');
+
+    try{
+      const snap = await CSM.refs.staff(badge).get();
+      if(!snap.exists){
+        setErr($('badgeErr'), 'Badge inconnu. Demandez à votre responsable.');
+        $('btnBadgeNext').disabled = false;
+        return;
+      }
+      const staff = snap.data();
+      if(staff.active === false){
+        setErr($('badgeErr'), 'Ce badge est désactivé. Contactez votre responsable.');
+        $('btnBadgeNext').disabled = false;
+        return;
+      }
+
+      pendingBadge = badge;
+      pendingStaff = staff;
+
+      // Do we already have a PIN for this badge on this phone?
+      let storedHash = null;
+      try{ storedHash = localStorage.getItem(PIN_KEY_PREFIX + badge); }catch(e){}
+
+      if(storedHash){
+        // Returning user — ask for PIN
+        $('enterPinName').textContent = staff.name || 'Employé';
+        $('enterPinBadge').textContent = 'Badge ' + badge;
+        $('enterPinHelper').textContent = 'Entrez votre code PIN à 4 chiffres.';
+        clearPins('pinRowEnter');
+        showStep('stepEnterPin');
+      } else {
+        // First time on this phone — set a PIN
+        $('setPinName').textContent = staff.name || 'Employé';
+        $('setPinBadge').textContent = 'Badge ' + badge;
+        clearPins('pinRow1');
+        clearPins('pinRow2');
+        showStep('stepSetPin');
+      }
+    }catch(err){
+      setErr($('badgeErr'), 'Erreur de connexion : ' + err.message);
+    }finally{
+      $('btnBadgeNext').disabled = false;
+    }
+  }
+
+  // ---------- PIN input behavior ----------
+  function wirePinRow(rowId, onComplete){
+    const row = $(rowId);
+    const inputs = row.querySelectorAll('input');
+    inputs.forEach(function(inp, idx){
+      inp.addEventListener('input', function(){
+        inp.value = inp.value.replace(/\D/g, '').slice(0, 1);
+        inp.classList.toggle('filled', !!inp.value);
+        if(inp.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+        // Auto-submit when all 4 are filled
+        if([].every.call(inputs, function(i){ return i.value; })){
+          onComplete(readPin(rowId));
+        }
+      });
+      inp.addEventListener('keydown', function(e){
+        if(e.key === 'Backspace' && !inp.value && idx > 0){
+          inputs[idx - 1].focus();
+          inputs[idx - 1].value = '';
+          inputs[idx - 1].classList.remove('filled');
+        }
+      });
+      inp.addEventListener('paste', function(e){
+        const txt = (e.clipboardData || window.clipboardData).getData('text');
+        if(/^\d{4}$/.test(txt)){
+          e.preventDefault();
+          inputs.forEach(function(x, i){ x.value = txt[i]; x.classList.add('filled'); });
+          onComplete(txt);
+        }
+      });
+    });
+  }
+
+  function readPin(rowId){
+    return [].map.call($(rowId).querySelectorAll('input'), function(i){ return i.value; }).join('');
+  }
+  function clearPins(rowId){
+    $(rowId).querySelectorAll('input').forEach(function(i){
+      i.value = '';
+      i.classList.remove('filled');
+    });
+  }
+
+  // ---------- STEP 2 : set PIN ----------
+  wirePinRow('pinRow1', function(){ /* just focus next row */ setTimeout(function(){ document.querySelector('#pinRow2 input').focus(); }, 80); });
+  wirePinRow('pinRow2', function(){ /* last row done — ready to save */ });
+
+  $('btnSetPinBack').addEventListener('click', function(){
+    clearPins('pinRow1');
+    clearPins('pinRow2');
+    setErr($('pinErr'), '');
+    showStep('stepBadge');
+  });
+
+  $('btnSavePin').addEventListener('click', savePin);
+
+  function savePin(){
+    const p1 = readPin('pinRow1');
+    const p2 = readPin('pinRow2');
+
+    if(p1.length !== 4){ setErr($('pinErr'), 'Entrez 4 chiffres.'); return; }
+    if(p2.length !== 4){ setErr($('pinErr'), 'Confirmez les 4 chiffres.'); return; }
+    if(p1 !== p2){ setErr($('pinErr'), 'Les deux codes ne correspondent pas.'); return; }
+
+    const hash = hashPin(pendingBadge, p1);
+
+    try{
+      localStorage.setItem(PIN_KEY_PREFIX + pendingBadge, hash);
+      localStorage.setItem(SESSION_KEY, pendingBadge);
+    }catch(e){
+      setErr($('pinErr'), 'Impossible d\'enregistrer sur ce téléphone.');
+      return;
+    }
+
+    window.location.replace('index.html');
+  }
+
+  // ---------- STEP 3 : enter PIN ----------
+  wirePinRow('pinRowEnter', function(pin){ tryEnterPin(pin); });
+
+  $('btnEnterPin').addEventListener('click', function(){
+    tryEnterPin(readPin('pinRowEnter'));
+  });
+
+  let attempts = 0;
+  function tryEnterPin(pin){
+    if(pin.length !== 4){ setErr($('enterPinErr'), 'Entrez 4 chiffres.'); return; }
+    let stored = null;
+    try{ stored = localStorage.getItem(PIN_KEY_PREFIX + pendingBadge); }catch(e){}
+    if(!stored){ setErr($('enterPinErr'), 'Aucun PIN enregistré. Rechargez la page.'); return; }
+
+    const candidate = hashPin(pendingBadge, pin);
+    if(candidate === stored){
+      try{ localStorage.setItem(SESSION_KEY, pendingBadge); }catch(e){}
+      window.location.replace('index.html');
+    } else {
+      attempts++;
+      setErr($('enterPinErr'), 'PIN incorrect.' + (attempts >= 3 ? ' Touchez « PIN oublié ? » si vous ne vous en souvenez plus.' : ''));
+      clearPins('pinRowEnter');
+      document.querySelector('#pinRowEnter input').focus();
+    }
+  }
+
+  $('btnForgotPin').addEventListener('click', function(){
+    const ok = confirm(
+      'Réinitialiser votre PIN ?\n\n' +
+      'Vous en définirez un nouveau à la prochaine connexion. ' +
+      'Vos données (heures, plannings, demandes) ne sont pas perdues.'
+    );
+    if(!ok) return;
+    try{
+      localStorage.removeItem(PIN_KEY_PREFIX + pendingBadge);
+      localStorage.removeItem(SESSION_KEY);
+    }catch(e){}
+    clearPins('pinRow1');
+    clearPins('pinRow2');
+    showStep('stepSetPin');
+  });
+
+  $('btnDifferentBadge').addEventListener('click', function(){
+    pendingBadge = null;
+    pendingStaff = null;
+    $('badgeInput').value = '';
+    clearPins('pinRowEnter');
+    setErr($('enterPinErr'), '');
+    showStep('stepBadge');
+  });
+
+})();
+</script>
+</body>
+</html>
