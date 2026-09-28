@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fr" class="theme-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demandes — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#C9701F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<style>
+.app{max-width:1100px;margin:0 auto;padding:20px 20px 60px;}
+
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;
+  background:var(--panel-raised);
+  border-bottom:3px solid var(--accent);
+  box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
+  padding:16px 20px;
+  margin-bottom:18px;
+}
+.brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.brand .arch{
+  width:34px;height:34px;object-fit:cover;border-radius:50%;
+  border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);
+}
+.brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
+.brand .restaurant-badge{
+  color:#2A1F00;font-size:12px;font-weight:700;
+  background:var(--brand-yellow);padding:4px 10px;
+}
+.controls{display:flex;gap:8px;flex-wrap:wrap;}
+
+.tabs{
+  display:flex;gap:0;margin-bottom:20px;
+  border-bottom:2px solid var(--line);
+}
+.tab{
+  background:none;border:none;
+  padding:12px 20px;font-size:14px;font-weight:600;
+  color:var(--text-muted);cursor:pointer;
+  border-bottom:3px solid transparent;
+  margin-bottom:-2px;
+  display:flex;align-items:center;gap:8px;
+}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab .count{
+  background:var(--accent);color:#FFF;
+  font-size:11px;font-weight:700;
+  min-width:20px;height:20px;padding:0 6px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.tab .count:empty{display:none;}
+
+.filter-bar{
+  display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;
+  align-items:center;
+}
+.filter-btn{
+  border:1px solid var(--line);background:var(--panel);
+  color:var(--text-muted);padding:6px 14px;
+  font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .15s ease;
+}
+.filter-btn:hover{border-color:var(--accent);color:var(--text);}
+.filter-btn.active{background:var(--accent);color:#FFF;border-color:var(--accent);}
+
+.reqlist{display:flex;flex-direction:column;gap:12px;}
+.reqcard{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  border-left:5px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:16px 18px;
+}
+.reqcard.pending{border-left-color:var(--status-warn-line);}
+.reqcard.approved{border-left-color:var(--status-ok-line);opacity:0.85;}
+.reqcard.rejected{border-left-color:var(--status-crit-line);opacity:0.7;}
+
+.reqhead{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  gap:12px;flex-wrap:wrap;margin-bottom:10px;
+}
+.reqwho{font-size:15px;font-weight:700;}
+.reqbadge{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;
+  color:var(--text-muted);margin-top:2px;
+}
+.reqwhen{
+  font-size:11.5px;color:var(--text-muted);
+  font-family:'IBM Plex Mono',monospace;
+}
+.reqstatus{
+  font-size:11px;font-weight:700;letter-spacing:0.03em;
+  padding:4px 10px;
+  text-transform:uppercase;
+}
+.reqstatus.pending{background:var(--status-warn-bg);color:var(--status-warn-fg);}
+.reqstatus.approved{background:var(--status-ok-bg);color:var(--status-ok-fg);}
+.reqstatus.rejected{background:var(--status-crit-bg);color:var(--status-crit-fg);}
+
+.reqbody{
+  display:flex;flex-direction:column;gap:6px;
+  margin:10px 0 14px;font-size:13.5px;
+}
+.reqline{display:flex;gap:10px;align-items:baseline;}
+.reqline .lbl{
+  color:var(--text-muted);font-weight:600;
+  min-width:110px;font-size:12.5px;
+  text-transform:uppercase;letter-spacing:0.02em;
+}
+.reqline .val{color:var(--text);}
+.reqline .val.mono{font-family:'IBM Plex Mono',monospace;}
+
+.reqreason{
+  margin:10px 0;
+  padding:10px 12px;
+  background:var(--panel);
+  border-left:3px solid var(--line);
+  font-size:13px;line-height:1.5;
+  color:var(--text);
+  font-style:italic;
+  white-space:pre-wrap;
+}
+
+.reqactions{
+  display:flex;gap:8px;flex-wrap:wrap;
+  padding-top:12px;border-top:1px solid var(--line-soft);
+}
+.reqactions .btn{padding:9px 16px;font-size:13px;}
+.reqactions .btn-approve{
+  background:var(--status-ok-line);border-color:var(--status-ok-line);color:#FFF;
+}
+.reqactions .btn-approve:hover{filter:brightness(0.93);}
+.reqactions .btn-reject{
+  background:transparent;border-color:var(--status-crit-line);color:var(--status-crit-fg);
+}
+.reqactions .btn-reject:hover{background:var(--status-crit-bg);}
+
+.emptystate{
+  text-align:center;padding:70px 20px;
+  color:var(--text-muted);font-size:14px;
+  background:var(--panel);border:1px dashed var(--line);
+}
+.emptystate b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
+
+@media (max-width:640px){
+  .header{flex-direction:column;align-items:stretch;}
+  .controls{justify-content:stretch;}
+  .controls .btn{flex:1;justify-content:center;}
+  .reqline{flex-direction:column;gap:2px;}
+  .reqline .lbl{min-width:0;}
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app" style="display:none;">
+
+  <div class="header">
+    <div class="brand">
+      <img class="arch" src="../shared/200.webp" alt="McDonald's">
+      <h1>Demandes</h1>
+      <span class="restaurant-badge" id="restaurantBadge" style="display:none;"></span>
+    </div>
+    <div class="controls">
+      <a class="btn" href="index.html">← Tableau de bord</a>
+      <a class="btn" href="planning.html">Planning</a>
+      <a class="btn" href="staff.html">Employés</a>
+      <button class="btn" id="btnLogout">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="leave">Congés <span class="count" id="countLeave"></span></button>
+    <button class="tab" data-tab="corrections">Corrections <span class="count" id="countCorrections"></span></button>
+  </div>
+
+  <!-- Leave tab -->
+  <div id="paneLeave">
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="pending" data-pane="leave">En attente</button>
+      <button class="filter-btn" data-filter="all" data-pane="leave">Toutes</button>
+    </div>
+    <div class="reqlist" id="leaveList"></div>
+    <div class="emptystate hidden" id="leaveEmpty"></div>
+  </div>
+
+  <!-- Corrections tab -->
+  <div id="paneCorrections" class="hidden">
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="pending" data-pane="corrections">En attente</button>
+      <button class="filter-btn" data-filter="all" data-pane="corrections">Toutes</button>
+    </div>
+    <div class="reqlist" id="correctionsList"></div>
+    <div class="emptystate hidden" id="correctionsEmpty"></div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  let leaveReqs = [];
+  let corrections = [];
+  let unsubLeave = null;
+  let unsubCorrections = null;
+  let currentTab = 'leave';
+  let filterLeave = 'pending';
+  let filterCorrections = 'pending';
+
+  // ---------- Auth gating ----------
+  let started = false;
+  auth.onAuthStateChanged(function(user){
+    if(!user){ window.location.replace('login.html'); return; }
+    if(started) return;
+    started = true;
+
+    db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+      if(!doc.exists){
+        auth.signOut().then(function(){ window.location.replace('login.html'); });
+        return;
+      }
+      return Promise.race([
+        CSM.ready,
+        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
+      ]).then(function(){
+        document.querySelector('.app').style.display = 'block';
+        $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
+        $('restaurantBadge').style.display = 'inline-block';
+        startListeners();
+        wireTabs();
+        wireFilters();
+      });
+    }).catch(function(err){
+      console.error('Auth gating:', err);
+      alert('Erreur de chargement : ' + err.message);
+    });
+  });
+
+  $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
+
+  // ---------- Listeners ----------
+  function startListeners(){
+    unsubLeave = CSM.refs.leaveReqs()
+      .orderBy('requestedAt', 'desc')
+      .onSnapshot(function(snap){
+        leaveReqs = snap.docs.map(function(d){
+          return Object.assign({ _id: d.id }, d.data());
+        });
+        renderLeave();
+        updateCounts();
+      }, function(err){ console.error('leaveReqs:', err); });
+
+    unsubCorrections = CSM.refs.corrections()
+      .orderBy('requestedAt', 'desc')
+      .onSnapshot(function(snap){
+        corrections = snap.docs.map(function(d){
+          return Object.assign({ _id: d.id }, d.data());
+        });
+        renderCorrections();
+        updateCounts();
+      }, function(err){ console.error('corrections:', err); });
+  }
+
+  function updateCounts(){
+    const pendingLeave = leaveReqs.filter(function(r){ return r.status === 'pending'; }).length;
+    const pendingCorr  = corrections.filter(function(r){ return r.status === 'pending'; }).length;
+    const cl = $('countLeave'), cc = $('countCorrections');
+    cl.textContent = pendingLeave > 0 ? String(pendingLeave) : '';
+    cc.textContent = pendingCorr  > 0 ? String(pendingCorr)  : '';
+  }
+
+  // ---------- Tabs ----------
+  function wireTabs(){
+    document.querySelectorAll('.tab').forEach(function(t){
+      t.addEventListener('click', function(){
+        currentTab = t.dataset.tab;
+        document.querySelectorAll('.tab').forEach(function(x){
+          x.classList.toggle('active', x === t);
+        });
+        $('paneLeave').classList.toggle('hidden', currentTab !== 'leave');
+        $('paneCorrections').classList.toggle('hidden', currentTab !== 'corrections');
+      });
+    });
+  }
+
+  function wireFilters(){
+    document.querySelectorAll('.filter-btn').forEach(function(b){
+      b.addEventListener('click', function(){
+        const pane = b.dataset.pane;
+        const filter = b.dataset.filter;
+        document.querySelectorAll('.filter-btn[data-pane="'+pane+'"]').forEach(function(x){
+          x.classList.toggle('active', x === b);
+        });
+        if(pane === 'leave'){ filterLeave = filter; renderLeave(); }
+        else                { filterCorrections = filter; renderCorrections(); }
+      });
+    });
+  }
+
+  // ---------- Leave rendering ----------
+  function renderLeave(){
+    const list = $('leaveList');
+    const empty = $('leaveEmpty');
+    list.innerHTML = '';
+
+    let arr = leaveReqs.slice();
+    if(filterLeave === 'pending'){
+      arr = arr.filter(function(r){ return r.status === 'pending'; });
+    }
+
+    if(arr.length === 0){
+      empty.classList.remove('hidden');
+      if(filterLeave === 'pending'){
+        empty.innerHTML = '<b>Aucune demande de congé en attente</b>Les nouvelles demandes envoyées par les employés apparaîtront ici.';
+      } else {
+        empty.innerHTML = '<b>Aucune demande de congé</b>Les employés n\'ont encore rien soumis.';
+      }
+      return;
+    }
+    empty.classList.add('hidden');
+
+    arr.forEach(function(r){
+      list.appendChild(buildLeaveCard(r));
+    });
+  }
+
+  function buildLeaveCard(r){
+    const card = document.createElement('div');
+    card.className = 'reqcard ' + (r.status || 'pending');
+
+    const who = (r.name || 'Employé') + ' · Badge ' + (r.badge || '—');
+    const statusLabel = ({
+      pending:  'En attente',
+      approved: 'Approuvée',
+      rejected: 'Refusée'
+    })[r.status] || r.status;
+
+    const typeLabel = ({
+      vacation: 'Congé payé',
+      sick:     'Maladie',
+      personal: 'Personnel',
+      other:    'Autre'
+    })[r.type] || r.type;
+
+    const when = formatRelative(r.requestedAt);
+
+    let days = '—';
+    if(r.fromDate && r.toDate){
+      const d1 = new Date(r.fromDate + 'T00:00:00Z');
+      const d2 = new Date(r.toDate   + 'T00:00:00Z');
+      const n = Math.round((d2 - d1) / 86400000) + 1;
+      days = n + (n > 1 ? ' jours' : ' jour');
+    }
+
+    let html = '';
+    html += '<div class="reqhead">';
+    html +=   '<div>';
+    html +=     '<div class="reqwho">' + esc(r.name || 'Employé') + '</div>';
+    html +=     '<div class="reqbadge">Badge ' + esc(r.badge || '—') + '</div>';
+    html +=   '</div>';
+    html +=   '<div style="text-align:right">';
+    html +=     '<span class="reqstatus ' + r.status + '">' + statusLabel + '</span>';
+    html +=     '<div class="reqwhen" style="margin-top:4px">' + when + '</div>';
+    html +=   '</div>';
+    html += '</div>';
+
+    html += '<div class="reqbody">';
+    html +=   '<div class="reqline"><span class="lbl">Type</span><span class="val">' + esc(typeLabel) + '</span></div>';
+    html +=   '<div class="reqline"><span class="lbl">Du</span><span class="val mono">' + esc(r.fromDate || '—') + '</span></div>';
+    html +=   '<div class="reqline"><span class="lbl">Au</span><span class="val mono">' + esc(r.toDate || '—') + '</span></div>';
+    html +=   '<div class="reqline"><span class="lbl">Durée</span><span class="val">' + days + '</span></div>';
+    html += '</div>';
+
+    if(r.reason){
+      html += '<div class="reqreason">« ' + esc(r.reason) + ' »</div>';
+    }
+
+    if(r.status === 'pending'){
+      html += '<div class="reqactions">';
+      html +=   '<button class="btn btn-approve" data-act="approve" data-id="' + esc(r._id) + '">Approuver</button>';
+      html +=   '<button class="btn btn-reject"  data-act="reject"  data-id="' + esc(r._id) + '">Refuser</button>';
+      html += '</div>';
+    }
+
+    card.innerHTML = html;
+
+    card.querySelectorAll('[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        decideLeave(b.dataset.id, b.dataset.act === 'approve' ? 'approved' : 'rejected');
+      });
+    });
+
+    return card;
+  }
+
+  // ---------- Corrections rendering ----------
+  function renderCorrections(){
+    const list = $('correctionsList');
+    const empty = $('correctionsEmpty');
+    list.innerHTML = '';
+
+    let arr = corrections.slice();
+    if(filterCorrections === 'pending'){
+      arr = arr.filter(function(r){ return r.status === 'pending'; });
+    }
+
+    if(arr.length === 0){
+      empty.classList.remove('hidden');
+      if(filterCorrections === 'pending'){
+        empty.innerHTML = '<b>Aucune correction en attente</b>Les demandes de correction envoyées par les employés apparaîtront ici.';
+      } else {
+        empty.innerHTML = '<b>Aucune correction</b>Les employés n\'ont encore rien signalé.';
+      }
+      return;
+    }
+    empty.classList.add('hidden');
+
+    arr.forEach(function(r){
+      list.appendChild(buildCorrectionCard(r));
+    });
+  }
+
+  function buildCorrectionCard(r){
+    const card = document.createElement('div');
+    card.className = 'reqcard ' + (r.status || 'pending');
+
+    const statusLabel = ({
+      pending:  'En attente',
+      approved: 'Appliquée',
+      rejected: 'Refusée'
+    })[r.status] || r.status;
+
+    const fieldLabel = ({
+      clockIn:     'Entrée',
+      breakStart:  'Début de pause',
+      breakReturn: 'Retour de pause',
+      clockOut:    'Sortie'
+    })[r.field] || r.field;
+
+    const when = formatRelative(r.requestedAt);
+
+    let html = '';
+    html += '<div class="reqhead">';
+    html +=   '<div>';
+    html +=     '<div class="reqwho">' + esc(r.name || 'Employé') + '</div>';
+    html +=     '<div class="reqbadge">Badge ' + esc(r.badge || '—') + '</div>';
+    html +=   '</div>';
+    html +=   '<div style="text-align:right">';
+    html +=     '<span class="reqstatus ' + r.status + '">' + statusLabel + '</span>';
+    html +=     '<div class="reqwhen" style="margin-top:4px">' + when + '</div>';
+    html +=   '</div>';
+    html += '</div>';
+
+    html += '<div class="reqbody">';
+    html +=   '<div class="reqline"><span class="lbl">Date</span><span class="val mono">' + esc(r.date || '—') + '</span></div>';
+    html +=   '<div class="reqline"><span class="lbl">Champ</span><span class="val">' + esc(fieldLabel) + '</span></div>';
+    html +=   '<div class="reqline"><span class="lbl">Valeur demandée</span><span class="val mono">' + esc(r.requestedValue || '—') + '</span></div>';
+    html += '</div>';
+
+    if(r.reason){
+      html += '<div class="reqreason">« ' + esc(r.reason) + ' »</div>';
+    }
+
+    if(r.status === 'pending'){
+      html += '<div class="reqactions">';
+      html +=   '<button class="btn btn-approve" data-act="approve" data-id="' + esc(r._id) + '">Appliquer</button>';
+      html +=   '<button class="btn btn-reject"  data-act="reject"  data-id="' + esc(r._id) + '">Refuser</button>';
+      html += '</div>';
+    }
+
+    card.innerHTML = html;
+
+    card.querySelectorAll('[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        decideCorrection(b.dataset.id, b.dataset.act === 'approve');
+      });
+    });
+
+    return card;
+  }
+
+  // ---------- Decisions ----------
+  function decideLeave(requestId, newStatus){
+    const req = leaveReqs.find(function(r){ return r._id === requestId; });
+    if(!req) return;
+    const verb = newStatus === 'approved' ? 'approuver' : 'refuser';
+    if(!confirm('Voulez-vous ' + verb + ' cette demande ?')) return;
+
+    CSM.refs.leaveReqs().doc(requestId).update({
+      status: newStatus,
+      decidedAt: new Date().toISOString(),
+      decidedBy: auth.currentUser ? auth.currentUser.uid : null
+    }).then(function(){
+      writeAudit('leave.' + newStatus, requestId, {
+        badge: req.badge,
+        fromDate: req.fromDate,
+        toDate: req.toDate
+      });
+    }).catch(function(err){
+      alert('Erreur : ' + err.message);
+    });
+  }
+
+  async function decideCorrection(requestId, apply){
+    const req = corrections.find(function(r){ return r._id === requestId; });
+    if(!req) return;
+
+    if(!apply){
+      if(!confirm('Refuser cette correction ?')) return;
+      CSM.refs.corrections().doc(requestId).update({
+        status: 'rejected',
+        decidedAt: new Date().toISOString(),
+        decidedBy: auth.currentUser ? auth.currentUser.uid : null
+      }).catch(function(err){ alert('Erreur : ' + err.message); });
+      return;
+    }
+
+    if(!confirm('Appliquer cette correction au pointage ?')) return;
+
+    // Find the matching shift doc
+    const badge = String(req.badge || '');
+    const date  = req.date;
+    if(!badge || !date){ alert('Données manquantes dans la demande.'); return; }
+
+    try{
+      const snap = await CSM.refs.shifts()
+        .where('badge', '==', badge)
+        .where('date', '==', date)
+        .limit(1).get();
+
+      if(snap.empty){
+        alert('Aucun pointage trouvé pour ce badge à cette date. Impossible d\'appliquer automatiquement.');
+        return;
+      }
+      const shiftDoc = snap.docs[0];
+      const before = shiftDoc.data();
+
+      const newVal = R.hmToMin(req.requestedValue);
+      if(newVal === null){ alert('Valeur invalide : ' + req.requestedValue); return; }
+
+      const patch = {};
+      patch[req.field] = newVal;
+      // Recompute total
+      const merged = Object.assign({}, before, patch);
+      patch.totalMinutes = R.computeShift(merged).totalMinutes;
+      patch.updatedAt = new Date().toISOString();
+
+      await shiftDoc.ref.update(patch);
+
+      await CSM.refs.corrections().doc(requestId).update({
+        status: 'approved',
+        decidedAt: new Date().toISOString(),
+        decidedBy: auth.currentUser ? auth.currentUser.uid : null,
+        appliedTo: shiftDoc.id
+      });
+
+      writeAudit('correction.applied', shiftDoc.id, {
+        badge: badge,
+        date: date,
+        field: req.field,
+        before: before[req.field],
+        after: newVal
+      });
+
+    }catch(err){
+      console.error('decideCorrection:', err);
+      alert('Erreur : ' + err.message);
+    }
+  }
+
+  function writeAudit(action, targetId, details){
+    CSM.refs.auditLog().add({
+      actor: auth.currentUser ? auth.currentUser.uid : 'unknown',
+      action: action,
+      target: targetId,
+      details: details || {},
+      at: new Date().toISOString()
+    }).catch(function(err){ console.warn('auditLog:', err); });
+  }
+
+  // ---------- Helpers ----------
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatRelative(iso){
+    if(!iso) return '';
+    try{
+      const then = new Date(iso).getTime();
+      const now = Date.now();
+      const diff = Math.floor((now - then) / 1000);
+      if(diff < 60) return 'il y a ' + diff + 's';
+      if(diff < 3600) return 'il y a ' + Math.floor(diff/60) + ' min';
+      if(diff < 86400) return 'il y a ' + Math.floor(diff/3600) + 'h';
+      if(diff < 604800) return 'il y a ' + Math.floor(diff/86400) + 'j';
+      const d = new Date(iso);
+      return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+    }catch(e){ return ''; }
+  }
+
+})();
+</script>
+</body>
+</html>
