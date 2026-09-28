@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="fr" class="theme-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employés — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#C9701F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<style>
+.app{max-width:1100px;margin:0 auto;padding:20px 20px 60px;}
+
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;
+  background:var(--panel-raised);
+  border-bottom:3px solid var(--accent);
+  box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
+  padding:16px 20px;
+  margin-bottom:18px;
+}
+.brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.brand .arch{
+  width:34px;height:34px;object-fit:cover;border-radius:50%;
+  border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);
+}
+.brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
+.brand .restaurant-badge{
+  color:#2A1F00;font-size:12px;font-weight:700;
+  background:var(--brand-yellow);padding:4px 10px;
+}
+.controls{display:flex;gap:8px;flex-wrap:wrap;}
+
+.toolbar{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;flex-wrap:wrap;margin-bottom:14px;
+}
+.search-box{
+  display:flex;align-items:center;background:var(--panel-raised);
+  border:1px solid var(--line);padding:6px 12px;flex:1;max-width:340px;
+}
+.search-box svg{width:14px;height:14px;color:var(--text-muted);margin-right:6px;flex:none;}
+.search-box input{border:none;background:transparent;color:var(--text);font-size:13px;width:100%;outline:none;}
+
+.stafflist{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  gap:12px;
+}
+.staffcard{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  border-left:4px solid var(--accent);
+  box-shadow:var(--shadow);
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  transition:transform .1s ease;
+}
+.staffcard:hover{transform:translateY(-1px);}
+.staffcard.inactive{
+  opacity:0.5;
+  border-left-color:var(--line);
+}
+.staffcard .avatar{
+  width:52px;height:52px;
+  object-fit:cover;
+  border-radius:50%;
+  border:2px solid var(--line);
+  background:var(--panel);
+  flex-shrink:0;
+}
+.staffcard .avatar-fallback{
+  width:52px;height:52px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--accent);color:#FFF;
+  font-size:20px;font-weight:700;
+  border-radius:50%;
+  border:2px solid var(--line);
+  flex-shrink:0;
+}
+.staffcard .info{flex:1;min-width:0;}
+.staffcard .name{font-size:15px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.staffcard .badge{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;
+  color:var(--text-muted);margin-top:3px;
+}
+.staffcard .actions{
+  display:flex;flex-direction:column;gap:4px;
+}
+.staffcard .actions button{
+  background:transparent;border:1px solid var(--line);
+  color:var(--text-muted);padding:5px 10px;
+  font-size:11px;font-weight:600;cursor:pointer;
+}
+.staffcard .actions button:hover{border-color:var(--accent);color:var(--accent);}
+.staffcard .actions button.danger:hover{border-color:var(--status-crit-line);color:var(--status-crit-fg);}
+
+.empty{
+  text-align:center;padding:60px 20px;color:var(--text-muted);
+  background:var(--panel);border:1px dashed var(--line);font-size:14px;
+}
+.empty b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
+
+.modalbg{
+  position:fixed;inset:0;background:rgba(10,12,10,0.5);
+  display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+}
+.modalbg.show{display:flex;}
+.modal{
+  background:var(--panel-raised);border:1px solid var(--line);
+  width:100%;max-width:440px;padding:22px;box-shadow:var(--shadow);
+}
+.modal h3{margin:0 0 6px;font-size:17px;}
+.modal .sub{font-size:12.5px;color:var(--text-muted);margin-bottom:16px;line-height:1.45;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;}
+.field input{
+  width:100%;padding:10px 12px;border:1.5px solid var(--line);
+  background:var(--panel);color:var(--text);font-size:14px;
+}
+.field input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.field .hint{font-size:11px;color:var(--text-muted);margin-top:5px;}
+.modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+
+.stat-line{
+  display:flex;justify-content:space-between;
+  padding:8px 0;font-size:13px;
+  border-bottom:1px solid var(--line-soft);
+}
+.stat-line .lbl{color:var(--text-muted);}
+.stat-line .v{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+
+@media (max-width:640px){
+  .header{flex-direction:column;align-items:stretch;}
+  .controls{justify-content:stretch;}
+  .controls .btn{flex:1;justify-content:center;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .search-box{max-width:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app" style="display:none;">
+
+  <div class="header">
+    <div class="brand">
+      <img class="arch" src="../shared/200.webp" alt="McDonald's">
+      <h1>Employés</h1>
+      <span class="restaurant-badge" id="restaurantBadge" style="display:none;"></span>
+    </div>
+    <div class="controls">
+      <a class="btn" href="index.html">← Tableau de bord</a>
+      <a class="btn" href="planning.html">Planning</a>
+      <a class="btn" href="requests.html">Demandes</a>
+      <button class="btn btn-primary" id="btnAdd">+ Ajouter un employé</button>
+      <button class="btn" id="btnLogout">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Rechercher par nom ou badge…">
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="filter-btn btn" data-show="active" id="btnShowActive">Actifs uniquement</button>
+      <button class="filter-btn btn" data-show="all" id="btnShowAll">Tous</button>
+    </div>
+  </div>
+
+  <div class="stafflist" id="staffList"></div>
+  <div class="empty hidden" id="emptyState">
+    <b>Aucun employé pour le moment</b>
+    Cliquez sur « Ajouter un employé » pour créer le premier profil.
+  </div>
+
+</div>
+
+<div class="modalbg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Ajouter un employé</h3>
+    <div class="sub" id="modalSub">Créez un profil. L'employé pourra compléter sa photo depuis le portail employé.</div>
+
+    <div class="field">
+      <label>N° de badge</label>
+      <input type="text" id="fBadge" inputmode="numeric" placeholder="4021" autocomplete="off">
+      <div class="hint" id="badgeHint">Identifiant unique. Ne peut pas être changé après création.</div>
+    </div>
+
+    <div class="field">
+      <label>Nom & Prénom</label>
+      <input type="text" id="fName" placeholder="Karim Benali" autocomplete="off">
+      <div class="hint">Doit correspondre au nom utilisé dans le planning PDF pour la détection automatique des retards.</div>
+    </div>
+
+    <div class="modalactions">
+      <button class="btn" id="btnCancel">Annuler</button>
+      <button class="btn btn-primary" id="btnSave">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  let staff = [];
+  let unsubscribeStaff = null;
+  let currentQuery = '';
+  let currentShow = 'active';
+  let editingBadge = null;
+
+  // ---------- Auth gating ----------
+  let started = false;
+  auth.onAuthStateChanged(function(user){
+    if(!user){ window.location.replace('login.html'); return; }
+    if(started) return;
+    started = true;
+
+    db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+      if(!doc.exists){
+        auth.signOut().then(function(){ window.location.replace('login.html'); });
+        return;
+      }
+      return Promise.race([
+        CSM.ready,
+        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
+      ]).then(function(){
+        document.querySelector('.app').style.display = 'block';
+        $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
+        $('restaurantBadge').style.display = 'inline-block';
+        startLiveStaff();
+        document.querySelectorAll('.filter-btn').forEach(function(b){
+          b.addEventListener('click', function(){
+            currentShow = b.dataset.show;
+            updateFilterButtons();
+            render();
+          });
+        });
+        updateFilterButtons();
+      });
+    }).catch(function(err){
+      console.error('Auth gating:', err);
+      alert('Erreur de chargement : ' + err.message);
+    });
+  });
+
+  $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
+
+  function updateFilterButtons(){
+    document.querySelectorAll('.filter-btn').forEach(function(b){
+      const isActive = b.dataset.show === currentShow;
+      b.classList.toggle('btn-primary', isActive);
+      b.classList.toggle('btn', !isActive);
+    });
+  }
+
+  // ---------- Live staff ----------
+  function startLiveStaff(){
+    unsubscribeStaff = CSM.refs.staffColl()
+      .onSnapshot(function(snap){
+        staff = snap.docs.map(function(d){
+          return Object.assign({ _docId: d.id }, d.data());
+        });
+        render();
+      }, function(err){
+        console.error('Live staff:', err);
+        alert('Erreur de chargement des employés : ' + err.message);
+      });
+  }
+
+  // ---------- Rendering ----------
+  function render(){
+    const list = $('staffList');
+    const empty = $('emptyState');
+    list.innerHTML = '';
+
+    let filtered = staff.slice();
+
+    if(currentShow === 'active'){
+      filtered = filtered.filter(function(s){ return s.active !== false; });
+    }
+
+    if(currentQuery.trim()){
+      const q = currentQuery.toLowerCase();
+      filtered = filtered.filter(function(s){
+        return (s.name || '').toLowerCase().includes(q)
+            || String(s.badge || '').toLowerCase().includes(q);
+      });
+    }
+
+    filtered.sort(function(a,b){
+      return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
+    });
+
+    if(filtered.length === 0){
+      empty.classList.remove('hidden');
+      if(currentQuery.trim()){
+        empty.innerHTML = '<b>Aucun résultat</b>Aucun employé ne correspond à « ' + escapeHtml(currentQuery) + ' ».';
+      } else if(currentShow === 'active'){
+        empty.innerHTML = '<b>Aucun employé actif</b>Cliquez sur « Tous » pour voir aussi les employés désactivés, ou ajoutez-en un nouveau.';
+      } else {
+        empty.innerHTML = '<b>Aucun employé pour le moment</b>Cliquez sur « Ajouter un employé » pour créer le premier profil.';
+      }
+      return;
+    }
+    empty.classList.add('hidden');
+
+    filtered.forEach(function(s){
+      const card = document.createElement('div');
+      card.className = 'staffcard' + (s.active === false ? ' inactive' : '');
+
+      const initial = ((s.name || '?').trim().charAt(0) || '?').toUpperCase();
+      const avatarHtml = s.photo
+        ? '<img class="avatar" src="' + escapeAttr(s.photo) + '" alt="">'
+        : '<div class="avatar-fallback">' + escapeHtml(initial) + '</div>';
+
+      card.innerHTML =
+        avatarHtml +
+        '<div class="info">' +
+          '<div class="name">' + (escapeHtml(s.name) || '<span style="color:var(--text-muted)">Sans nom</span>') + '</div>' +
+          '<div class="badge">Badge ' + escapeHtml(String(s.badge || '—')) +
+            (s.active === false ? ' · <span style="color:var(--status-crit-fg)">désactivé</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="actions">' +
+          '<button data-act="edit"   data-badge="' + escapeAttr(String(s.badge)) + '">Modifier</button>' +
+          '<button data-act="toggle" data-badge="' + escapeAttr(String(s.badge)) + '" class="' + (s.active === false ? '' : 'danger') + '">' +
+            (s.active === false ? 'Réactiver' : 'Désactiver') +
+          '</button>' +
+        '</div>';
+      list.appendChild(card);
+    });
+
+    document.querySelectorAll('.actions button').forEach(function(b){
+      b.addEventListener('click', function(){
+        const act = b.dataset.act;
+        const badge = b.dataset.badge;
+        if(act === 'edit')   openEditModal(badge);
+        else if(act === 'toggle') toggleActive(badge);
+      });
+    });
+  }
+
+  // ---------- Modal ----------
+  const modalBg = $('modalBg');
+
+  function openAddModal(){
+    editingBadge = null;
+    $('modalTitle').textContent = 'Ajouter un employé';
+    $('modalSub').textContent = "Créez un profil. L'employé pourra compléter sa photo depuis le portail employé.";
+    $('fBadge').value = '';
+    $('fBadge').disabled = false;
+    $('fName').value = '';
+    $('badgeHint').style.display = 'block';
+    modalBg.classList.add('show');
+    setTimeout(function(){ $('fBadge').focus(); }, 50);
+  }
+
+  function openEditModal(badge){
+    const s = staff.find(function(x){ return String(x.badge) === String(badge); });
+    if(!s) return;
+    editingBadge = badge;
+    $('modalTitle').textContent = 'Modifier le profil';
+    $('modalSub').textContent = 'Corrigez le nom ci-dessous. Le badge ne peut pas être modifié.';
+    $('fBadge').value = s.badge || badge;
+    $('fBadge').disabled = true;
+    $('fName').value = s.name || '';
+    $('badgeHint').style.display = 'none';
+    modalBg.classList.add('show');
+    setTimeout(function(){ $('fName').focus(); }, 50);
+  }
+
+  function closeModal(){
+    modalBg.classList.remove('show');
+    editingBadge = null;
+    $('fBadge').disabled = false;
+  }
+
+  $('btnAdd').addEventListener('click', openAddModal);
+  $('btnCancel').addEventListener('click', closeModal);
+  modalBg.addEventListener('click', function(e){ if(e.target === modalBg) closeModal(); });
+
+  $('btnSave').addEventListener('click', function(){
+    const badge = $('fBadge').value.trim();
+    const name  = $('fName').value.trim();
+
+    if(!badge){ alert('Le numéro de badge est requis.'); return; }
+    if(!name){  alert('Le nom est requis.'); return; }
+    if(!/^[0-9A-Za-z_-]{1,20}$/.test(badge)){
+      alert('Le badge doit contenir uniquement des chiffres, lettres, tirets ou underscores (max 20).');
+      return;
+    }
+
+    const btn = $('btnSave');
+    btn.disabled = true;
+
+    if(editingBadge){
+      // Update existing
+      CSM.refs.staff(editingBadge).update({
+        name: name,
+        updatedAt: new Date().toISOString()
+      }).then(function(){
+        btn.disabled = false;
+        closeModal();
+      }).catch(function(err){
+        btn.disabled = false;
+        alert('Erreur : ' + err.message);
+      });
+    } else {
+      // Create new — verify the badge doesn't already exist
+      CSM.refs.staff(badge).get().then(function(doc){
+        if(doc.exists){
+          throw new Error('Un employé avec ce badge existe déjà.');
+        }
+        return CSM.refs.staff(badge).set({
+          badge: badge,
+          name: name,
+          active: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          source: 'manual'
+        });
+      }).then(function(){
+        btn.disabled = false;
+        closeModal();
+      }).catch(function(err){
+        btn.disabled = false;
+        alert('Erreur : ' + err.message);
+      });
+    }
+  });
+
+  // ---------- Toggle active ----------
+  function toggleActive(badge){
+    const s = staff.find(function(x){ return String(x.badge) === String(badge); });
+    if(!s) return;
+    const willDeactivate = s.active !== false;
+    if(willDeactivate){
+      const ok = confirm(
+        'Désactiver ' + (s.name || badge) + ' ?\n\n' +
+        "L'employé ne pourra plus pointer, et disparaîtra des vues actives. " +
+        "Son historique de pointages est conservé et le profil peut être réactivé à tout moment."
+      );
+      if(!ok) return;
+    }
+    CSM.refs.staff(badge).update({
+      active: !willDeactivate,
+      updatedAt: new Date().toISOString()
+    }).catch(function(err){
+      alert('Erreur : ' + err.message);
+    });
+  }
+
+  // ---------- Search ----------
+  $('searchInput').addEventListener('input', function(e){
+    currentQuery = e.target.value;
+    render();
+  });
+
+  // ---------- Escape helpers ----------
+  function escapeHtml(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  function escapeAttr(s){ return escapeHtml(s); }
+
+})();
+</script>
+</body>
+</html>
