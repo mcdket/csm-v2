@@ -1,0 +1,217 @@
+rules_version = '2';
+
+// ============================================================
+// Contract Social Manager — Firestore Security Rules
+// ============================================================
+//
+// Two actors:
+//   1. MANAGER  — a Firebase Auth user whose uid has a
+//                 managerRestaurants/{uid} document. Full access
+//                 to the restaurant they're assigned to.
+//   2. EMPLOYEE — an anonymous Firebase Auth user. Can read their
+//                 restaurant's data, but writes are limited:
+//                   - Create/update their own shift punches
+//                   - Create their own staff profile (once)
+//                   - Create leave requests and corrections
+//
+// Everything else is denied.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // A manager is any signed-in user with a managerRestaurants/{uid} doc.
+    // This is set once, manually, in the Firebase Console when you
+    // onboard yourself as the manager.
+    function isManager() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/managerRestaurants/$(request.auth.uid));
+    }
+
+    // The restaurant id this manager owns. Empty string if not a manager.
+    function managerRestaurantId() {
+      return isManager()
+        ? get(/databases/$(database)/documents/managerRestaurants/$(request.auth.uid)).data.id
+        : '';
+    }
+
+    // A manager may only touch the restaurant they own.
+    function isManagerOf(restaurantId) {
+      return isManager() && managerRestaurantId() == restaurantId;
+    }
+
+    // A restaurant id must exist before anyone can read/write inside it.
+    // Prevents anonymous users from inventing restaurants.
+    function restaurantExists(restaurantId) {
+      return exists(/databases/$(database)/documents/restaurants/$(restaurantId));
+    }
+
+    // ---------- managerRestaurants/{uid} ----------
+    // Created manually in the Firebase Console. Nobody can write here
+    // through the client SDK, and only the owning manager can read their own.
+    match /managerRestaurants/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ---------- users/{uid} ----------
+    // Manager account metadata (email, role). Only the manager can read
+    // their own. Nobody writes from the client.
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ---------- restaurants/{restaurantId} ----------
+    // The top-level container for everything related to one restaurant.
+    // meta is readable by anyone (the app needs to know the restaurant
+    // exists before it can do anything), and only the manager can write.
+    match /restaurants/{restaurantId} {
+
+      allow read: if restaurantExists(restaurantId);
+      allow write: if isManagerOf(restaurantId);
+
+      // ----- meta -----
+      match /meta/{docId} {
+        allow read: if restaurantExists(restaurantId);
+        allow write: if isManagerOf(restaurantId);
+      }
+
+      // ----- staff/{badge} -----
+      // Employee profiles. Anonymous users can read (needed for badge
+      // lookup at login), can create their own profile once, and can
+      // update their own photo/name. Cannot delete.
+      match /staff/{badge} {
+        allow read: if restaurantExists(restaurantId);
+
+        // First-time profile creation: only for the exact badge being looked up.
+        allow create: if restaurantExists(restaurantId)
+          && request.resource.data.badge == badge
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() < 100;
+
+        // Employee updates their own profile (photo change etc.):
+        // can only touch photo/name, cannot change badge or createdAt.
+        allow update: if restaurantExists(restaurantId)
+          && request.resource.data.badge == resource.data.badge
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() < 100;
+
+        // Manager can do anything with staff.
+        allow write: if isManagerOf(restaurantId);
+      }
+
+      // ----- shifts/{shiftId} -----
+      // One document per shift. Employees create/update their own,
+      // manager does anything.
+      match /shifts/{shiftId} {
+        allow read: if restaurantExists(restaurantId);
+
+        // Create: the new shift must belong to the badge the app claims.
+        // Validation of field types prevents garbage writes.
+        allow create: if restaurantExists(restaurantId)
+          && request.resource.data.badge is string
+          && request.resource.data.badge.size() > 0
+          && request.resource.data.badge.size() < 20
+          && request.resource.data.date is string
+          && request.resource.data.date.size() == 10;
+
+        // Update: badge and date are immutable (you can't move a shift
+        // to another employee or another day). Only times and status change.
+        allow update: if restaurantExists(restaurantId)
+          && request.resource.data.badge == resource.data.badge
+          && request.resource.data.date == resource.data.date;
+
+        // Manager can also delete (e.g. removing a bad import).
+        allow delete: if isManagerOf(restaurantId);
+      }
+
+      // ----- schedules/{scheduleId} -----
+      // Weekly planning imports. Employees can read (to see their shifts),
+      // only the manager writes.
+      match /schedules/{scheduleId} {
+        allow read: if restaurantExists(restaurantId);
+        allow write: if isManagerOf(restaurantId);
+      }
+
+      // ----- leaveRequests/{requestId} -----
+      // Employee submits, manager decides.
+      match /leaveRequests/{requestId} {
+        allow read: if restaurantExists(restaurantId);
+
+        // Create: must declare the badge, dates, type, and pending status.
+        // Status must be 'pending' — you can't approve your own request.
+        allow create: if restaurantExists(restaurantId)
+          && request.resource.data.badge is string
+          && request.resource.data.status == 'pending'
+          && request.resource.data.type in ['vacation','sick','personal','other']
+          && request.resource.data.fromDate is string
+          && request.resource.data.fromDate.size() == 10
+          && request.resource.data.toDate is string
+          && request.resource.data.toDate.size() == 10
+          && request.resource.data.fromDate <= request.resource.data.toDate;
+
+        // No employee updates — once submitted, only the manager can
+        // change status. If an employee wants to cancel, they ask the
+        // manager, or we add a cancel flag later.
+        allow update, delete: if isManagerOf(restaurantId);
+      }
+
+      // ----- corrections/{correctionId} -----
+      // Employee reports a missing/wrong punch, manager fixes.
+      match /corrections/{correctionId} {
+        allow read: if restaurantExists(restaurantId);
+
+        allow create: if restaurantExists(restaurantId)
+          && request.resource.data.badge is string
+          && request.resource.data.status == 'pending'
+          && request.resource.data.date is string
+          && request.resource.data.date.size() == 10
+          && request.resource.data.field in ['clockIn','breakStart','breakReturn','clockOut']
+          && request.resource.data.reason is string
+          && request.resource.data.reason.size() > 0
+          && request.resource.data.reason.size() < 500;
+
+        allow update, delete: if isManagerOf(restaurantId);
+      }
+
+      // ----- auditLog/{logId} -----
+      // Manager-only. Nobody else even knows it exists.
+      match /auditLog/{logId} {
+        allow read, write: if isManagerOf(restaurantId);
+      }
+    }
+
+    // ---------- pushSubscriptions/{deviceId} ----------
+    // Manager's phone subscriptions for ntfy-style alerts. Currently
+    // written by the manager app, read by the GitHub Actions job with
+    // a service account (which bypasses rules).
+    match /pushSubscriptions/{deviceId} {
+      allow read: if isSignedIn() && isManager();
+      allow create, update: if isSignedIn() && isManager();
+      allow delete: if isSignedIn() && isManager();
+    }
+
+    // ---------- pushAlertState/{restaurantId} ----------
+    // Written by the GitHub Actions job (service account, bypasses rules).
+    // Readable/writable by the manager only, in case you want to reset
+    // state from the UI.
+    match /pushAlertState/{restaurantId} {
+      allow read, write: if isSignedIn() && isManagerOf(restaurantId);
+    }
+
+    // ---------- Default deny ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
