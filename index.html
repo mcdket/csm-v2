@@ -18,7 +18,229 @@
   --panel:#1B2129;
   --panel-raised:#232B35;
   --line:#2C333C;
+  --line-soft:#242A32;
   --text:#F1F3F6;
   --text-muted:#8B94A3;
   --accent:#D9822E;
-  --ok-line:#3DA
+  --accent-strong:#A85A15;
+  --brand-yellow:#F0B94A;
+  --ok-line:#3DAE72;
+  --brk-line:#3D8EE8;
+  --gold:#E3C25E;
+  --shadow:0 6px 28px rgba(0,0,0,0.45);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(217,130,46,0.12) 0%, transparent 60%),
+    linear-gradient(180deg, #0E1116 0%, var(--bg) 40%, #080A0D 100%);
+  color:var(--text);
+  font-family:'Space Grotesk',-apple-system,sans-serif;
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:32px 22px;
+}
+a{color:inherit;text-decoration:none;}
+
+.brand{
+  text-align:center;
+  margin-bottom:36px;
+}
+.brand .arches{
+  width:88px;height:88px;
+  border-radius:50%;
+  border:4px solid #FFF;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);
+  margin:0 auto 18px;
+  display:block;
+  object-fit:cover;
+}
+.brand h1{
+  font-size:26px;
+  font-weight:800;
+  margin:0 0 6px;
+  letter-spacing:-0.01em;
+}
+.brand .sub{
+  font-size:13px;
+  color:var(--text-muted);
+  font-weight:600;
+  letter-spacing:.02em;
+}
+
+.cardwrap{
+  width:100%;
+  max-width:420px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.door{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  border-left:6px solid var(--accent);
+  box-shadow:var(--shadow);
+  padding:20px 20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  transition:transform .12s ease, border-color .15s ease, background .15s ease;
+}
+.door:hover{
+  transform:translateY(-2px);
+  background:var(--panel);
+}
+.door:active{transform:translateY(0);}
+.door .icon{
+  width:52px;height:52px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(217,130,46,0.14);
+  color:var(--accent);
+  border:1px solid rgba(217,130,46,0.35);
+}
+.door .icon svg{width:26px;height:26px;}
+.door .label{
+  flex:1;min-width:0;
+}
+.door .label .title{
+  font-size:16.5px;
+  font-weight:800;
+  line-height:1.2;
+}
+.door .label .desc{
+  font-size:12.5px;
+  color:var(--text-muted);
+  margin-top:4px;
+  line-height:1.4;
+}
+.door .arrow{
+  color:var(--text-muted);
+  flex:none;
+  transition:transform .15s ease, color .15s ease;
+}
+.door:hover .arrow{
+  transform:translateX(4px);
+  color:var(--accent);
+}
+.door .arrow svg{width:20px;height:20px;}
+
+.door.manager{
+  border-left-color:var(--gold);
+}
+.door.manager .icon{
+  background:rgba(227,194,94,0.14);
+  color:var(--gold);
+  border-color:rgba(227,194,94,0.35);
+}
+.door.punch{
+  border-left-color:var(--ok-line);
+}
+.door.punch .icon{
+  background:rgba(61,174,114,0.14);
+  color:var(--ok-line);
+  border-color:rgba(61,174,114,0.35);
+}
+.door.employee{
+  border-left-color:var(--brk-line);
+}
+.door.employee .icon{
+  background:rgba(61,142,232,0.14);
+  color:var(--brk-line);
+  border-color:rgba(61,142,232,0.35);
+}
+
+.footnote{
+  margin-top:32px;
+  text-align:center;
+  font-size:11px;
+  color:var(--text-muted);
+  opacity:.7;
+  line-height:1.6;
+}
+.footnote b{
+  color:var(--text);
+  font-weight:600;
+}
+
+@media (max-width:400px){
+  .brand .arches{width:72px;height:72px;}
+  .brand h1{font-size:22px;}
+  .door{padding:16px 16px;}
+  .door .icon{width:46px;height:46px;}
+  .door .label .title{font-size:15px;}
+}
+</style>
+</head>
+<body>
+
+<div class="brand">
+  <img class="arches" src="shared/200.webp" alt="McDonald's">
+  <h1>Contract Social Manager</h1>
+  <div class="sub">Agadir · Ketia</div>
+</div>
+
+<div class="cardwrap">
+
+  <a class="door manager" href="manager/">
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+    <div class="label">
+      <div class="title">Je suis responsable</div>
+      <div class="desc">Tableau de bord · Planning · Demandes</div>
+    </div>
+    <div class="arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </a>
+
+  <a class="door punch" href="employee/punch.html">
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+    </div>
+    <div class="label">
+      <div class="title">Pointage</div>
+      <div class="desc">Tablette du restaurant · Entrer mon badge</div>
+    </div>
+    <div class="arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </a>
+
+  <a class="door employee" href="employee/">
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="17" rx="2"/>
+        <path d="M8 2v4M16 2v4M3 10h18"/>
+      </svg>
+    </div>
+    <div class="label">
+      <div class="title">Mon espace</div>
+      <div class="desc">Mes heures · Mes plannings · Mes demandes</div>
+    </div>
+    <div class="arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </a>
+
+</div>
+
+<div class="footnote">
+  Les employés utilisent <b>Pointage</b> sur la tablette.<br>
+  Sur leur téléphone, ils utilisent <b>Mon espace</b>.
+</div>
+
+</body>
+</html>
