@@ -33,64 +33,23 @@
   box-shadow:0 20px 50px rgba(0,0,0,.30);
 }
 .login-card .login-arch{
-  width:64px;
-  height:64px;
-  object-fit:cover;
-  display:block;
-  margin:0 auto 10px;
-  border-radius:50%;
+  width:64px;height:64px;object-fit:cover;display:block;
+  margin:0 auto 10px;border-radius:50%;
   border:3px solid #FFFFFF;
   box-shadow:0 2px 8px rgba(0,0,0,0.15);
 }
-.login-card h1{
-  margin:0;
-  font-size:22px;
-  color:#1E2A38;
-  text-align:center;
-}
-.login-sub{
-  margin:-6px 0 4px;
-  font-size:13px;
-  color:#64748B;
-  text-align:center;
-}
-.login-card label{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  font-size:12px;
-  font-weight:600;
-  color:#64748B;
-}
+.login-card h1{margin:0;font-size:22px;color:#1E2A38;text-align:center;}
+.login-sub{margin:-6px 0 4px;font-size:13px;color:#64748B;text-align:center;}
+.login-card label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#64748B;}
 .login-card input{
-  font:inherit;
-  font-size:16px;
-  padding:11px 12px;
-  border:1.5px solid #E3E8EE;
-  background:#FFFFFF;
-  color:#1E2A38;
+  font:inherit;font-size:16px;padding:11px 12px;
+  border:1.5px solid #E3E8EE;background:#FFFFFF;color:#1E2A38;
 }
-.login-card input:focus{
-  outline:2px solid #C9701F;
-  outline-offset:1px;
-}
-.login-card .btn{
-  justify-content:center;
-  padding:13px;
-  font-size:15px;
-}
-.login-card .linkbtn{
-  align-self:center;
-  color:#64748B;
-}
-.login-error{
-  min-height:18px;
-  font-size:13px;
-  color:#B3261E;
-}
-.login-info{
-  color:#2E7D32;
-}
+.login-card input:focus{outline:2px solid #C9701F;outline-offset:1px;}
+.login-card .btn{justify-content:center;padding:13px;font-size:15px;}
+.login-card .linkbtn{align-self:center;color:#64748B;}
+.login-error{min-height:18px;font-size:13px;color:#B3261E;}
+.login-info{color:#2E7D32;}
 </style>
 </head>
 <body>
@@ -171,14 +130,13 @@
     setMessage('');
     btn.disabled = true;
 
-    // IMPORTANT: wait for auth persistence to be applied before signing in.
+    // Wait for auth persistence to be applied before signing in.
     // Otherwise the session is lost on the next navigation.
     CSM.authReady
       .then(function(){
         return auth.signInWithEmailAndPassword(email, pass);
       })
       .then(function(cred){
-        // Double-check that this user is actually a manager.
         return db.collection('managerRestaurants').doc(cred.user.uid).get()
           .then(function(doc){
             if(!doc.exists){
