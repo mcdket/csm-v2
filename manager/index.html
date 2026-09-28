@@ -223,6 +223,7 @@ tbody tr.st-done{opacity:0.55;}
         <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
         <button class="btn" id="btnAdd">Ajouter</button>
         <button class="btn btn-primary" id="btnPrint">Imprimer</button>
+        <button class="btn btn-danger" id="btnClearDay">Vider le tableau</button>
         <a class="btn" href="../employee/" target="_blank">Portail Employés ↗</a>
         <button class="btn" id="btnLogout">Déconnexion</button>
       </div>
@@ -801,6 +802,47 @@ tbody tr.st-done{opacity:0.55;}
 
   // ---------- Print ----------
   $('btnPrint').addEventListener('click', function(){ window.print(); });
+    // ---------- Clear today's shifts ----------
+  $('btnClearDay').addEventListener('click', async function(){
+    if(shifts.length === 0){
+      alert('Le tableau est déjà vide.');
+      return;
+    }
+    const n = shifts.length;
+    const ok = confirm(
+      'Effacer tous les pointages du jour ?\n\n' +
+      n + ' pointage(s) seront supprimés pour aujourd\'hui (' + R.todayKey() + ').\n\n' +
+      'Les profils employés, plannings, demandes et corrections sont conservés.\n' +
+      'Les pointages des jours précédents ne sont pas touchés.\n\n' +
+      'Cette action est irréversible.'
+    );
+    if(!ok) return;
+
+    const btn = $('btnClearDay');
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Suppression…';
+
+    let deleted = 0, failed = 0;
+    for(const s of shifts){
+      try{
+        await CSM.refs.shift(s.id).delete();
+        deleted++;
+      }catch(err){
+        failed++;
+        console.error('delete shift', s.id, err);
+      }
+    }
+
+    btn.disabled = false;
+    btn.textContent = originalText;
+
+    if(failed === 0){
+      alert('✓ ' + deleted + ' pointage(s) supprimé(s).');
+    } else {
+      alert('Supprimés : ' + deleted + '\nÉchecs : ' + failed + '\n\n' + 'Vérifiez la console pour les détails.');
+    }
+  });
     // ---------- Theme toggle ----------
   (function(){
     const K = 'csct_manager_theme';
