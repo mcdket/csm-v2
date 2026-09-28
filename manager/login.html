@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr" class="theme-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#C9701F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<style>
+.login-shell{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:linear-gradient(150deg, #10141A 0%, #1B2129 50%, #0B0E12 100%);
+}
+.login-card{
+  width:100%;
+  max-width:380px;
+  background:#FFFFFF;
+  border-top:6px solid #C9A227;
+  padding:30px 26px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  box-shadow:0 20px 50px rgba(0,0,0,.30);
+}
+.login-card .login-arch{
+  width:64px;
+  height:64px;
+  object-fit:cover;
+  display:block;
+  margin:0 auto 10px;
+  border-radius:50%;
+  border:3px solid #FFFFFF;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+.login-card h1{
+  margin:0;
+  font-size:22px;
+  color:#1E2A38;
+  text-align:center;
+}
+.login-sub{
+  margin:-6px 0 4px;
+  font-size:13px;
+  color:#64748B;
+  text-align:center;
+}
+.login-card label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:12px;
+  font-weight:600;
+  color:#64748B;
+}
+.login-card input{
+  font:inherit;
+  font-size:16px;
+  padding:11px 12px;
+  border:1.5px solid #E3E8EE;
+  background:#FFFFFF;
+  color:#1E2A38;
+}
+.login-card input:focus{
+  outline:2px solid #C9701F;
+  outline-offset:1px;
+}
+.login-card .btn{
+  justify-content:center;
+  padding:13px;
+  font-size:15px;
+}
+.login-card .linkbtn{
+  align-self:center;
+  color:#64748B;
+}
+.login-error{
+  min-height:18px;
+  font-size:13px;
+  color:#B3261E;
+}
+.login-info{
+  color:#2E7D32;
+}
+</style>
+</head>
+<body>
+
+<div class="login-shell">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <img class="login-arch" src="../shared/200.webp" alt="McDonald's">
+    <h1>Contract Social Manager</h1>
+    <p class="login-sub">Connexion réservée au responsable</p>
+
+    <label>Email
+      <input type="email" id="loginEmail" name="email" autocomplete="username" required>
+    </label>
+    <label>Mot de passe
+      <input type="password" id="loginPass" name="password" autocomplete="current-password" required>
+    </label>
+
+    <div class="login-error" id="loginError" role="alert"></div>
+
+    <button type="submit" class="btn btn-primary" id="loginBtn">Se connecter</button>
+    <button type="button" class="linkbtn" id="loginReset">Mot de passe oublié ?</button>
+  </form>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+
+  function setMessage(text, isInfo){
+    const el = $('loginError');
+    el.textContent = text || '';
+    el.classList.toggle('login-info', !!isInfo);
+  }
+
+  function errorText(err){
+    switch(err && err.code){
+      case 'auth/invalid-credential':
+      case 'auth/wrong-password':
+      case 'auth/user-not-found':    return 'Email ou mot de passe incorrect.';
+      case 'auth/invalid-email':     return 'Adresse email invalide.';
+      case 'auth/user-disabled':     return 'Ce compte est désactivé.';
+      case 'auth/too-many-requests': return 'Trop de tentatives. Réessayez dans quelques minutes.';
+      case 'auth/network-request-failed': return 'Pas de connexion internet.';
+      default: return 'Connexion impossible. Réessayez.';
+    }
+  }
+
+  // If already signed in as a manager, go straight to the dashboard.
+  auth.onAuthStateChanged(function(user){
+    if(user){
+      // Verify they're actually a manager (has a managerRestaurants/{uid} doc).
+      db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+        if(doc.exists){
+          window.location.replace('index.html');
+        } else {
+          // Signed in but not a manager — sign them out to avoid confusion.
+          auth.signOut();
+          setMessage("Ce compte n'est pas autorisé à accéder au portail responsable.");
+        }
+      }).catch(function(){
+        window.location.replace('index.html');
+      });
+    }
+  });
+
+  $('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const email = $('loginEmail').value.trim();
+    const pass  = $('loginPass').value;
+    const btn   = $('loginBtn');
+    setMessage('');
+    btn.disabled = true;
+
+    auth.signInWithEmailAndPassword(email, pass)
+      .then(function(cred){
+        return db.collection('managerRestaurants').doc(cred.user.uid).get();
+      })
+      .then(function(doc){
+        if(!doc.exists){
+          return auth.signOut().then(function(){
+            throw new Error('NOT_A_MANAGER');
+          });
+        }
+        $('loginPass').value = '';
+        // onAuthStateChanged will redirect; but do it here too for immediacy.
+        window.location.replace('index.html');
+      })
+      .catch(function(err){
+        if(err && err.message === 'NOT_A_MANAGER'){
+          setMessage("Ce compte n'est pas autorisé à accéder au portail responsable.");
+        } else {
+          setMessage(errorText(err));
+        }
+      })
+      .then(function(){ btn.disabled = false; });
+  });
+
+  $('loginReset').addEventListener('click', function(){
+    const email = $('loginEmail').value.trim();
+    if(!email){
+      setMessage("Entrez votre email ci-dessus, puis cliquez sur « Mot de passe oublié ? ».");
+      return;
+    }
+    auth.sendPasswordResetEmail(email)
+      .then(function(){
+        setMessage("Si ce compte existe, un email de réinitialisation vient d'être envoyé.", true);
+      })
+      .catch(function(err){ setMessage(errorText(err)); });
+  });
+
+})();
+</script>
+</body>
+</html>
