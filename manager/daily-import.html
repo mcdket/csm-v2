@@ -540,126 +540,140 @@ table.preview{
   //   <Bno><Empl-No><Name>(<Role>)<Date> <Day> <Time1>[G/P] - <Time2>[G/P] - ...
   // The PDF sometimes wraps a name/role onto a second line; we join
   // continuation lines to the previous row.
-  function parseDailyReport(text){
-    // Extract header info
-    const dateMatch = /Date\s+(\d{2}\/\d{2}\/\d{4})/.exec(text);
-    const storeMatch = /Store\s+(\d+)/.exec(text);
-    const locationMatch = /\n\s*([A-Z][A-Z\s]+)\s*\n\s*Time Recorder/.exec(text);
+    function parseDailyReport(text){
+    // Header info
+    const dateMatch = /Date\s*(\d{2}\/\d{2}\/\d{4})/.exec(text);
+    const storeMatch = /Store\s*(\d+)/.exec(text);
+    const locationMatch = /\d{2}\/\d{2}\/\d{4}([A-Z][A-Z\s]+?)Store/.exec(text);
     const date = dateMatch ? dateMatch[1] : null;
 
-    // Split into lines, filter out header/footer
-    const rawLines = text.split(/\r?\n/);
-
-    // We detect an employee-line start by:
-    //   - a token that is digits-only, at least 6 digits long, followed
-    //     immediately by a letter or a name-like sequence
-    //   - followed somewhere on the same "logical block" by a date
-    //     pattern DD/MM/YYYY and a day code (Mon|Tue|Wed|Thu|Fri|Sat|Sun)
-    const ROW_START_RE = /^(\d{5,10})(?=[A-ZÀ-ÿ])/;
-    const DATE_DAY_RE = /(\d{2}\/\d{2}\/\d{4})\s*(Mon|Tue|Wed|Thu|Fri|Sat|Sun|Lun|Mar|Mer|Jeu|Ven|Sam|Dim)/i;
-    const TIME_TAG_RE = /(\d{1,2}):(\d{2})([GPKMSAC])\b/g;
-
-    // Walk lines; when we see a row-start, keep consuming lines until
-    // we either see a date-day pattern (then it's the row's data line)
-    // or we hit another row-start (next employee).
+    // Strategy: split into employee blocks by the "SUM x.xx" separator.
+    // Everything before the first SUM is the header; everything after
+    // the last SUM is the footer. Each block between SUMs is one employee.
+    const lines = text.split(/\r?\n/);
     const blocks = [];
-    let current = null;
+    let buffer = [];
+    let headerSeen = false;
 
-    rawLines.forEach(function(line){
-      const trimmed = line.replace(/\s+$/, '');
+    lines.forEach(function(line){
+      const trimmed = line.trim();
       if(!trimmed) return;
 
-      const isRowStart = ROW_START_RE.test(trimmed);
-      if(isRowStart){
-        if(current) blocks.push(current);
-        current = { lines: [trimmed], start: trimmed };
-        // If this single line already contains the date-day, it's a compact row
+      // Skip header/footer
+      if(/^Bno\b/i.test(trimmed)) return;
+      if(/^No\s*$/i.test(trimmed)) return;
+      if(/^Sum Of Worked/i.test(trimmed)) return;
+      if(/^G\s*=\s*Punched/i.test(trimmed)) return;
+      if(/^Page\s*\d+\/\d+/i.test(trimmed)) return;
+      if(/^Time Recorder/i.test(trimmed)) return;
+      if(/^Selection\s*:/i.test(trimmed)) return;
+      if(/^Sorting\s*:/i.test(trimmed)) return;
+      if(/^Time\s*\d{2}:\d{2}/i.test(trimmed)) return;
+      if(/^Date\s*\d{2}\/\d{2}\/\d{4}/i.test(trimmed)) return;
+
+      const isSum = /^SUM\s*[\d.]+/i.test(trimmed);
+      if(isSum){
+        if(buffer.length){
+          blocks.push(buffer.join(' '));
+          buffer = [];
+        }
+        headerSeen = true;
         return;
       }
-      if(current){
-        current.lines.push(trimmed);
-      }
+      if(!headerSeen) return; // only start collecting once we've passed the first SUM
+      buffer.push(trimmed);
     });
-    if(current) blocks.push(current);
 
-    // Now parse each block
+    // Parse each block
     const rows = [];
-    blocks.forEach(function(block){
-      const joined = block.lines.join(' ');
-      const dd = DATE_DAY_RE.exec(joined);
-      if(!dd) return; // not an employee row
+    blocks.forEach(function(blockText){
+      // Block looks like:
+      //   396642 IMANE AGDOUD09/08/2025 Sat08:00G-12:59P0.004.984.98 13:51G- (Equipier)
+      // or:
+      //   1491466 YOUSSF 12:17G-0.001.981.98 LACHGUAR 09/08/2025 Sat (Form)
+      // (The extraction order isn't always clean, so we grab things by pattern.)
 
-      // Raw number at start
-      const numMatch = /^(\d{5,10})/.exec(block.start);
-      if(!numMatch) return;
-      const rawNum = numMatch[1];
+      // 1. Badge + Empl-No at the start
+      const startMatch = /^(\d{5,10})\s+/.exec(blockText);
+      if(!startMatch) return;
+      const rawNum = startMatch[1];
 
-      // Name: everything between the raw number and the date
-      const afterNum = block.start.slice(rawNum.length);
-      const nameEnd = joined.indexOf(dd[0]);
-      let name = '';
-      if(nameEnd > 0){
-        // From the joined string, take from after rawNum up to the date
-        const start = joined.indexOf(rawNum) + rawNum.length;
-        name = joined.slice(start, nameEnd).trim();
-      }
+      // 2. Date + day anywhere in the block
+      const dateDay = /(\d{2}\/\d{2}\/\d{4})\s*(Mon|Tue|Wed|Thu|Fri|Sat|Sun|Lun|Mar|Mer|Jeu|Ven|Sam|Dim)\b/i.exec(blockText);
+      if(!dateDay) return;
 
-      // Clean name:
-      // - strip any trailing role in parentheses (may include nested parens)
-      // - collapse whitespace
-      name = name.replace(/\s+/g, ' ');
-      // Remove "(...)" with proper handling of nesting
-      let cleanName = '';
-      let depth = 0;
-      for(let i = 0; i < name.length; i++){
-        const c = name[i];
-        if(c === '(') depth++;
-        else if(c === ')') { if(depth > 0) depth--; }
-        else if(depth === 0) cleanName += c;
-      }
-      cleanName = cleanName.replace(/\s+/g, ' ').trim();
+      // 3. Extract the name: text between the number and the date,
+      //    then remove any role in parentheses.
+      const afterNum = blockText.slice(startMatch[0].length);
+      const dateIdx = afterNum.indexOf(dateDay[1]);
+      let namePart = dateIdx > 0 ? afterNum.slice(0, dateIdx) : afterNum;
 
-      // Times: find all HH:MM with a G/P/K/M/S/A/C tag
+      // Also pick up name fragments that appear AFTER the date/times
+      // (e.g. "LACHGUAR" or "SAID" wrapping to a second line).
+      const afterDate = afterNum.slice(dateIdx + dateDay[0].length);
+      // Remove time tokens and everything that looks like hours (X.XX)
+      let nameTail = afterDate
+        .replace(/\d{1,2}:\d{2}[GPKMSAC]/gi, ' ')   // times
+        .replace(/\d+\.\d+/g, ' ')                  // hours like 4.98
+        .replace(/[-]/g, ' ')                       // separators
+        .replace(/\((?:[^()]|\([^()]*\))*\)/g, ' ') // parenthetical roles (nested-safe)
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      // Combine name pieces
+      let fullName = (namePart + ' ' + nameTail).replace(/\s+/g, ' ').trim();
+      // Strip the role inside parentheses with nested awareness
+      fullName = stripParens(fullName);
+      fullName = fullName.replace(/\s+/g, ' ').trim();
+
+      // 4. Extract all time tokens with a G/P/K/M/S/A/C tag
       const times = [];
-      TIME_TAG_RE.lastIndex = 0;
+      const TIME_TAG_RE = /(\d{1,2}):(\d{2})([GPKMSAC])\b/gi;
       let m;
-      while((m = TIME_TAG_RE.exec(joined)) !== null){
-        times.push({ h: parseInt(m[1],10), min: parseInt(m[2],10), tag: m[3] });
+      while((m = TIME_TAG_RE.exec(blockText)) !== null){
+        times.push({
+          h: parseInt(m[1], 10),
+          min: parseInt(m[2], 10),
+          tag: m[3].toUpperCase()
+        });
       }
 
-      // Assign: first G -> clockIn; P -> breakStart; second G -> breakReturn;
-      // third G -> clockOut.
+      // 5. Assign times to slots.
+      //    For a normal single-shift day:
+      //      G1 = clockIn
+      //      P1 = breakStart
+      //      G2 = breakReturn
+      //      G3 = clockOut (if present)
+      //    If no P is present, we still treat G1 as clockIn and any later G as clockOut (rare).
       let clockIn = null, breakStart = null, breakReturn = null, clockOut = null;
       let gSeen = 0;
       times.forEach(function(t){
         if(t.tag === 'G'){
           gSeen++;
-          if(gSeen === 1) clockIn = t.h*60 + t.min;
-          else if(gSeen === 2) breakReturn = t.h*60 + t.min;
-          else if(gSeen === 3) clockOut = t.h*60 + t.min;
+          if(gSeen === 1) clockIn = t.h * 60 + t.min;
+          else if(gSeen === 2) breakReturn = t.h * 60 + t.min;
+          else if(gSeen === 3) clockOut = t.h * 60 + t.min;
         } else if(t.tag === 'P'){
-          if(breakStart === null) breakStart = t.h*60 + t.min;
+          if(breakStart === null) breakStart = t.h * 60 + t.min;
         }
       });
-
-      // If we saw P before any G, that's odd — flag.
-      if(breakStart !== null && clockIn !== null && breakStart < clockIn){
-        // Simple sanity: swap? Actually just leave as-is, staff can review.
-      }
+      // If there's only 1 G and no P, that's fine — a simple clockIn.
+      // If there's 1 G and 1 P, clockIn and breakStart, no clockOut (still on break).
+      // If there's 2 G and 1 P — clean arrival, break, return (still working).
 
       rows.push({
         rawNum: rawNum,
-        badgePdf: null,        // resolved later
+        badgePdf: null,
         emplNo: null,
-        namePdf: cleanName,
-        date: dd[1],
-        day: dd[2],
+        namePdf: fullName,
+        date: dateDay[1],
+        day: dateDay[2],
         clockIn: clockIn,
         breakStart: breakStart,
         breakReturn: breakReturn,
         clockOut: clockOut,
-        match: null,           // { badge, staffName, level: 'ok'|'warn'|'crit' }
-        chosenBadge: null      // manual override
+        match: null,
+        chosenBadge: null
       });
     });
 
@@ -671,7 +685,18 @@ table.preview{
     };
   }
 
-  // ---------- Match against staff ----------
+  // Strip every balanced parenthetical group from a string, including nested.
+  function stripParens(s){
+    let out = '';
+    let depth = 0;
+    for(let i = 0; i < s.length; i++){
+      const c = s[i];
+      if(c === '(') depth++;
+      else if(c === ')'){ if(depth > 0) depth--; }
+      else if(depth === 0) out += c;
+    }
+    return out;
+  }
   function matchAgainstStaff(){
     if(!currentImport) return;
     currentImport.rows.forEach(function(row){
