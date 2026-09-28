@@ -1,12 +1,8 @@
 /* ============================================================
    Contract Social Manager — shared design tokens & base styles
-   ============================================================
-   Every page links this file. Page-specific styles go in each
-   HTML file's own <style> block and can override here.
    ============================================================ */
 
 :root{
-  /* Dark theme (default — used by the employee portal) */
   --bg:#14181D;
   --panel:#1B2129;
   --panel-raised:#232B35;
@@ -27,8 +23,6 @@
   --shadow: 0 4px 20px rgba(0,0,0,0.35);
 }
 
-/* Light theme (used by the manager portal) — activated by
-   adding class="theme-light" to <html> or <body>. */
 .theme-light{
   --bg:#F7F9FB;
   --panel:#FFFFFF;
@@ -50,7 +44,27 @@
   --shadow: 0 1px 2px rgba(30,42,56,0.06), 0 4px 14px rgba(30,42,56,0.08);
 }
 
-/* ---------- Base ---------- */
+.theme-dark{
+  --bg:#14181D;
+  --panel:#1B2129;
+  --panel-raised:#232B35;
+  --line:#2C333C;
+  --line-soft:#242A32;
+  --text:#F1F3F6;
+  --text-muted:#8B94A3;
+  --accent:#D9822E;
+  --accent-strong:#F0954A;
+  --brand-yellow:#E3C25E;
+  --brand-yellow-strong:#F0D480;
+
+  --status-ok-bg:rgba(61,174,114,0.16);   --status-ok-fg:#6FD79C;   --status-ok-line:#3DAE72;
+  --status-warn-bg:rgba(255,199,44,0.18); --status-warn-fg:#FFD75E; --status-warn-line:#FFC72C;
+  --status-crit-bg:rgba(255,68,51,0.18);  --status-crit-fg:#FF8B77; --status-crit-line:#FF4433;
+  --status-break-bg:rgba(61,142,232,0.16);--status-break-fg:#7FB6F5;--status-break-line:#3D8EE8;
+
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+}
+
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -65,18 +79,9 @@ body{
 button{font-family:inherit;cursor:pointer;}
 input,textarea,select{font-family:inherit;}
 
-/* Focus ring — same everywhere */
-:focus-visible{
-  outline:2px solid var(--accent);
-  outline-offset:2px;
-}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
-/* ---------- Common atoms ---------- */
-.pill{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:11.5px;font-weight:700;letter-spacing:0.02em;
-  padding:4px 9px;
-}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:0.02em;padding:4px 9px;}
 .pill.ok   {background:var(--status-ok-bg);   color:var(--status-ok-fg);}
 .pill.warn {background:var(--status-warn-bg); color:var(--status-warn-fg);}
 .pill.crit {background:var(--status-crit-bg); color:var(--status-crit-fg);}
@@ -98,30 +103,18 @@ input,textarea,select{font-family:inherit;}
 }
 .btn:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(30,42,56,0.10);}
 .btn:active{transform:translateY(1px);}
-.btn-primary{
-  background:var(--accent);
-  border-color:var(--accent-strong);
-  color:#FFFFFF;
-}
+.btn-primary{background:var(--accent);border-color:var(--accent-strong);color:#FFFFFF;}
 .btn-primary:hover{background:var(--accent-strong);border-color:var(--accent-strong);}
 .btn-ghost{background:transparent;}
-.btn-danger{
-  background:transparent;
-  border-color:var(--status-crit-line);
-  color:var(--status-crit-fg);
-}
+.btn-danger{background:transparent;border-color:var(--status-crit-line);color:var(--status-crit-fg);}
 .btn-danger:hover{background:var(--status-crit-bg);}
 .btn[disabled]{opacity:.45;pointer-events:none;}
 
-.linkbtn{
-  background:none;border:none;color:var(--text-muted);
-  font-size:12.5px;text-decoration:underline;padding:6px 0;
-}
+.linkbtn{background:none;border:none;color:var(--text-muted);font-size:12.5px;text-decoration:underline;padding:6px 0;}
 .linkbtn:hover{color:var(--accent);}
 
 .hidden{display:none !important;}
 
-/* ---------- Live clock ---------- */
 .liveclock{
   font-family:'IBM Plex Mono',monospace;
   font-size:26px;
@@ -146,7 +139,6 @@ input,textarea,select{font-family:inherit;}
 .liveclock.manual .lbl,
 .liveclock.manual #clockNow{color:var(--status-warn-fg);}
 
-/* ---------- Modal / dialog ---------- */
 dialog.timedlg{
   border:1px solid var(--line);
   background:var(--panel-raised);
@@ -164,7 +156,6 @@ dialog.timedlg::backdrop{background:rgba(10,14,12,.55);}
 }
 .timedlg .trow{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
 
-/* ---------- Print ---------- */
 @media print{
   body{background:#FFF;}
   .printhide{display:none !important;}
