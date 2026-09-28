@@ -1,18 +1,8 @@
 /**
  * shared/firebase.js
  * ------------------
- * Single Firebase initialisation, imported by every page in the app.
- *
- * Using the compat SDK (firebase-app-compat) so the rest of the code can
- * stay in vanilla JS with no build step — same approach as the old version,
- * just centralised in one file so we don't repeat the config in every page.
- *
- * Exposes on window:
- *   CSM.db             Firestore instance
- *   CSM.auth           Auth instance
- *   CSM.restaurantId   resolved restaurant id (or null if not yet known)
- *   CSM.restaurantName human-readable restaurant name
- *   CSM.ready          Promise that resolves once the restaurant is known
+ * Single Firebase initialisation, imported by every page.
+ * Exposes on window: CSM, db, auth
  */
 (function(){
   'use strict';
@@ -24,16 +14,14 @@
     storageBucket: "contractsocialmanager-v2.firebasestorage.app",
     messagingSenderId: "288053912651",
     appId: "1:288053912651:web:6a38597328529d81ff59ce"
-    // measurementId intentionally omitted — we don't use Analytics.
   };
 
   firebase.initializeApp(firebaseConfig);
 
   const db = firebase.firestore();
 
-  // Enable offline persistence so the app keeps working (read-only) on flaky
-  // restaurant Wi-Fi. Errors are non-fatal — some browsers block it in private
-  // mode, or when two tabs are open.
+  // Offline persistence — safe to fail (some browsers block it in private
+  // mode or with multiple tabs open). Non-fatal either way.
   db.enablePersistence({ synchronizeTabs: true }).catch(function(err){
     if(err && err.code === 'failed-precondition'){
       console.warn('Firestore persistence disabled: multiple tabs open.');
@@ -45,16 +33,20 @@
   const auth = firebase.auth();
   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){});
 
-  /* ------------------------------------------------------------------
-     Restaurant resolution
-     ------------------------------------------------------------------
-     Priority order:
-       1. ?r=xxx in the URL   (used by personal phone links)
-       2. csm_restaurant in localStorage  (remembered from a previous visit)
-       3. First restaurant returned by the `restaurants` collection  (fallback)
-     The resolved id is also cached to localStorage so subsequent loads are
-     instant and don't require a network round-trip.
-  ------------------------------------------------------------------ */
+  // ============================================================
+  // Restaurant resolution
+  // ============================================================
+  // Priority:
+  //   1. ?r=xxx in the URL  (used by employee personal-phone links)
+  //   2. localStorage csm_restaurant  (remembered from prior visit)
+  //   3. DEFAULT_RESTAURANT below  (single-restaurant fallback)
+  //
+  // NOTE: we do NOT query the `restaurants` collection. Firestore
+  // rules deny collection-level reads; only document reads of a
+  // specific known ID are allowed. If you ever add a second
+  // restaurant, change DEFAULT_RESTAURANT or always use ?r=xxx.
+  // ============================================================
+  const DEFAULT_RESTAURANT = 'ketia';
   const STORAGE_KEY = 'csm_restaurant';
 
   function readFromUrl(){
@@ -74,62 +66,46 @@
     auth: auth,
     restaurantId: null,
     restaurantName: '',
-    ready: null,
+    ready: null
   };
 
-  CSM.ready = (function resolveRestaurant(){
-    const fromUrl = readFromUrl();
-    if(fromUrl){
-      writeToStorage(fromUrl);
-      return hydrate(fromUrl);
-    }
-    const stored = readFromStorage();
-    if(stored) return hydrate(stored);
+  CSM.ready = (function(){
+    const id = readFromUrl() || readFromStorage() || DEFAULT_RESTAURANT;
+    writeToStorage(id);
+    CSM.restaurantId = id;
 
-    // Fallback: first restaurant in the collection.
-    // (Only happens on a truly fresh device with no ?r= and no prior visit.)
-    return db.collection('restaurants').limit(1).get().then(function(snap){
-      if(snap.empty){
-        throw new Error('Aucun restaurant configuré. Contactez votre responsable.');
-      }
-      const id = snap.docs[0].id;
-      writeToStorage(id);
-      return hydrate(id);
-    });
+    // Try to fetch the friendly restaurant name. If this fails
+    // (permissions, network, doc missing), we still resolve — just
+    // with the raw id as the name — so pages don't get stuck.
+    return db.collection('restaurants').doc(id).get()
+      .then(function(doc){
+        CSM.restaurantName = (doc.exists && doc.data().name) || id;
+        return CSM;
+      })
+      .catch(function(err){
+        console.warn('Could not load restaurant meta:', err.message);
+        CSM.restaurantName = id;
+        return CSM;
+      });
   })();
 
-  function hydrate(id){
-    CSM.restaurantId = id;
-    return db.collection('restaurants').doc(id).get().then(function(doc){
-      CSM.restaurantName = (doc.exists && doc.data().name) || id;
-      return CSM;
-    }).catch(function(){
-      CSM.restaurantName = id;
-      return CSM;
-    });
-  }
-
-  /* ------------------------------------------------------------------
-     Convenience ref helpers — every page should use these instead of
-     building paths by hand. Keeps the structure in one place.
-  ------------------------------------------------------------------ */
+  // ============================================================
+  // Convenience refs — every page should use these
+  // ============================================================
   CSM.refs = {
-    restaurant: function(){ return db.collection('restaurants').doc(CSM.restaurantId); },
-    meta:       function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('meta').doc('info'); },
-    staff:      function(badge){ return db.collection('restaurants').doc(CSM.restaurantId).collection('staff').doc(String(badge)); },
-    staffColl:  function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('staff'); },
-    shifts:     function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('shifts'); },
-    shift:      function(id){ return db.collection('restaurants').doc(CSM.restaurantId).collection('shifts').doc(id); },
-    schedules:  function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('schedules'); },
-    leaveReqs:  function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('leaveRequests'); },
-    corrections:function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('corrections'); },
-    auditLog:   function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('auditLog'); },
-    managers:   function(uid){ return db.collection('managerRestaurants').doc(uid); }
+    restaurant:  function(){ return db.collection('restaurants').doc(CSM.restaurantId); },
+    staff:       function(badge){ return db.collection('restaurants').doc(CSM.restaurantId).collection('staff').doc(String(badge)); },
+    staffColl:   function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('staff'); },
+    shifts:      function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('shifts'); },
+    shift:       function(id){ return db.collection('restaurants').doc(CSM.restaurantId).collection('shifts').doc(id); },
+    schedules:   function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('schedules'); },
+    leaveReqs:   function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('leaveRequests'); },
+    corrections: function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('corrections'); },
+    auditLog:    function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('auditLog'); },
+    managers:    function(uid){ return db.collection('managerRestaurants').doc(uid); }
   };
 
-  // Expose globally (used by every page as window.CSM).
   window.CSM = CSM;
-  // Shortcut for pages that just want the Firestore instance.
   window.db = db;
   window.auth = auth;
 
