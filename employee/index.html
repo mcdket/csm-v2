@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Mon espace — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14181D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#14181D;
+  --panel:#1B2129;
+  --panel-raised:#232B35;
+  --line:#2C333C;
+  --line-soft:#242A32;
+  --text:#F1F3F6;
+  --text-muted:#8B94A3;
+  --accent:#D9822E;
+  --accent-strong:#A85A15;
+  --brand-yellow:#F0B94A;
+  --brand-yellow-strong:#D89B2E;
+  --ok-bg:#DCEEE1; --ok-fg:#1E7A46; --ok-line:#3DAE72;
+  --warn-bg:#FFF2C6;--warn-fg:#8A5A00;--warn-line:#FFC72C;
+  --crit-bg:#FBDAD3;--crit-fg:#8C2A17;--crit-line:#DA291C;
+  --brk-bg:#D9E8FB; --brk-fg:#1E4F8C; --brk-line:#3D8EE8;
+  --shadow:0 4px 20px rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:linear-gradient(180deg, #0E1116 0%, var(--bg) 30%, #0B0E12 100%);
+  color:var(--text);
+  font-family:'Space Grotesk',-apple-system,sans-serif;
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+  padding-bottom:env(safe-area-inset-bottom, 0);
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+button{font-family:inherit;cursor:pointer;border:none;}
+a{color:inherit;text-decoration:none;}
+
+.shell{
+  max-width:480px;
+  margin:0 auto;
+  padding:0 0 40px;
+}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  background:linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  border-bottom:4px solid var(--brand-yellow);
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:#fff;
+  box-shadow:var(--shadow);
+}
+.topbar .arches{
+  width:38px;height:38px;flex:none;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.9);
+  object-fit:cover;
+}
+.topbar .titles{flex:1;min-width:0;}
+.topbar h1{
+  margin:0;font-size:15px;font-weight:800;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.topbar .sub{
+  font-size:11px;color:var(--brand-yellow);
+  text-transform:uppercase;letter-spacing:.06em;font-weight:700;
+}
+.topbar .clock{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:17px;font-weight:600;
+  text-align:right;line-height:1.1;
+}
+.topbar .clock .lbl{
+  display:block;font-size:9px;
+  color:var(--brand-yellow);
+  letter-spacing:.06em;text-transform:uppercase;
+  font-family:'Space Grotesk',sans-serif;font-weight:700;
+}
+
+/* ---------- Content padding ---------- */
+.content{padding:18px 16px 0;}
+
+/* ---------- Person card ---------- */
+.person{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:16px;
+  margin-bottom:14px;
+}
+.person-head{display:flex;align-items:center;gap:14px;}
+.person .avatar{
+  width:56px;height:56px;flex:none;border-radius:50%;
+  object-fit:cover;border:2px solid var(--accent);
+  background:var(--panel);
+}
+.person .avatar-fallback{
+  width:56px;height:56px;flex:none;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--accent);color:#fff;
+  font-size:22px;font-weight:700;
+  border:2px solid var(--accent);
+}
+.person .who{flex:1;min-width:0;}
+.person .name{font-size:18px;font-weight:800;line-height:1.2;}
+.person .badge-info{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;color:var(--text-muted);margin-top:3px;
+}
+.status-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 11px;font-size:11px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;
+}
+.status-pill.ok  {background:var(--ok-bg);  color:var(--ok-fg);}
+.status-pill.warn{background:var(--warn-bg);color:var(--warn-fg);}
+.status-pill.crit{background:var(--crit-bg);color:var(--crit-fg);}
+.status-pill.brk {background:var(--brk-bg); color:var(--brk-fg);}
+.status-pill.done{background:var(--line-soft);color:var(--text-muted);}
+.status-pill .dot{width:6px;height:6px;background:currentColor;}
+
+/* ---------- Punch card ---------- */
+.punch-card{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:16px;
+  margin-bottom:14px;
+}
+.punch-title{
+  font-size:12px;font-weight:700;
+  color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.05em;
+  margin-bottom:12px;
+}
+.timeline{
+  display:flex;flex-direction:column;gap:8px;
+  border-top:1px solid var(--line-soft);
+  padding-top:12px;margin-top:12px;
+}
+.tline{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13.5px;
+}
+.tline .lbl{color:var(--text-muted);font-weight:600;}
+.tline .val{font-family:'IBM Plex Mono',monospace;font-weight:700;}
+.tline .val.muted{color:var(--text-muted);font-weight:500;}
+
+.break-timer{
+  background:var(--brk-bg);color:var(--brk-fg);
+  padding:14px;margin-top:12px;text-align:center;
+  border:1px solid var(--brk-line);
+}
+.break-timer.over{background:var(--crit-bg);color:var(--crit-fg);border-color:var(--crit-line);}
+.break-timer .lbl{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.85;}
+.break-timer .val{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:700;margin-top:2px;}
+
+.continue-block{
+  background:var(--panel);
+  border:1px solid var(--line);
+  padding:12px;margin-top:12px;text-align:center;
+}
+.continue-block.warn{border-color:var(--warn-line);background:var(--warn-bg);color:var(--warn-fg);}
+.continue-block.crit{border-color:var(--crit-line);background:var(--crit-bg);color:var(--crit-fg);}
+.continue-block .lbl{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.75;}
+.continue-block .big{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;margin-top:4px;}
+.continue-block .threshold{font-size:11.5px;margin-top:4px;font-weight:600;opacity:.85;}
+
+/* ---------- Actions ---------- */
+.bigbtn{
+  width:100%;
+  padding:18px 16px;
+  font-size:16px;font-weight:800;letter-spacing:.01em;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-top:10px;
+  transition:transform .06s ease, filter .15s ease, background .15s ease;
+  border:2px solid transparent;
+}
+.bigbtn:active{transform:translateY(2px);}
+.bigbtn svg{width:20px;height:20px;flex:none;}
+.bigbtn[disabled]{opacity:.45;pointer-events:none;}
+.bigbtn.clockin{background:var(--ok-line);color:#FFF;border-color:#2E9A5E;}
+.bigbtn.clockin:hover{filter:brightness(1.06);}
+.bigbtn.break{background:var(--warn-line);color:#3A2500;border-color:#D9A800;}
+.bigbtn.break:hover{filter:brightness(1.06);}
+.bigbtn.return{background:var(--brk-line);color:#FFF;border-color:#2E76C4;}
+.bigbtn.return:hover{filter:brightness(1.06);}
+.bigbtn.end{background:var(--panel-raised);color:var(--crit-fg);border-color:var(--crit-line);font-size:15px;padding:14px;}
+.bigbtn.end:hover{background:var(--crit-bg);}
+
+/* ---------- Stats ---------- */
+.stats{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;margin-bottom:14px;
+}
+.stat{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  padding:12px 6px;text-align:center;
+}
+.stat .lbl{
+  font-size:10.5px;color:var(--text-muted);
+  font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+}
+.stat .val{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:16px;font-weight:700;margin-top:4px;
+}
+.stat.total .val{color:var(--accent-strong);}
+
+/* ---------- Upcoming ---------- */
+.section{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  margin-bottom:14px;
+  overflow:hidden;
+}
+.section-head{
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--line-soft);
+}
+.section-head h2{
+  margin:0;font-size:13px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.05em;
+  color:var(--text-muted);
+}
+.section-head a{
+  font-size:12px;color:var(--accent);font-weight:700;
+}
+
+.shiftrow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:11px 16px;border-bottom:1px solid var(--line-soft);
+  font-size:13.5px;
+}
+.shiftrow:last-child{border-bottom:none;}
+.shiftrow.today{border-left:4px solid var(--accent);padding-left:12px;}
+.shiftrow.off{opacity:.55;}
+.shiftrow .day{font-weight:700;display:flex;align-items:center;gap:8px;}
+.shiftrow .day small{
+  display:block;font-weight:500;
+  color:var(--text-muted);font-size:11.5px;
+}
+.shiftrow .times{font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:700;text-align:right;}
+.shiftrow .times small{display:block;color:var(--text-muted);font-weight:500;font-size:11px;font-family:'Space Grotesk',sans-serif;margin-top:2px;}
+
+.empty{
+  padding:24px 16px;text-align:center;
+  color:var(--text-muted);font-size:13px;
+  line-height:1.5;
+}
+
+/* ---------- History ---------- */
+.histrow{
+  display:flex;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid var(--line-soft);
+  font-size:13px;
+}
+.histrow:last-child{border-bottom:none;}
+.histrow .d{color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
+.histrow .h{font-family:'IBM Plex Mono',monospace;font-weight:700;}
+.histrow .h.long{color:var(--accent-strong);}
+
+/* ---------- Nav row ---------- */
+.navrow{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;margin-bottom:14px;
+}
+.navbtn{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  padding:14px 12px;
+  font-size:13.5px;font-weight:700;
+  display:flex;align-items:center;gap:8px;
+  color:var(--text);
+  transition:border-color .15s ease;
+}
+.navbtn:hover{border-color:var(--accent);}
+.navbtn svg{width:18px;height:18px;flex:none;color:var(--accent);}
+
+.logout{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:12px;
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--text-muted);
+  font-size:13px;font-weight:600;
+  margin-bottom:24px;
+}
+.logout:hover{border-color:var(--crit-line);color:var(--crit-fg);}
+
+.footer{
+  text-align:center;font-size:11px;
+  color:var(--text-muted);
+  padding:8px 20px 24px;opacity:.65;
+}
+
+/* ---------- Confirm overlay ---------- */
+.confirm{
+  position:fixed;inset:0;
+  background:rgba(20,24,29,0.94);
+  display:none;align-items:center;justify-content:center;
+  z-index:100;padding:20px;text-align:center;
+}
+.confirm.show{display:flex;}
+.confirm .check{
+  width:88px;height:88px;margin:0 auto 18px;
+  border-radius:50%;background:var(--ok-line);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 8px rgba(61,174,114,0.20);
+}
+.confirm .check svg{width:48px;height:48px;color:#fff;}
+.confirm .msg{font-size:20px;font-weight:700;line-height:1.35;margin-bottom:6px;}
+.confirm .sub{font-size:14px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+.confirm .close{
+  margin-top:20px;padding:12px 22px;
+  background:var(--panel-raised);border:1px solid var(--line);
+  color:var(--text);font-size:14px;font-weight:700;
+}
+
+@media (max-width:380px){
+  .topbar h1{font-size:14px;}
+  .stat .val{font-size:14px;}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="topbar">
+    <img class="arches" src="../shared/200.webp" alt="McDonald's">
+    <div class="titles">
+      <h1 id="restLabel">—</h1>
+      <div class="sub">Mon espace</div>
+    </div>
+    <div class="clock">
+      <span class="lbl">Heure</span>
+      <span id="clockNow" class="mono">--:--</span>
+    </div>
+  </div>
+
+  <div class="content" id="content" style="display:none;">
+
+    <!-- Person -->
+    <div class="person">
+      <div class="person-head">
+        <img class="avatar hidden" id="pAvatar" alt="">
+        <div class="avatar-fallback" id="pAvatarFallback">—</div>
+        <div class="who">
+          <div class="name" id="pName">—</div>
+          <div class="badge-info" id="pBadge">Badge —</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:12px;">
+        <span class="status-pill done" id="pStatus"><span class="dot"></span><span id="pStatusText">Chargement…</span></span>
+      </div>
+    </div>
+
+    <!-- Punch card -->
+    <div class="punch-card">
+      <div class="punch-title">Pointage du jour</div>
+      <div class="timeline" id="pTimeline">
+        <div class="tline"><span class="lbl">Arrivée</span><span class="val muted">—</span></div>
+        <div class="tline"><span class="lbl">Départ pause</span><span class="val muted">—</span></div>
+        <div class="tline"><span class="lbl">Retour pause</span><span class="val muted">—</span></div>
+        <div class="tline"><span class="lbl">Sortie</span><span class="val muted">—</span></div>
+      </div>
+      <div id="breakTimer"></div>
+      <div id="continueBlock"></div>
+    </div>
+
+    <div id="actionButtons"></div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="lbl">Aujourd'hui</div>
+        <div class="val" id="statToday">0h00</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Cette semaine</div>
+        <div class="val" id="statWeek">0h00</div>
+      </div>
+      <div class="stat total">
+        <div class="lbl">Ce mois</div>
+        <div class="val" id="statMonth">0h00</div>
+      </div>
+    </div>
+
+    <!-- Upcoming shifts -->
+    <div class="section" id="upcomingSection">
+      <div class="section-head">
+        <h2>Mes prochains quarts</h2>
+        <a href="planning.html">Tout voir →</a>
+      </div>
+      <div id="upcomingList">
+        <div class="empty">Chargement…</div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="section">
+      <div class="section-head">
+        <h2>7 derniers jours</h2>
+      </div>
+      <div id="historyList">
+        <div class="empty">Chargement…</div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <div class="navrow">
+      <a class="navbtn" href="planning.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+        Mes plannings
+      </a>
+      <a class="navbtn" href="requests.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
+        Mes demandes
+      </a>
+    </div>
+
+    <button class="logout" id="btnLogout">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      Se déconnecter
+    </button>
+
+    <div class="footer">Contract Social Manager — Portail Employé</div>
+
+  </div>
+
+</div>
+
+<!-- Confirmation overlay -->
+<div class="confirm" id="confirmOverlay">
+  <div>
+    <div class="check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+    </div>
+    <div class="msg" id="confirmMsg">Enregistré</div>
+    <div class="sub mono" id="confirmSub">—</div>
+    <button class="close" id="confirmClose">Fermer</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  const SESSION_KEY = 'csm_session_badge';
+  const PIN_KEY_PREFIX = 'csm_pin_';
+
+  // ---------- State ----------
+  let badge = null;
+  let staff = null;
+  let todayShift = null;
+  let unsubShift = null;
+  let tickTimer = null;
+  let schedule = null;
+  let unsubSchedule = null;
+  let monthTotalCache = 0;
+  let weekTotalCache = 0;
+  let historyLoaded = false;
+
+  // ---------- Session guard ----------
+  function getSession(){
+    try{ return localStorage.getItem(SESSION_KEY); }catch(e){ return null; }
+  }
+
+  // ---------- Boot ----------
+  auth.signInAnonymously().then(function(){
+    return CSM.ready;
+  }).then(function(){
+    const b = getSession();
+    if(!b){
+      window.location.replace('login.html');
+      return;
+    }
+    badge = b;
+    $('restLabel').textContent = CSM.restaurantName || CSM.restaurantId;
+
+    // Load staff profile
+    return CSM.refs.staff(badge).get().then(function(doc){
+      if(!doc.exists || doc.data().active === false){
+        clearSession();
+        window.location.replace('login.html');
+        return;
+      }
+      staff = doc.data();
+      paintStaff();
+      $('content').style.display = 'block';
+      startClock();
+      subscribeTodayShift();
+      loadWeekAndMonth();
+      loadHistory();
+      subscribeSchedule();
+      wireActions();
+    });
+  }).catch(function(err){
+    console.error('Boot:', err);
+    window.location.replace('login.html');
+  });
+
+  function clearSession(){
+    try{
+      localStorage.removeItem(SESSION_KEY);
+    }catch(e){}
+    // Keep PIN so badge can be re-used with the same PIN
+  }
+
+  // ---------- Paint staff ----------
+  function paintStaff(){
+    $('pName').textContent = staff.name || ('Badge ' + badge);
+    $('pBadge').textContent = 'Badge ' + badge;
+
+    if(staff.photo){
+      $('pAvatar').src = staff.photo;
+      $('pAvatar').classList.remove('hidden');
+      $('pAvatarFallback').classList.add('hidden');
+    } else {
+      $('pAvatar').classList.add('hidden');
+      $('pAvatarFallback').textContent =
+        ((staff.name || '?').trim().charAt(0) || '?').toUpperCase();
+      $('pAvatarFallback').classList.remove('hidden');
+    }
+  }
+
+  // ---------- Live clock ----------
+  function startClock(){
+    function tick(){
+      const d = new Date();
+      $('clockNow').textContent =
+        String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    }
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  // ---------- Today's shift ----------
+  function subscribeTodayShift(){
+    if(unsubShift) unsubShift();
+    const today = R.todayKey();
+    unsubShift = CSM.refs.shifts()
+      .where('badge', '==', String(badge))
+      .where('date', '==', today)
+      .limit(1)
+      .onSnapshot(function(snap){
+        todayShift = snap.empty ? null : Object.assign({ _id: snap.docs[0].id }, snap.docs[0].data());
+        renderPunch();
+        startTicker();
+      }, function(err){
+        console.error('Shift listener:', err);
+      });
+  }
+
+  function startTicker(){
+    if(tickTimer) clearInterval(tickTimer);
+    tickTimer = setInterval(renderPunch, 1000);
+    renderPunch();
+  }
+
+  // ---------- Render punch ----------
+  function renderPunch(){
+    const shift = todayShift;
+    const calc = shift ? R.computeShift(shift) : null;
+
+    // Status pill
+    const meta = shift
+      ? statusMeta(calc.status)
+      : { pill: 'done', label: 'Pas encore pointé' };
+    const pill = $('pStatus');
+    pill.className = 'status-pill ' + meta.pill;
+    $('pStatusText').textContent = shift ? calc.statusLabel : 'Pas encore pointé';
+
+    // Timeline
+    if(shift){
+      $('pTimeline').innerHTML =
+        tline('Arrivée',        R.minToHM(shift.clockIn)) +
+        tline('Départ pause',   R.minToHM(shift.breakStart)) +
+        tline('Retour pause',   R.minToHM(shift.breakReturn)) +
+        tline('Sortie',         R.minToHM(shift.clockOut));
+    } else {
+      $('pTimeline').innerHTML =
+        '<div class="tline"><span class="lbl">Arrivée</span><span class="val muted">—</span></div>' +
+        '<div class="tline"><span class="lbl">Départ pause</span><span class="val muted">—</span></div>' +
+        '<div class="tline"><span class="lbl">Retour pause</span><span class="val muted">—</span></div>' +
+        '<div class="tline"><span class="lbl">Sortie</span><span class="val muted">—</span></div>';
+    }
+
+    // Break timer / continue block
+    $('breakTimer').innerHTML = '';
+    $('continueBlock').innerHTML = '';
+
+    if(shift && shift.clockIn != null && shift.clockOut == null){
+      if(calc.status === 'break' || calc.status === 'breakover'){
+        const remaining = R.BREAK_MIN - calc.elapsedBreakMinutes;
+        const isOver = remaining <= 0;
+        $('breakTimer').innerHTML =
+          '<div class="break-timer ' + (isOver ? 'over' : '') + '">' +
+            '<div class="lbl">' + (isOver ? 'Pause dépassée' : 'Pause en cours') + '</div>' +
+            '<div class="val">' + (isOver ? '+' + fmtMin(Math.abs(remaining)) : fmtMin(remaining)) + '</div>' +
+          '</div>';
+      } else {
+        const cont = calc.contMinutes;
+        let cls = '';
+        if(cont >= R.CRIT_MIN) cls = 'crit';
+        else if(cont >= R.WARN_MIN) cls = 'warn';
+
+        let threshold = '';
+        if(cont < R.WARN_MIN) threshold = 'Prochain seuil : 4h30 (dans ' + fmtMin(R.WARN_MIN - cont) + ')';
+        else if(cont < R.CRIT_MIN) threshold = 'Limite 4h50 dans ' + fmtMin(R.CRIT_MIN - cont);
+        else threshold = 'Limite dépassée — pause immédiate requise';
+
+        $('continueBlock').innerHTML =
+          '<div class="continue-block ' + cls + '">' +
+            '<div class="lbl">Temps continu</div>' +
+            '<div class="big">' + fmtMin(cont) + '</div>' +
+            '<div class="threshold">' + threshold + '</div>' +
+          '</div>';
+      }
+    }
+
+    // Today's hours
+    $('statToday').textContent = shift ? R.fmtHrs(calc.totalMinutes) : '0h00';
+    $('statWeek').textContent = R.fmtHrs(weekTotalCache + (shift ? liveMinutes(calc) : 0));
+    $('statMonth').textContent = R.fmtHrs(monthTotalCache + (shift ? liveMinutes(calc) : 0));
+
+    // Action buttons
+    renderActions(shift);
+  }
+
+  function liveMinutes(calc){
+    // Only add live minutes if the shift is still open and hasn't been counted
+    // in the cached week/month totals yet.
+    if(!calc) return 0;
+    // The cache includes closed shifts only (loaded once). Today's shift is
+    // usually open — so add its live total.
+    return calc.totalMinutes || 0;
+  }
+
+  function renderActions(shift){
+    const zone = $('actionButtons');
+    zone.innerHTML = '';
+
+    const ICON_CLOCKIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+    const ICON_BREAK   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><path d="M6 1v3M10 1v3M14 1v3"/></svg>';
+    const ICON_RETURN  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
+    const ICON_END     = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="5" y="5" width="14" height="14" rx="1"/></svg>';
+
+    if(!shift){
+      const b = document.createElement('button');
+      b.className = 'bigbtn clockin';
+      b.innerHTML = ICON_CLOCKIN + ' Pointer mon arrivée';
+      b.addEventListener('click', function(){ doAction('in', b); });
+      zone.appendChild(b);
+      return;
+    }
+
+    if(shift.clockOut != null){
+      zone.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:14px;font-weight:600;">Journée terminée — à demain !</div>';
+      return;
+    }
+
+    if(shift.breakStart == null){
+      const b1 = document.createElement('button');
+      b1.className = 'bigbtn break';
+      b1.innerHTML = ICON_BREAK + ' Départ en pause';
+      b1.addEventListener('click', function(){ doAction('break', b1); });
+      zone.appendChild(b1);
+
+      const b2 = document.createElement('button');
+      b2.className = 'bigbtn end';
+      b2.innerHTML = ICON_END + ' Fin de journée';
+      b2.addEventListener('click', function(){ doAction('end', b2); });
+      zone.appendChild(b2);
+      return;
+    }
+
+    if(shift.breakReturn == null){
+      const calc = R.computeShift(shift);
+      const canReturn = calc.elapsedBreakMinutes >= R.BREAK_MIN;
+      const remaining = Math.max(0, R.BREAK_MIN - calc.elapsedBreakMinutes);
+
+      const b1 = document.createElement('button');
+      b1.className = 'bigbtn return';
+      b1.innerHTML = ICON_RETURN + (canReturn
+        ? ' Retour de pause'
+        : ' Pause en cours (' + Math.ceil(remaining) + ' min restantes)');
+      b1.disabled = !canReturn;
+      b1.addEventListener('click', function(){ doAction('return', b1); });
+      zone.appendChild(b1);
+
+      const b2 = document.createElement('button');
+      b2.className = 'bigbtn end';
+      b2.innerHTML = ICON_END + ' Fin de journée';
+      b2.addEventListener('click', function(){ doAction('end', b2); });
+      zone.appendChild(b2);
+      return;
+    }
+
+    const b2 = document.createElement('button');
+    b2.className = 'bigbtn end';
+    b2.innerHTML = ICON_END + ' Fin de journée';
+    b2.addEventListener('click', function(){ doAction('end', b2); });
+    zone.appendChild(b2);
+  }
+
+  // ---------- Actions ----------
+  function wireActions(){ /* buttons are wired inline */ }
+
+  async function doAction(kind, btn){
+    if(btn && btn.disabled) return;
+    if(btn) btn.disabled = true;
+
+    const nowMin = R.nowMinutes();
+    const today = R.todayKey();
+    const b = String(badge);
+
+    try{
+      if(kind === 'in'){
+        await CSM.refs.shifts().add({
+          badge: b,
+          name: staff.name || '',
+          date: today,
+          clockIn: nowMin,
+          breakStart: null,
+          breakReturn: null,
+          clockOut: null,
+          totalMinutes: 0,
+          status: 'open',
+          source: 'punch',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        showConfirm('Arrivée pointée', R.minToHM(nowMin));
+      }
+      else if(kind === 'break'){
+        await CSM.refs.shift(todayShift._id).update({
+          breakStart: nowMin,
+          updatedAt: new Date().toISOString()
+        });
+        showConfirm('Départ en pause', R.minToHM(nowMin));
+      }
+      else if(kind === 'return'){
+        await CSM.refs.shift(todayShift._id).update({
+          breakReturn: nowMin,
+          updatedAt: new Date().toISOString()
+        });
+        showConfirm('Retour de pause', R.minToHM(nowMin));
+      }
+      else if(kind === 'end'){
+        const merged = Object.assign({}, todayShift, { clockOut: nowMin });
+        const finalCalc = R.computeShift(merged);
+        await CSM.refs.shift(todayShift._id).update({
+          clockOut: nowMin,
+          totalMinutes: finalCalc.totalMinutes,
+          status: 'closed',
+          updatedAt: new Date().toISOString()
+        });
+        // Refresh monthly/weekly caches because today's closed hours just changed
+        await loadWeekAndMonth();
+        showConfirm('Fin de journée', R.minToHM(nowMin) + ' · ' + R.fmtHrs(finalCalc.totalMinutes));
+      }
+    }catch(err){
+      console.error('doAction:', err);
+      alert('Erreur : ' + err.message);
+      if(btn) btn.disabled = false;
+    }
+  }
+
+  // ---------- Week + Month totals ----------
+  async function loadWeekAndMonth(){
+    try{
+      // Week
+      const keys = R.weekKeys();
+      const weekSnap = await CSM.refs.shifts()
+        .where('badge', '==', String(badge))
+        .where('date', '>=', keys[0])
+        .where('date', '<=', keys[6])
+        .get();
+      let weekTotal = 0;
+      weekSnap.forEach(function(d){
+        const data = d.data();
+        if(data.status === 'closed') weekTotal += data.totalMinutes || 0;
+      });
+      weekTotalCache = weekTotal;
+
+      // Month
+      const mKey = R.monthKey(); // YYYY-MM
+      const monthSnap = await CSM.refs.shifts()
+        .where('badge', '==', String(badge))
+        .where('date', '>=', mKey + '-01')
+        .where('date', '<=', mKey + '-31')
+        .get();
+      let monthTotal = 0;
+      monthSnap.forEach(function(d){
+        const data = d.data();
+        if(data.status === 'closed') monthTotal += data.totalMinutes || 0;
+      });
+      monthTotalCache = monthTotal;
+
+      renderPunch();
+    }catch(err){
+      console.warn('loadWeekAndMonth:', err);
+    }
+  }
+
+  // ---------- History (last 7 days) ----------
+  async function loadHistory(){
+    if(historyLoaded) return;
+    historyLoaded = true;
+    const list = $('historyList');
+    try{
+      const keys = R.weekKeys();
+      const snap = await CSM.refs.shifts()
+        .where('badge', '==', String(badge))
+        .where('date', '>=', keys[0])
+        .where('date', '<=', keys[6])
+        .get();
+
+      const byDate = {};
+      snap.forEach(function(d){
+        const data = d.data();
+        if(!byDate[data.date]) byDate[data.date] = { date: data.date, totalMinutes: 0, closed: false };
+        if(data.status === 'closed'){
+          byDate[data.date].closed = true;
+          byDate[data.date].totalMinutes += data.totalMinutes || 0;
+        }
+      });
+
+      const rows = keys.map(function(k){
+        return byDate[k] || { date: k, totalMinutes: 0, closed: false, empty: true };
+      }).reverse();
+
+      list.innerHTML = '';
+      let any = false;
+      rows.forEach(function(r){
+        if(r.empty && !r.totalMinutes) return;
+        any = true;
+        const d = new Date(r.date + 'T00:00:00');
+        const dayNames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+        const dayShort = dayNames[d.getDay()];
+        const dateStr = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+        const row = document.createElement('div');
+        row.className = 'histrow';
+        const isLong = r.totalMinutes > R.CRIT_MIN;
+        row.innerHTML =
+          '<span class="d">' + dayShort + ' ' + dateStr + '</span>' +
+          '<span class="h ' + (isLong ? 'long' : '') + '">' + R.fmtHrs(r.totalMinutes) + '</span>';
+        list.appendChild(row);
+      });
+
+      if(!any){
+        list.innerHTML = '<div class="empty">Aucun pointage cette semaine.</div>';
+      }
+    }catch(err){
+      console.warn('loadHistory:', err);
+      list.innerHTML = '<div class="empty">Impossible de charger l\'historique.</div>';
+    }
+  }
+
+  // ---------- Schedule (upcoming shifts) ----------
+  function subscribeSchedule(){
+    if(unsubSchedule) unsubSchedule();
+    unsubSchedule = CSM.refs.schedules()
+      .orderBy('importedAt', 'desc')
+      .limit(1)
+      .onSnapshot(function(snap){
+        schedule = snap.empty ? null : Object.assign({ _id: snap.docs[0].id }, snap.docs[0].data());
+        renderUpcoming();
+      }, function(err){
+        console.warn('Schedule:', err);
+        schedule = null;
+        renderUpcoming();
+      });
+  }
+
+  function renderUpcoming(){
+    const list = $('upcomingList');
+    list.innerHTML = '';
+    if(!schedule){
+      list.innerHTML = '<div class="empty">Aucun planning importé pour le moment.</div>';
+      return;
+    }
+
+    const start = schedule.start; // YYYY-MM-DD
+    const [y, m, d] = start.split('-').map(Number);
+
+    // Find our shifts in the schedule (matched by name)
+    const mine = [];
+    (schedule.employees || []).forEach(function(emp){
+      if(!R.sameName(staff.name || '', emp.name)) return;
+      Object.keys(emp.d || {}).forEach(function(dayIdxStr){
+        const dayIdx = Number(dayIdxStr);
+        const shift = emp.d[dayIdxStr];
+        const dayDate = new Date(Date.UTC(y, m-1, d + dayIdx));
+        const dateStr = dayDate.getUTCFullYear() + '-' +
+                        String(dayDate.getUTCMonth()+1).padStart(2,'0') + '-' +
+                        String(dayDate.getUTCDate()).padStart(2,'0');
+        mine.push({ dateStr: dateStr, s: shift.s, e: shift.e });
+      });
+    });
+
+    if(!mine.length){
+      list.innerHTML = '<div class="empty">Aucun quart trouvé pour vous dans le planning.<br>Si vous devriez en avoir, vérifiez que votre nom correspond au planning PDF.</div>';
+      return;
+    }
+
+    mine.sort(function(a,b){ return a.dateStr.localeCompare(b.dateStr); });
+
+    const today = R.todayKey();
+    const dayNames = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    const dayShort = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+    // Show only today + next 3 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + 4);
+    const cutoffStr = cutoff.getFullYear() + '-' +
+                      String(cutoff.getMonth()+1).padStart(2,'0') + '-' +
+                      String(cutoff.getDate()).padStart(2,'0');
+
+    let shown = 0;
+    mine.forEach(function(m){
+      if(m.dateStr < today || m.dateStr > cutoffStr) return;
+      shown++;
+      const dd = new Date(m.dateStr + 'T00:00:00');
+      const isToday = m.dateStr === today;
+      const row = document.createElement('div');
+      row.className = 'shiftrow' + (isToday ? ' today' : '');
+      row.innerHTML =
+        '<div class="day">' +
+          (isToday ? 'Aujourd\'hui' : dayNames[dd.getDay()]) +
+          '<small>' + String(dd.getDate()).padStart(2,'0') + '/' +
+          String(dd.getMonth()+1).padStart(2,'0') + '</small>' +
+        '</div>' +
+        '<div class="times">' +
+          m.s + (m.e ? ' → ' + m.e : '') +
+          '<small>' + fmtShiftDuration(m.s, m.e) + '</small>' +
+        '</div>';
+      list.appendChild(row);
+    });
+
+    if(!shown){
+      list.innerHTML = '<div class="empty">Aucun quart prévu dans les prochains jours.</div>';
+    }
+  }
+
+  function fmtShiftDuration(s, e){
+    if(!s || !e) return '';
+    const [h1, m1] = s.split(':').map(Number);
+    const [h2, m2] = e.split(':').map(Number);
+    let total = (h2*60 + m2) - (h1*60 + m1);
+    if(total < 0) total += 24*60;
+    const h = Math.floor(total / 60);
+    const mm = total % 60;
+    return h + 'h' + (mm ? String(mm).padStart(2,'0') : '00');
+  }
+
+  // ---------- Helpers ----------
+  function tline(lbl, val){
+    const muted = val ? '' : ' muted';
+    return '<div class="tline"><span class="lbl">' + lbl + '</span><span class="val' + muted + '">' + (val || '—') + '</span></div>';
+  }
+
+  function statusMeta(status){
+    return ({
+      ok:        {pill: 'ok'},
+      warn:      {pill: 'warn'},
+      crit:      {pill: 'crit'},
+      break:     {pill: 'brk'},
+      breakover: {pill: 'crit'},
+      done:      {pill: 'done'},
+      nodata:    {pill: 'done'}
+    })[status] || {pill: 'done'};
+  }
+
+  function fmtMin(m){
+    if(m === null || m === undefined || isNaN(m)) return '—';
+    m = Math.max(0, Math.round(m));
+    const h = Math.floor(m / 60), r = m % 60;
+    if(h === 0) return r + 'min';
+    return h + 'h' + String(r).padStart(2, '0');
+  }
+
+  function showConfirm(msg, sub){
+    $('confirmMsg').textContent = msg;
+    $('confirmSub').textContent = sub;
+    $('confirmOverlay').classList.add('show');
+  }
+
+  $('confirmClose').addEventListener('click', function(){
+    $('confirmOverlay').classList.remove('show');
+  });
+
+  // ---------- Logout ----------
+  $('btnLogout').addEventListener('click', function(){
+    if(!confirm('Se déconnecter ?\n\nVous devrez ressaisir votre badge et votre PIN la prochaine fois.')) return;
+    clearSession();
+    window.location.replace('login.html');
+  });
+
+})();
+</script>
+</body>
+</html>
