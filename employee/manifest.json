@@ -1,0 +1,26 @@
+{
+  "name": "Mon espace — CSM",
+  "short_name": "CSM Employé",
+  "description": "Mon espace personnel — Contract Social Manager",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14181D",
+  "theme_color": "#D9822E",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "../shared/200.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "../shared/200.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}
