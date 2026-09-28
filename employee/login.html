@@ -209,14 +209,86 @@ h2{
   margin-top:3px;
 }
 
-.footer{
-  text-align:center;
-  font-size:11px;
-  color:var(--text-muted);
-  padding:18px 0 0;
-  margin-top:auto;
-  opacity:.7;
+/* ---------- Photo picker ---------- */
+.photo-block{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-bottom:18px;
 }
+.photo-circle{
+  width:110px;height:110px;
+  border-radius:50%;
+  background:var(--panel);
+  border:3px dashed var(--line);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  position:relative;
+  cursor:pointer;
+  transition:border-color .15s ease;
+}
+.photo-circle:hover{border-color:var(--accent);}
+.photo-circle.hasphoto{
+  border-style:solid;
+  border-color:var(--accent);
+}
+.photo-circle img{
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
+}
+.photo-circle .placeholder{
+  color:var(--text-muted);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  padding:8px;
+  text-align:center;
+}
+.photo-circle .placeholder svg{
+  width:26px;height:26px;
+  color:var(--accent);
+}
+.photo-circle .placeholder span{
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.photo-circle .overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(20,24,29,0.62);
+  color:#FFF;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:4px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.photo-circle.hasphoto:hover .overlay{display:flex;}
+.photo-hint{
+  font-size:11.5px;
+  color:var(--text-muted);
+  text-align:center;
+  margin-top:8px;
+  line-height:1.4;
+}
+.photo-remove{
+  background:transparent;
+  border:none;
+  color:var(--text-muted);
+  font-size:11.5px;
+  text-decoration:underline;
+  margin-top:6px;
+  padding:4px 8px;
+}
+.photo-remove:hover{color:var(--crit-fg);}
 
 /* Resume session card */
 .resume-card{
@@ -254,6 +326,27 @@ h2{
   flex-direction:column;
   gap:10px;
 }
+
+.footer{
+  text-align:center;
+  font-size:11px;
+  color:var(--text-muted);
+  padding:18px 0 0;
+  margin-top:auto;
+  opacity:.7;
+}
+
+.spinner{
+  display:inline-block;
+  width:14px;height:14px;
+  border:2px solid currentColor;
+  border-top-color:transparent;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  vertical-align:-2px;
+  margin-right:6px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -293,16 +386,34 @@ h2{
     </button>
   </div>
 
-  <!-- ===================== STEP 2 : Set PIN (first time) ===================== -->
+  <!-- ===================== STEP 2 : Set PIN + Photo (first time) ===================== -->
   <div class="card step" id="stepSetPin">
     <h2>Première connexion</h2>
     <p class="helper">
-      Choisissez un code PIN à 4 chiffres. Il protégera votre espace sur ce téléphone uniquement.
+      Ajoutez une photo (facultatif) et choisissez un code PIN à 4 chiffres pour protéger votre espace sur ce téléphone.
     </p>
 
     <div class="badge-preview">
       <div class="name" id="setPinName">—</div>
       <div class="num" id="setPinBadge">Badge —</div>
+    </div>
+
+    <label class="field-label" style="text-align:center;">Photo de profil (facultatif)</label>
+    <div class="photo-block">
+      <div class="photo-circle" id="photoCircle">
+        <div class="placeholder" id="photoPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span>Ajouter</span>
+        </div>
+        <img id="photoImg" class="hidden" alt="" style="display:none;">
+        <div class="overlay">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span>Changer</span>
+        </div>
+      </div>
+      <div class="photo-hint">Prenez une photo de vous ou choisissez une image. Elle apparaîtra sur votre profil.</div>
+      <button type="button" class="photo-remove hidden" id="photoRemove">Retirer la photo</button>
+      <input type="file" id="photoInput" accept="image/*" capture="user" style="display:none;">
     </div>
 
     <label class="field-label">Nouveau PIN (4 chiffres)</label>
@@ -326,7 +437,7 @@ h2{
     <button class="linkbtn" id="btnSetPinBack">← Retour</button>
   </div>
 
-  <!-- ===================== STEP 3 : Enter PIN (returning) ===================== -->
+  <!-- ===================== STEP 3 : Enter PIN ===================== -->
   <div class="card step" id="stepEnterPin">
     <h2>Bon retour</h2>
     <p class="helper">Entrez votre code PIN à 4 chiffres.</p>
@@ -369,12 +480,12 @@ h2{
   const PIN_KEY_PREFIX = 'csm_pin_';
   const SESSION_KEY = 'csm_session_badge';
 
-  // ---------- State ----------
   let pendingBadge = null;
   let pendingStaff = null;
   let attempts = 0;
+  let pendingPhotoDataUrl = null; // base64 JPEG, or null
 
-  // ---------- Simple hash ----------
+  // ---------- Hash ----------
   function hashPin(badge, pin){
     const s = String(badge) + ':' + String(pin) + ':csm';
     let h = 5381;
@@ -384,29 +495,22 @@ h2{
     return 'h' + (h >>> 0).toString(36);
   }
 
-  // ---------- Step navigation ----------
+  // ---------- Step nav ----------
   function showStep(id){
     document.querySelectorAll('.step').forEach(function(s){
       s.classList.toggle('active', s.id === id);
     });
-    // Only auto-focus inputs that are part of the shown step
     const first = document.querySelector('#' + id + ' input');
     if(first) setTimeout(function(){ try{ first.focus(); }catch(e){} }, 100);
   }
 
   function setErr(el, msg){ el.textContent = msg || ''; }
 
-  // ---------- Session check on load ----------
-  // IMPORTANT: this does NOT auto-redirect. It only offers to resume.
-  // Auto-redirecting here caused the "back from a 404" loop users saw before.
+  // ---------- Session resume ----------
   function checkSession(){
     let badge = null;
     try{ badge = localStorage.getItem(SESSION_KEY); }catch(e){}
-    if(!badge){
-      showStep('stepBadge');
-      return;
-    }
-    // Verify the badge is still valid before offering to resume
+    if(!badge){ showStep('stepBadge'); return; }
     CSM.ready.then(function(){
       CSM.refs.staff(badge).get().then(function(doc){
         if(doc.exists && doc.data().active !== false){
@@ -415,7 +519,6 @@ h2{
           $('resumeBadge').textContent = 'Badge ' + badge;
           showStep('stepResume');
         } else {
-          // Badge removed or deactivated — clear the session
           try{
             localStorage.removeItem(SESSION_KEY);
             localStorage.removeItem(PIN_KEY_PREFIX + badge);
@@ -423,7 +526,6 @@ h2{
           showStep('stepBadge');
         }
       }).catch(function(){
-        // Network failure — offer to resume anyway; index.html will handle it
         $('resumeName').textContent = 'Employé';
         $('resumeBadge').textContent = 'Badge ' + badge;
         showStep('stepResume');
@@ -441,26 +543,22 @@ h2{
     showStep('stepBadge');
   });
 
-  // ---------- STEP 0 : Resume ----------
+  // ---------- Resume actions ----------
   $('btnResumeContinue').addEventListener('click', function(){
-    // Send to index.html — it will handle further validation.
     window.location.replace('index.html');
   });
   $('btnResumeSwitch').addEventListener('click', function(){
     let badge = null;
     try{ badge = localStorage.getItem(SESSION_KEY); }catch(e){}
     if(badge){
-      try{
-        localStorage.removeItem(SESSION_KEY);
-        // Intentionally KEEP the PIN so the badge can be re-used with the same PIN
-      }catch(e){}
+      try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
     }
     $('badgeInput').value = '';
     setErr($('badgeErr'), '');
     showStep('stepBadge');
   });
 
-  // ---------- STEP 1 : badge entry ----------
+  // ---------- Badge submit ----------
   $('badgeInput').addEventListener('input', function(e){
     e.target.value = e.target.value.replace(/\D/g, '');
     setErr($('badgeErr'), '');
@@ -491,7 +589,9 @@ h2{
 
       pendingBadge = badge;
       pendingStaff = staff;
+      pendingPhotoDataUrl = null;
       attempts = 0;
+      resetPhotoUI();
 
       let storedHash = null;
       try{ storedHash = localStorage.getItem(PIN_KEY_PREFIX + badge); }catch(e){}
@@ -517,7 +617,7 @@ h2{
     }
   }
 
-  // ---------- PIN input behavior ----------
+  // ---------- PIN rows ----------
   function wirePinRow(rowId, onComplete){
     const row = $(rowId);
     const inputs = row.querySelectorAll('input');
@@ -527,7 +627,6 @@ h2{
         inp.classList.toggle('filled', !!inp.value);
         if(inp.value && idx < inputs.length - 1) inputs[idx + 1].focus();
         if([].every.call(inputs, function(i){ return i.value; })){
-          // All four filled — small delay so the last digit renders
           setTimeout(function(){ onComplete(readPin(rowId)); }, 50);
         }
       });
@@ -559,21 +658,99 @@ h2{
     });
   }
 
-  // ---------- STEP 2 : set PIN ----------
-  wirePinRow('pinRow1', function(){ /* just focus row 2 */ setTimeout(function(){ try{ document.querySelector('#pinRow2 input').focus(); }catch(e){} }, 100); });
-  wirePinRow('pinRow2', function(){ /* ready to save */ });
+  wirePinRow('pinRow1', function(){ setTimeout(function(){ try{ document.querySelector('#pinRow2 input').focus(); }catch(e){} }, 100); });
+  wirePinRow('pinRow2', function(){ /* ready */ });
 
+  // ---------- Photo handling ----------
+  function resetPhotoUI(){
+    pendingPhotoDataUrl = null;
+    const img = $('photoImg');
+    img.style.display = 'none';
+    img.removeAttribute('src');
+    $('photoPlaceholder').style.display = '';
+    $('photoCircle').classList.remove('hasphoto');
+    $('photoRemove').classList.add('hidden');
+  }
+
+  function showPhotoUI(dataUrl){
+    pendingPhotoDataUrl = dataUrl;
+    const img = $('photoImg');
+    img.src = dataUrl;
+    img.style.display = 'block';
+    $('photoPlaceholder').style.display = 'none';
+    $('photoCircle').classList.add('hasphoto');
+    $('photoRemove').classList.remove('hidden');
+  }
+
+  $('photoCircle').addEventListener('click', function(){
+    $('photoInput').click();
+  });
+
+  $('photoRemove').addEventListener('click', function(e){
+    e.stopPropagation();
+    resetPhotoUI();
+  });
+
+  $('photoInput').addEventListener('change', function(e){
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if(!file) return;
+    setErr($('pinErr'), '');
+
+    if(!/^image\//.test(file.type)){
+      setErr($('pinErr'), 'Choisissez une image (photo).');
+      return;
+    }
+
+    // Very generous size guard — 20 MB before compression
+    if(file.size > 20 * 1024 * 1024){
+      setErr($('pinErr'), 'Photo trop volumineuse. Essayez une autre photo.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      const img = new Image();
+      img.onload = function(){
+        // Resize to max 320px on the long edge, JPEG quality 0.72
+        const MAX = 320;
+        let w = img.width, h = img.height;
+        if(w > h){
+          if(w > MAX){ h = Math.round(h * MAX / w); w = MAX; }
+        } else {
+          if(h > MAX){ w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+        showPhotoUI(dataUrl);
+      };
+      img.onerror = function(){
+        setErr($('pinErr'), 'Impossible de lire cette photo.');
+      };
+      img.src = ev.target.result;
+    };
+    reader.onerror = function(){
+      setErr($('pinErr'), 'Impossible de lire ce fichier.');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ---------- Back / Save ----------
   $('btnSetPinBack').addEventListener('click', function(){
     clearPins('pinRow1');
     clearPins('pinRow2');
+    resetPhotoUI();
     setErr($('pinErr'), '');
     $('badgeInput').value = '';
     showStep('stepBadge');
   });
 
-  $('btnSavePin').addEventListener('click', savePin);
+  $('btnSavePin').addEventListener('click', saveProfileAndPin);
 
-  function savePin(){
+  async function saveProfileAndPin(){
     const p1 = readPin('pinRow1');
     const p2 = readPin('pinRow2');
 
@@ -582,20 +759,40 @@ h2{
     if(p1 !== p2){ setErr($('pinErr'), 'Les deux codes ne correspondent pas.'); return; }
     if(!pendingBadge){ setErr($('pinErr'), 'Erreur interne — recommencez.'); return; }
 
-    const hash = hashPin(pendingBadge, p1);
+    const btn = $('btnSavePin');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Enregistrement…';
 
     try{
-      localStorage.setItem(PIN_KEY_PREFIX + pendingBadge, hash);
-      localStorage.setItem(SESSION_KEY, pendingBadge);
-    }catch(e){
-      setErr($('pinErr'), 'Impossible d\'enregistrer sur ce téléphone.');
-      return;
-    }
+      // Save photo to Firestore if set
+      if(pendingPhotoDataUrl){
+        await CSM.refs.staff(pendingBadge).update({
+          photo: pendingPhotoDataUrl,
+          photoUpdatedAt: new Date().toISOString()
+        });
+      }
 
-    window.location.replace('index.html');
+      // Store PIN locally
+      const hash = hashPin(pendingBadge, p1);
+      try{
+        localStorage.setItem(PIN_KEY_PREFIX + pendingBadge, hash);
+        localStorage.setItem(SESSION_KEY, pendingBadge);
+      }catch(e){
+        setErr($('pinErr'), 'Impossible d\'enregistrer sur ce téléphone.');
+        btn.disabled = false;
+        btn.innerHTML = 'Créer mon espace';
+        return;
+      }
+
+      window.location.replace('index.html');
+    }catch(e){
+      setErr($('pinErr'), 'Erreur : ' + e.message);
+      btn.disabled = false;
+      btn.innerHTML = 'Créer mon espace';
+    }
   }
 
-  // ---------- STEP 3 : enter PIN ----------
+  // ---------- Enter PIN ----------
   wirePinRow('pinRowEnter', function(pin){ tryEnterPin(pin); });
 
   $('btnEnterPin').addEventListener('click', function(){
@@ -636,8 +833,8 @@ h2{
     }catch(e){}
     clearPins('pinRow1');
     clearPins('pinRow2');
+    resetPhotoUI();
     setErr($('pinErr'), '');
-    // Show set-pin step directly, keeping pendingBadge
     $('setPinName').textContent = (pendingStaff && pendingStaff.name) || 'Employé';
     $('setPinBadge').textContent = 'Badge ' + pendingBadge;
     showStep('stepSetPin');
