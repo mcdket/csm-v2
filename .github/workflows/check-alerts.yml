@@ -1,0 +1,32 @@
+name: Check-alerts
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # Runs every 5 minutes. GitHub may delay under load — that's why
+    # cron-job.org can also call workflow_dispatch directly.
+    - cron: '*/5 * * * *'
+
+jobs:
+  check-alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: push-alerts
+        run: npm install
+
+      - name: Run alert check
+        working-directory: push-alerts
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          RESTAURANT_ID: ketia
+        run: node check-alerts.js
