@@ -3,19 +3,6 @@ rules_version = '2';
 // ============================================================
 // Contract Social Manager — Firestore Security Rules
 // ============================================================
-//
-// Two actors:
-//   1. MANAGER  — a Firebase Auth user whose uid has a
-//                 managerRestaurants/{uid} document. Full access
-//                 to the restaurant they're assigned to.
-//   2. EMPLOYEE — an anonymous Firebase Auth user. Can read their
-//                 restaurant's data, but writes are limited:
-//                   - Create/update their own shift punches
-//                   - Create their own staff profile (once)
-//                   - Create leave requests and corrections
-//
-// Everything else is denied.
-// ============================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -26,39 +13,32 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // A manager is any signed-in user with a managerRestaurants/{uid} doc.
     function isManager() {
       return isSignedIn()
         && exists(/databases/$(database)/documents/managerRestaurants/$(request.auth.uid));
     }
 
-    // The restaurant id this manager owns. Empty string if not a manager.
     function managerRestaurantId() {
       return isManager()
         ? get(/databases/$(database)/documents/managerRestaurants/$(request.auth.uid)).data.id
         : '';
     }
 
-    // A manager may only touch the restaurant they own.
     function isManagerOf(restaurantId) {
       return isManager() && managerRestaurantId() == restaurantId;
     }
 
-    // A restaurant id must exist before anyone can read/write inside it.
     function restaurantExists(restaurantId) {
       return exists(/databases/$(database)/documents/restaurants/$(restaurantId));
     }
 
     // ---------- managerRestaurants/{uid} ----------
-    // Created manually in the Firebase Console. Nobody can write here
-    // through the client SDK, and only the owning manager can read their own.
     match /managerRestaurants/{uid} {
       allow read: if isSignedIn() && request.auth.uid == uid;
       allow write: if false;
     }
 
     // ---------- users/{uid} ----------
-    // Manager account metadata. Only the manager can read their own.
     match /users/{uid} {
       allow read: if isSignedIn() && request.auth.uid == uid;
       allow write: if false;
@@ -77,40 +57,31 @@ service cloud.firestore {
       }
 
       // ----- staff/{badge} -----
-      // Employee profiles. Anonymous users can read (needed for badge
-      // lookup at login), can create their own profile once, and can
-      // update their own photo/name. Cannot delete.
+      // Manager-only for create/delete. Employees can update ONLY their
+      // own photo fields (verified by field diff). This prevents an
+      // anonymous user from creating ghost employees or renaming someone.
       match /staff/{badge} {
         allow read: if restaurantExists(restaurantId);
 
-        // First-time profile creation: only for the exact badge being looked up.
-        allow create: if restaurantExists(restaurantId)
-          && request.resource.data.badge == badge
-          && request.resource.data.name is string
-          && request.resource.data.name.size() > 0
-          && request.resource.data.name.size() < 100;
+        // Only the manager creates new employees (via staff.html or
+        // daily-import auto-create).
+        allow create: if isManagerOf(restaurantId);
 
-        // Employee updates their own profile (photo change etc.):
-        // can only touch photo/name, cannot change badge or createdAt.
+        // Employees can ONLY add/change their photo and photoUpdatedAt.
+        // Cannot touch name, badge, active, createdAt.
         allow update: if restaurantExists(restaurantId)
-          && request.resource.data.badge == resource.data.badge
-          && request.resource.data.createdAt == resource.data.createdAt
-          && request.resource.data.name is string
-          && request.resource.data.name.size() > 0
-          && request.resource.data.name.size() < 100;
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['photo', 'photoUpdatedAt', 'updatedAt']);
 
-        // Manager can do anything with staff.
+        // Manager can update anything and delete.
         allow write: if isManagerOf(restaurantId);
       }
 
       // ----- shifts/{shiftId} -----
-      // One document per shift. Employees create/update their own,
-      // manager does anything.
       match /shifts/{shiftId} {
         allow read: if restaurantExists(restaurantId);
 
-        // Create: the new shift must belong to the badge the app claims.
-        // Validation of field types prevents garbage writes.
+        // Create: badge + date must be present and well-formed.
         allow create: if restaurantExists(restaurantId)
           && request.resource.data.badge is string
           && request.resource.data.badge.size() > 0
@@ -118,30 +89,24 @@ service cloud.firestore {
           && request.resource.data.date is string
           && request.resource.data.date.size() == 10;
 
-        // Update: badge and date are immutable (you can't move a shift
-        // to another employee or another day). Only times and status change.
+        // Update: badge and date are immutable.
         allow update: if restaurantExists(restaurantId)
           && request.resource.data.badge == resource.data.badge
           && request.resource.data.date == resource.data.date;
 
-        // Manager can also delete (e.g. removing a bad import).
         allow delete: if isManagerOf(restaurantId);
       }
 
       // ----- schedules/{scheduleId} -----
-      // Weekly planning imports. Employees can read (to see their shifts),
-      // only the manager writes.
       match /schedules/{scheduleId} {
         allow read: if restaurantExists(restaurantId);
         allow write: if isManagerOf(restaurantId);
       }
 
       // ----- leaveRequests/{requestId} -----
-      // Employee submits, manager decides.
       match /leaveRequests/{requestId} {
         allow read: if restaurantExists(restaurantId);
 
-        // Create: must declare the badge, dates, type, and pending status.
         allow create: if restaurantExists(restaurantId)
           && request.resource.data.badge is string
           && request.resource.data.status == 'pending'
@@ -156,7 +121,6 @@ service cloud.firestore {
       }
 
       // ----- corrections/{correctionId} -----
-      // Employee reports a missing/wrong punch, manager fixes.
       match /corrections/{correctionId} {
         allow read: if restaurantExists(restaurantId);
 
@@ -174,22 +138,17 @@ service cloud.firestore {
       }
 
       // ----- auditLog/{logId} -----
-      // Manager-only. Nobody else even knows it exists.
       match /auditLog/{logId} {
         allow read, write: if isManagerOf(restaurantId);
       }
 
       // ----- dailyImports/{docId} -----
-      // Manager-only. Stores the last daily-import preview
-      // (survives navigation and reload until the manager
-      // presses "Effacer le tableau").
       match /dailyImports/{docId} {
         allow read, write: if isManagerOf(restaurantId);
       }
     }
 
     // ---------- pushSubscriptions/{deviceId} ----------
-    // Manager's phone subscriptions for alerts.
     match /pushSubscriptions/{deviceId} {
       allow read: if isSignedIn() && isManager();
       allow create, update: if isSignedIn() && isManager();
@@ -197,8 +156,6 @@ service cloud.firestore {
     }
 
     // ---------- pushAlertState/{restaurantId} ----------
-    // Written by the GitHub Actions job (service account, bypasses rules).
-    // Readable/writable by the manager only.
     match /pushAlertState/{restaurantId} {
       allow read, write: if isSignedIn() && isManagerOf(restaurantId);
     }
