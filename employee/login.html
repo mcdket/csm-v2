@@ -398,23 +398,19 @@ h2{
       <div class="num" id="setPinBadge">Badge —</div>
     </div>
 
-    <label class="field-label" style="text-align:center;">Photo de profil (facultatif)</label>
-    <div class="photo-block">
-      <div class="photo-circle" id="photoCircle">
-        <div class="placeholder" id="photoPlaceholder">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <span>Ajouter</span>
-        </div>
-        <img id="photoImg" class="hidden" alt="" style="display:none;">
-        <div class="overlay">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <span>Changer</span>
-        </div>
+        <label class="field-label" style="text-align:center;">Photo de profil (facultatif)</label>
+
+    <div id="photoCircle" style="width:120px;height:120px;margin:0 auto 12px;border-radius:50%;background:var(--panel);border:3px dashed var(--accent);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;position:relative;text-align:center;">
+      <div id="photoPlaceholder" style="color:var(--text-muted);text-align:center;padding:6px;">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#D9822E" stroke-width="2" style="display:block;margin:0 auto 4px;"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Ajouter</div>
       </div>
-      <div class="photo-hint">Prenez une photo de vous ou choisissez une image. Elle apparaîtra sur votre profil.</div>
-      <button type="button" class="photo-remove hidden" id="photoRemove">Retirer la photo</button>
-      <input type="file" id="photoInput" accept="image/*" capture="user" style="display:none;">
+      <img id="photoImg" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
     </div>
+
+    <div class="photo-hint" style="text-align:center;margin-bottom:8px;">Touchez le cercle pour choisir une photo.</div>
+    <button type="button" class="photo-remove hidden" id="photoRemove">Retirer la photo</button>
+    <input type="file" id="photoInput" accept="image/*" capture="user" style="display:none;">
 
     <label class="field-label">Nouveau PIN (4 chiffres)</label>
     <div class="pinrow" id="pinRow1">
