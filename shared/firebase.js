@@ -3,6 +3,11 @@
  * ------------------
  * Single Firebase initialisation, imported by every page.
  * Exposes on window: CSM, db, auth
+ *
+ * IMPORTANT: this file now ensures that auth persistence is fully
+ * applied BEFORE any page's onAuthStateChanged listener fires. That's
+ * what stops the manager pages from kicking you back to login on every
+ * button click.
  */
 (function(){
   'use strict';
@@ -19,6 +24,7 @@
   firebase.initializeApp(firebaseConfig);
 
   const db = firebase.firestore();
+
   db.enablePersistence({ synchronizeTabs: true }).catch(function(err){
     if(err && err.code === 'failed-precondition'){
       console.warn('Firestore persistence disabled: multiple tabs open.');
@@ -29,20 +35,52 @@
 
   const auth = firebase.auth();
 
-  // ---------- IMPORTANT ----------
-  // Persistence must be applied BEFORE any sign-in call, otherwise
-  // the session is only kept for the current page and every navigation
-  // (e.g. from login.html to index.html) loses it.
+  // ============================================================
+  // Auth readiness gate
+  // ============================================================
+  // Two things need to happen before any page can correctly ask
+  // "is the user signed in?":
   //
-  // We set it here AND expose a promise so pages can wait for it to
-  // be applied before they call signInWithEmailAndPassword.
-  const authReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  //   1. setPersistence(LOCAL) must be *applied*. Until it is,
+  //      the session is only kept in memory — navigate away and
+  //      it's gone.
+  //
+  //   2. Firebase's internal initial-auth resolution must have
+  //      run. This is what actually restores the session from
+  //      IndexedDB and fires onAuthStateChanged with the real
+  //      user (or null if truly signed out).
+  //
+  // CSM.authReady resolves only after BOTH have happened, so
+  // pages that `await CSM.authReady` before attaching their
+  // onAuthStateChanged listener will always get the correct
+  // answer on the first fire.
+  // ============================================================
+
+  const persistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
     .catch(function(err){
-      console.warn('setPersistence failed:', err);
-      // Retry once — some browsers throw on the very first call
-      // after a cold start.
+      console.warn('setPersistence failed, retrying once:', err);
       return auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .catch(function(err2){ console.error('setPersistence retry failed:', err2); });
+        .catch(function(err2){
+          console.error('setPersistence retry failed:', err2);
+        });
+    });
+
+  const initialAuthResolved = new Promise(function(resolve){
+    const unsub = auth.onAuthStateChanged(function(user){
+      unsub();
+      resolve(user);
+    }, function(err){
+      unsub();
+      console.warn('Initial auth resolution error:', err);
+      resolve(null);
+    });
+  });
+
+  const authReady = Promise.all([persistenceReady, initialAuthResolved])
+    .then(function(results){ return results[1]; })  // the resolved user (or null)
+    .catch(function(err){
+      console.warn('authReady rejected:', err);
+      return null;
     });
 
   // ============================================================
@@ -65,7 +103,7 @@
   const CSM = {
     db: db,
     auth: auth,
-    authReady: authReady,   // promise — await this before signing in
+    authReady: authReady,
     restaurantId: null,
     restaurantName: '',
     ready: null
