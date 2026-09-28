@@ -14,69 +14,36 @@
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
 .app{max-width:1240px;margin:0 auto;padding:20px 20px 60px;}
-
 .header{
   display:flex;align-items:center;justify-content:space-between;
   gap:20px;flex-wrap:wrap;
   background:var(--panel-raised);
   border-bottom:3px solid var(--accent);
   box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
-  padding:16px 20px;
-  margin-bottom:18px;
+  padding:16px 20px;margin-bottom:18px;
 }
 .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.brand .arch{
-  width:34px;height:34px;object-fit:cover;border-radius:50%;
-  border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);
-}
+.brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
 .brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
-.brand .restaurant-badge{
-  color:#2A1F00;font-size:12px;font-weight:700;
-  background:var(--brand-yellow);padding:4px 10px;
-}
+.brand .restaurant-badge{color:#2A1F00;font-size:12px;font-weight:700;background:var(--brand-yellow);padding:4px 10px;}
 .controls{display:flex;gap:8px;flex-wrap:wrap;}
 
-.help{
-  background:var(--panel);
-  border:1px solid var(--line);
-  padding:14px 16px;
-  margin-bottom:18px;
-  font-size:13px;
-  line-height:1.55;
-  color:var(--text-muted);
-}
+.help{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:18px;font-size:13px;line-height:1.55;color:var(--text-muted);}
 .help b{color:var(--text);font-weight:600;}
 
-.import{
-  background:var(--panel);
-  border:1px solid var(--line);
-  box-shadow:var(--shadow);
-  padding:18px;
-  margin-bottom:20px;
-}
-.import-head{
-  display:flex;justify-content:space-between;align-items:center;
-  gap:12px;flex-wrap:wrap;margin-bottom:14px;
-}
+.import{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:18px;margin-bottom:20px;}
+.import-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
 .import-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
 .dropzone{
-  border:1.5px dashed var(--line);
-  padding:36px 16px;text-align:center;
+  border:1.5px dashed var(--line);padding:36px 16px;text-align:center;
   color:var(--text-muted);font-size:14px;
-  transition:border-color .15s ease, background .15s ease;
-  cursor:pointer;
+  transition:border-color .15s ease, background .15s ease;cursor:pointer;
 }
 .dropzone:hover, .dropzone.drag{border-color:var(--accent);background:var(--status-break-bg);}
 .dropzone b{color:var(--text);font-weight:600;font-size:15px;}
 .dropzone .sub{font-size:12.5px;margin-top:6px;}
 .dropzone svg{width:32px;height:32px;color:var(--accent);display:block;margin:0 auto 12px;}
-
-.importlog{
-  margin-top:14px;font-size:12.5px;color:var(--text-muted);
-  max-height:180px;overflow-y:auto;
-  border-top:1px solid var(--line-soft);padding-top:12px;
-  display:none;line-height:1.6;
-}
+.importlog{margin-top:14px;font-size:12.5px;color:var(--text-muted);max-height:180px;overflow-y:auto;border-top:1px solid var(--line-soft);padding-top:12px;display:none;line-height:1.6;}
 .importlog.show{display:block;}
 .importlog div{padding:2px 0;}
 .importlog .ok{color:var(--status-ok-fg);}
@@ -84,94 +51,38 @@
 .importlog .err{color:var(--status-crit-fg);}
 
 .summary{
-  background:var(--panel-raised);
-  border:1px solid var(--line);
-  box-shadow:var(--shadow);
-  padding:16px 18px;
-  margin-bottom:16px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
+  background:var(--panel-raised);border:1px solid var(--line);box-shadow:var(--shadow);
+  padding:16px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:14px;
 }
-.summary-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:16px;
-  flex-wrap:wrap;
-}
+.summary-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
 .summary-left{display:flex;flex-direction:column;gap:2px;}
-.summary-left .lbl{
-  font-size:11px;font-weight:700;letter-spacing:.05em;
-  color:var(--text-muted);text-transform:uppercase;
-}
-.summary-left .date{
-  font-size:20px;font-weight:800;
-  font-family:'IBM Plex Mono',monospace;
-}
-.summary-left .date-sub{
-  font-size:12.5px;color:var(--text-muted);
-  font-family:'IBM Plex Mono',monospace;
-}
+.summary-left .lbl{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-muted);text-transform:uppercase;}
+.summary-left .date{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace;}
+.summary-left .date-sub{font-size:12.5px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
 .summary-stats{display:flex;gap:10px;flex-wrap:wrap;}
-.statbox{
-  padding:8px 14px;border:1px solid var(--line);
-  background:var(--panel);text-align:center;
-  min-width:96px;
-}
+.statbox{padding:8px 14px;border:1px solid var(--line);background:var(--panel);text-align:center;min-width:96px;}
 .statbox.ok  {border-color:var(--status-ok-line);}
 .statbox.warn{border-color:var(--status-warn-line);background:var(--status-warn-bg);}
 .statbox.crit{border-color:var(--status-crit-line);background:var(--status-crit-bg);}
 .statbox.new {border-color:var(--brand-yellow);background:rgba(240,185,74,0.20);}
-.statbox .num{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:20px;font-weight:700;line-height:1;
-}
+.statbox .num{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;line-height:1;}
 .statbox.ok  .num{color:var(--status-ok-fg);}
 .statbox.warn .num{color:var(--status-warn-fg);}
 .statbox.crit .num{color:var(--status-crit-fg);}
 .statbox.new  .num{color:#8A5A00;}
-.statbox .lbl{
-  font-size:10.5px;font-weight:700;
-  color:var(--text-muted);text-transform:uppercase;
-  letter-spacing:.04em;margin-top:4px;
-}
-.summary-actions{
-  display:flex;gap:10px;flex-wrap:wrap;
-  border-top:1px solid var(--line-soft);
-  padding-top:14px;
-}
+.statbox .lbl{font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;}
+.summary-actions{display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line-soft);padding-top:14px;}
 .summary-actions .btn{flex:1;justify-content:center;min-width:150px;}
 
-.tablewrap{
-  border:1px solid var(--line);
-  background:var(--panel);
-  box-shadow:var(--shadow);
-  overflow-x:auto;
-  margin-bottom:16px;
-}
-table.preview{
-  width:100%;
-  border-collapse:collapse;
-  min-width:1100px;
-  font-size:13px;
-}
+.tablewrap{border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);overflow-x:auto;margin-bottom:16px;}
+table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13px;}
 .preview thead th{
-  text-align:left;
-  font-size:11px;font-weight:700;
-  color:var(--text-muted);
-  text-transform:uppercase;letter-spacing:.05em;
-  padding:10px 12px;
-  border-bottom:2px solid var(--line);
-  white-space:nowrap;
-  background:var(--panel-raised);
-  position:sticky;top:0;
+  text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;
+  border-bottom:2px solid var(--line);white-space:nowrap;
+  background:var(--panel-raised);position:sticky;top:0;
 }
-.preview tbody td{
-  padding:10px 12px;
-  border-bottom:1px solid var(--line-soft);
-  vertical-align:middle;
-}
+.preview tbody td{padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle;}
 .preview tbody tr:hover{background:var(--panel-raised);}
 .preview tbody tr.flagged-ok   {border-left:4px solid var(--status-ok-line);}
 .preview tbody tr.flagged-warn {border-left:4px solid var(--status-warn-line);background:var(--status-warn-bg);}
@@ -181,70 +92,34 @@ table.preview{
 .preview td.center{text-align:center;}
 .preview td.name{font-weight:600;}
 
-.match-pill{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:3px 10px;font-size:11.5px;font-weight:700;
-  letter-spacing:.02em;
-}
+.match-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;font-size:11.5px;font-weight:700;letter-spacing:.02em;}
 .match-pill.ok  {background:var(--status-ok-bg);color:var(--status-ok-fg);}
 .match-pill.warn{background:var(--status-warn-bg);color:var(--status-warn-fg);}
 .match-pill.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);}
 .match-pill.new {background:rgba(240,185,74,0.30);color:#8A5A00;}
 
-.picker{
-  padding:6px 8px;
-  font-size:12.5px;
-  background:var(--panel);
-  color:var(--text);
-  border:1px solid var(--line);
-  max-width:220px;
-}
+.picker{padding:6px 8px;font-size:12.5px;background:var(--panel);color:var(--text);border:1px solid var(--line);max-width:220px;}
 .picker:focus{outline:2px solid var(--accent);}
 
-.rowaction{
-  padding:6px 10px;
-  font-size:11.5px;font-weight:700;
-  background:transparent;
-  border:1px solid var(--line);
-  color:var(--text-muted);
-  cursor:pointer;
-}
+.rowaction{padding:6px 10px;font-size:11.5px;font-weight:700;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;}
 .rowaction:hover{border-color:var(--accent);color:var(--accent);}
 
-.empty-state{
-  text-align:center;padding:60px 20px;
-  color:var(--text-muted);font-size:14px;
-  background:var(--panel);border:1px dashed var(--line);
-}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;background:var(--panel);border:1px dashed var(--line);}
 .empty-state b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
 
 .toast{
-  position:fixed;
-  bottom:24px;left:50%;
+  position:fixed;bottom:24px;left:50%;
   transform:translateX(-50%) translateY(120%);
   background:var(--status-ok-fg);color:#fff;
-  padding:14px 22px;
-  font-size:14px;font-weight:700;
+  padding:14px 22px;font-size:14px;font-weight:700;
   box-shadow:0 8px 24px rgba(0,0,0,0.35);
-  transition:transform .3s cubic-bezier(.2,.9,.3,1.2);
-  z-index:200;
+  transition:transform .3s cubic-bezier(.2,.9,.3,1.2);z-index:200;
 }
 .toast.show{transform:translateX(-50%) translateY(0);}
 
-.loading-overlay{
-  position:fixed;inset:0;
-  background:rgba(20,24,29,0.6);
-  display:none;align-items:center;justify-content:center;
-  z-index:150;
-}
+.loading-overlay{position:fixed;inset:0;background:rgba(20,24,29,0.6);display:none;align-items:center;justify-content:center;z-index:150;}
 .loading-overlay.show{display:flex;}
-.loading-overlay .spinner{
-  width:48px;height:48px;
-  border:4px solid var(--accent);
-  border-top-color:transparent;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-}
+.loading-overlay .spinner{width:48px;height:48px;border:4px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 @media (max-width:640px){
@@ -284,6 +159,8 @@ table.preview{
     à un employé existant, et affiche un aperçu. <b>Les employés qui ne sont pas encore
     enregistrés seront automatiquement créés</b> avec leur badge et leur nom quand vous cliquez
     sur « Enregistrer ». Un pointage existant pour la même date sera automatiquement remplacé.
+    Les pointages sont enregistrés à la <b>date du jour</b> pour apparaître immédiatement sur
+    le tableau de bord.
   </div>
 
   <div class="import" id="importZone">
@@ -309,7 +186,6 @@ table.preview{
   </div>
 
   <div id="previewWrap" style="display:none;">
-
     <div class="summary" id="summary">
       <div class="summary-top">
         <div class="summary-left">
@@ -329,30 +205,20 @@ table.preview{
       <table class="preview">
         <thead>
           <tr>
-            <th>Badge</th>
-            <th>Nom (PDF)</th>
-            <th>Employé associé</th>
-            <th>Entrée</th>
-            <th>Pause</th>
-            <th>Retour</th>
-            <th>Sortie</th>
-            <th>Heures</th>
-            <th>Action</th>
+            <th>Badge</th><th>Nom (PDF)</th><th>Employé associé</th>
+            <th>Entrée</th><th>Pause</th><th>Retour</th><th>Sortie</th>
+            <th>Heures</th><th>Action</th>
           </tr>
         </thead>
         <tbody id="previewBody"></tbody>
       </table>
     </div>
-
   </div>
 
 </div>
 
 <div class="toast" id="toast">—</div>
-
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-</div>
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -371,34 +237,35 @@ table.preview{
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
 
-  // ---------- State ----------
+  // ---------- Theme ----------
+  (function(){
+    const K = 'csct_manager_theme';
+    function apply(){
+      let t = 'light';
+      try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
+      document.documentElement.classList.toggle('theme-light', t === 'light');
+      document.documentElement.classList.toggle('theme-dark', t === 'dark');
+      const b = document.getElementById('btnTheme');
+      if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
+    }
+    apply();
+    const btn = document.getElementById('btnTheme');
+    if(btn){
+      btn.addEventListener('click', function(){
+        let t = 'light';
+        try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
+        const next = t === 'light' ? 'dark' : 'light';
+        try{ localStorage.setItem(K, next); }catch(e){}
+        apply();
+      });
+    }
+  })();
+
   let staffList = [];
   let staffByBadge = {};
-  let currentImport = null;   // { date, store, location, rows: [...], savedAt }
+  let currentImport = null;
   let unsubImport = null;
 
-  // ---------- Theme ----------
-  const THEME_KEY = 'csct_manager_theme';
-  function applyTheme(){
-    let t = 'light';
-    try{ t = localStorage.getItem(THEME_KEY) || 'light'; }catch(e){}
-    document.documentElement.classList.toggle('theme-light', t === 'light');
-    document.documentElement.classList.toggle('theme-dark', t === 'dark');
-    const b = $('btnTheme');
-    if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
-  }
-  function wireThemeToggle(){
-    $('btnTheme').addEventListener('click', function(){
-      let t = 'light';
-      try{ t = localStorage.getItem(THEME_KEY) || 'light'; }catch(e){}
-      const next = t === 'light' ? 'dark' : 'light';
-      try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
-      applyTheme();
-    });
-  }
-  applyTheme();
-
-  // ---------- Auth gating ----------
   let started = false;
   auth.onAuthStateChanged(function(user){
     if(!user){ window.location.replace('login.html'); return; }
@@ -417,7 +284,6 @@ table.preview{
         document.querySelector('.app').style.display = 'block';
         $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
         $('restaurantBadge').style.display = 'inline-block';
-        wireThemeToggle();
         wireImport();
         wireActions();
         loadStaff().then(function(){
@@ -432,7 +298,6 @@ table.preview{
 
   $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
 
-  // ---------- Load staff (returns a Promise) ----------
   function loadStaff(){
     return CSM.refs.staffColl().get().then(function(snap){
       staffList = [];
@@ -446,20 +311,16 @@ table.preview{
       staffList.sort(function(a,b){
         return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
       });
-      console.log('loadStaff: ' + staffList.length + ' active employees loaded');
     }).catch(function(err){
       console.warn('loadStaff:', err);
     });
   }
 
-  // ---------- Firestore subscription to current import ----------
   function subscribeCurrentImport(){
     if(unsubImport) unsubImport();
-    const ref = CSM.refs.dailyImport('current');
-    unsubImport = ref.onSnapshot(function(doc){
+    unsubImport = CSM.refs.dailyImport('current').onSnapshot(function(doc){
       if(doc.exists && doc.data().rows && doc.data().rows.length){
         currentImport = Object.assign({ _id: 'current' }, doc.data());
-        // Reapply match logic in case staff changed
         matchAgainstStaff();
         render();
       } else {
@@ -471,7 +332,6 @@ table.preview{
     });
   }
 
-  // ---------- Import ----------
   function wireImport(){
     $('dropzone').addEventListener('click', function(){ $('fileInput').click(); });
     $('fileInput').addEventListener('change', function(e){
@@ -511,7 +371,6 @@ table.preview{
       }
       log('PDF analysé — ' + parsed.rows.length + ' employés trouvés.', 'ok');
 
-      // Save to Firestore as 'current' (this is the persistent preview)
       const payload = {
         date: parsed.date,
         store: parsed.store,
@@ -524,7 +383,7 @@ table.preview{
         savedCount: 0
       };
       await CSM.refs.dailyImport('current').set(payload);
-      log('Aperçu enregistré dans la base. Il restera visible jusqu\'à ce que vous l\'effaciez.', 'ok');
+      log('Aperçu enregistré.', 'ok');
     }catch(err){
       console.error('handleFile:', err);
       log('Erreur : ' + err.message, 'err');
@@ -534,7 +393,6 @@ table.preview{
     }
   }
 
-  // ---------- PDF text extraction ----------
   async function extractPdfText(arrayBuffer){
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     let fullText = '';
@@ -556,7 +414,6 @@ table.preview{
     return fullText;
   }
 
-  // ---------- Parser ----------
   function parseDailyReport(text){
     const dateMatch = /Date\s*(\d{2}\/\d{2}\/\d{4})/.exec(text);
     const storeMatch = /Store\s*(\d+)/.exec(text);
@@ -653,12 +510,6 @@ table.preview{
       });
     });
 
-    console.log('parseDailyReport: ' + rows.length + ' rows from ' + blocks.length + ' blocks');
-    if(rows.length){
-      console.log('First row:', rows[0]);
-      console.log('Last row:', rows[rows.length - 1]);
-    }
-
     return {
       date: date,
       store: storeMatch ? storeMatch[1] : null,
@@ -679,28 +530,21 @@ table.preview{
     return out;
   }
 
-  // ---------- Match against staff ----------
   function matchAgainstStaff(){
     if(!currentImport) return;
     currentImport.rows.forEach(function(row){
-      // Preserve manually chosen badge if already set
       const chosen = row.chosenBadge || null;
-      const prevLevel = row.match ? row.match.level : null;
       row.match = resolveRow(row);
-      // If user previously chose a badge, keep it
       if(chosen) row.chosenBadge = chosen;
     });
   }
 
   function splitBadge(raw){
-    // The PDF concatenates Bno + Empl-No. The Empl-No has 5-6 digits.
-    // Try longest badge (3) first, then 2, then 1.
     const candidates = [];
     for(let len = 3; len >= 1; len--){
       if(raw.length <= len) continue;
       const prefix = raw.slice(0, len);
       const rest = raw.slice(len);
-      // Empl-No typically 5 or 6 digits
       if(rest.length < 5 || rest.length > 6) continue;
       candidates.push({ badge: prefix, emplNo: rest });
     }
@@ -709,8 +553,6 @@ table.preview{
 
   function resolveRow(row){
     const raw = row.rawNum;
-
-    // Try splitting and matching by staff badge
     const splits = splitBadge(raw);
     const matchedSplits = splits.filter(function(s){ return !!staffByBadge[s.badge]; });
 
@@ -719,9 +561,7 @@ table.preview{
       const staff = staffByBadge[s.badge];
       const nameOk = R.sameName(staff.name, row.namePdf);
       return {
-        badge: s.badge,
-        emplNo: s.emplNo,
-        staffName: staff.name,
+        badge: s.badge, emplNo: s.emplNo, staffName: staff.name,
         level: nameOk ? 'ok' : 'warn',
         reason: nameOk ? 'badge + nom' : 'badge seulement (nom différent)'
       };
@@ -730,44 +570,27 @@ table.preview{
       return { badge: null, emplNo: null, staffName: null, level: 'crit', reason: 'plusieurs badges possibles' };
     }
 
-    // No badge match — try by name
     const byName = staffList.find(function(s){ return R.sameName(s.name, row.namePdf); });
     if(byName){
-      // We know the name — but the badge from the split may be wrong.
-      // Use the staff badge as the source of truth.
       return {
-        badge: String(byName.badge),
-        emplNo: null,
-        staffName: byName.name,
-        level: 'warn',
-        reason: 'nom seulement (badge déduit)'
+        badge: String(byName.badge), emplNo: null, staffName: byName.name,
+        level: 'warn', reason: 'nom seulement (badge déduit)'
       };
     }
 
-    // Truly new employee — auto-create on save.
-    // Best guess for badge: the 3-digit split (or 2, or 1) that leaves
-    // a 5-6 digit Empl-No. Default to first candidate.
-    const best = splits[0]; // longest badge first
+    const best = splits[0];
     if(best){
       return {
-        badge: best.badge,
-        emplNo: best.emplNo,
-        staffName: null,
-        level: 'new',
-        reason: 'nouvel employé (créé à l\'enregistrement)'
+        badge: best.badge, emplNo: best.emplNo, staffName: null,
+        level: 'new', reason: 'nouvel employé (créé à l\'enregistrement)'
       };
     }
-    // Fallback: use entire raw as badge (shouldn't happen with our PDFs)
     return {
-      badge: raw,
-      emplNo: null,
-      staffName: null,
-      level: 'new',
-      reason: 'nouvel employé (badge = numéro complet)'
+      badge: raw, emplNo: null, staffName: null,
+      level: 'new', reason: 'nouvel employé (badge = numéro complet)'
     };
   }
 
-  // ---------- Render ----------
   function render(){
     if(!currentImport){
       $('previewWrap').style.display = 'none';
@@ -790,8 +613,7 @@ table.preview{
     const newRows  = rows.filter(function(r){ return effectiveLevel(r) === 'new'; }).length;
     const critRows = rows.filter(function(r){ return effectiveLevel(r) === 'crit'; }).length;
 
-    const stats = $('sumStats');
-    stats.innerHTML =
+    $('sumStats').innerHTML =
       statBox(okRows, 'Reconnues', 'ok') +
       (newRows ? statBox(newRows, 'Nouveaux', 'new') : '') +
       (warnRows ? statBox(warnRows, 'À vérifier', 'warn') : '') +
@@ -799,17 +621,13 @@ table.preview{
 
     const body = $('previewBody');
     body.innerHTML = '';
-    rows.forEach(function(row, idx){
-      body.appendChild(buildRow(row, idx));
-    });
+    rows.forEach(function(row, idx){ body.appendChild(buildRow(row, idx)); });
 
     const saveBtn = $('btnSaveAll');
     saveBtn.disabled = rows.length === 0;
-    saveBtn.textContent = '✓ Enregistrer dans la base (' + rows.length + ')';
-
-    if(currentImport.savedAt){
-      saveBtn.textContent = '✓ Enregistré (' + (currentImport.savedCount || 0) + ') — réenregistrer';
-    }
+    saveBtn.textContent = currentImport.savedAt
+      ? '✓ Enregistré (' + (currentImport.savedCount || 0) + ') — réenregistrer'
+      : '✓ Enregistrer dans la base (' + rows.length + ')';
   }
 
   function effectiveLevel(row){
@@ -824,25 +642,15 @@ table.preview{
   }
 
   function statBox(num, label, cls){
-    return '<div class="statbox ' + cls + '">' +
-      '<div class="num">' + num + '</div>' +
-      '<div class="lbl">' + label + '</div>' +
-    '</div>';
+    return '<div class="statbox ' + cls + '"><div class="num">' + num + '</div><div class="lbl">' + label + '</div></div>';
   }
 
   function buildRow(row, idx){
     const tr = document.createElement('tr');
     const level = effectiveLevel(row);
     tr.className = 'flagged-' + level;
-
     const badgeDisplay = currentImportChosenBadge(row) || '—';
-
-    const matchLabel = {
-      ok:   'Reconnu',
-      warn: 'À vérifier',
-      new:  'Nouveau',
-      crit: 'Introuvable'
-    }[level];
+    const matchLabel = { ok: 'Reconnu', warn: 'À vérifier', new: 'Nouveau', crit: 'Introuvable' }[level];
 
     let employeeCell = '';
     if(level === 'ok' && !row.chosenBadge){
@@ -857,8 +665,7 @@ table.preview{
         .concat(staffList.map(function(s){
           const sel = (currentImportChosenBadge(row) === String(s.badge)) ? ' selected' : '';
           return '<option value="' + escAttr(String(s.badge)) + '"' + sel + '>' + esc(s.name) + ' (badge ' + esc(String(s.badge)) + ')</option>';
-        }))
-        .join('');
+        })).join('');
       employeeCell =
         '<div class="match-pill ' + level + '" style="margin-bottom:6px;">' +
           esc(matchLabel) + (row.match && row.match.reason ? ' · ' + esc(row.match.reason) : '') +
@@ -893,21 +700,17 @@ table.preview{
         render();
       });
     }
-
     return tr;
   }
 
   function fmtHrsFromTimes(row){
     const calc = R.computeShift({
-      clockIn: row.clockIn,
-      breakStart: row.breakStart,
-      breakReturn: row.breakReturn,
-      clockOut: row.clockOut
+      clockIn: row.clockIn, breakStart: row.breakStart,
+      breakReturn: row.breakReturn, clockOut: row.clockOut
     });
     return R.fmtHrs(calc.totalMinutes || 0);
   }
 
-  // ---------- Persist preview to Firestore ----------
   function saveCurrentImport(){
     if(!currentImport) return Promise.resolve();
     const payload = Object.assign({}, currentImport);
@@ -917,7 +720,6 @@ table.preview{
     });
   }
 
-  // ---------- Actions ----------
   function wireActions(){
     $('btnClearPreview').addEventListener('click', function(){
       if(!currentImport) return;
@@ -929,7 +731,6 @@ table.preview{
         alert('Erreur : ' + err.message);
       });
     });
-
     $('btnSaveAll').addEventListener('click', saveAll);
   }
 
@@ -938,7 +739,6 @@ table.preview{
     const rows = currentImport.rows;
     if(!rows.length) return;
 
-    // Confirm creation of new employees
     const newRows = rows.filter(function(r){ return effectiveLevel(r) === 'new'; });
     if(newRows.length > 0){
       const names = newRows.slice(0, 8).map(function(r){ return '• ' + r.namePdf + ' (badge ' + currentImportChosenBadge(r) + ')'; });
@@ -959,13 +759,15 @@ table.preview{
     let saved = 0, created = 0, failed = 0;
     const errors = [];
 
+    // Force all shifts to today so they appear on the dashboard immediately
+    const dateIso = R.todayKey();
+
     for(const row of rows){
       const badge = String(currentImportChosenBadge(row));
       if(!badge){ failed++; errors.push(row.namePdf + ': badge manquant'); continue; }
 
       let staff = staffByBadge[badge];
 
-      // Auto-create new staff if this is a new employee
       if(!staff && effectiveLevel(row) === 'new'){
         try{
           const newStaff = {
@@ -997,13 +799,9 @@ table.preview{
         continue;
       }
 
-      // Save the shift
-      const dateIso = R.todayKey();
       const shiftData = {
-        clockIn: row.clockIn,
-        breakStart: row.breakStart,
-        breakReturn: row.breakReturn,
-        clockOut: row.clockOut
+        clockIn: row.clockIn, breakStart: row.breakStart,
+        breakReturn: row.breakReturn, clockOut: row.clockOut
       };
       const calc = R.computeShift(shiftData);
       const status = (row.clockOut !== null && row.clockOut !== undefined) ? 'closed' : 'open';
@@ -1047,13 +845,11 @@ table.preview{
     btn.textContent = originalText;
     $('loadingOverlay').classList.remove('show');
 
-    // Mark the current import as saved
     if(failed === 0){
       currentImport.savedAt = new Date().toISOString();
       currentImport.savedCount = saved;
       await saveCurrentImport();
       showToast('✓ ' + saved + ' pointage(s) enregistré(s)' + (created ? ' · ' + created + ' employé(s) créé(s)' : ''));
-      // Reload staff to reflect newly created
       await loadStaff();
       render();
     } else {
@@ -1068,14 +864,6 @@ table.preview{
     }
   }
 
-  function toIsoDate(s){
-    if(!s) return null;
-    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
-    if(!m) return null;
-    return m[3] + '-' + m[2] + '-' + m[1];
-  }
-
-  // ---------- Toast ----------
   let toastTimer = null;
   function showToast(msg){
     const t = $('toast');
@@ -1085,7 +873,6 @@ table.preview{
     toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3500);
   }
 
-  // ---------- Log ----------
   function log(msg, cls){
     const el = $('importLog');
     el.classList.add('show');
@@ -1101,14 +888,10 @@ table.preview{
     el.classList.remove('show');
   }
 
-  // ---------- Helpers ----------
   function esc(s){
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
   function escAttr(s){ return esc(s); }
 
