@@ -136,6 +136,7 @@
     leaveReqs:   function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('leaveRequests'); },
     corrections: function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('corrections'); },
     auditLog:    function(){ return db.collection('restaurants').doc(CSM.restaurantId).collection('auditLog'); },
+    dailyImport: function(id){ return db.collection('restaurants').doc(CSM.restaurantId).collection('dailyImports').doc(id || 'current'); },
     managers:    function(uid){ return db.collection('managerRestaurants').doc(uid); }
   };
 
