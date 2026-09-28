@@ -64,36 +64,17 @@
   transition:transform .1s ease;
 }
 .staffcard:hover{transform:translateY(-1px);}
-.staffcard.inactive{
-  opacity:0.5;
-  border-left-color:var(--line);
-}
-.staffcard .avatar{
-  width:52px;height:52px;
-  object-fit:cover;
-  border-radius:50%;
-  border:2px solid var(--line);
-  background:var(--panel);
-  flex-shrink:0;
-}
+.staffcard.inactive{opacity:0.5;border-left-color:var(--line);}
+.staffcard .avatar{width:52px;height:52px;object-fit:cover;border-radius:50%;border:2px solid var(--line);background:var(--panel);flex-shrink:0;}
 .staffcard .avatar-fallback{
-  width:52px;height:52px;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--accent);color:#FFF;
-  font-size:20px;font-weight:700;
-  border-radius:50%;
-  border:2px solid var(--line);
-  flex-shrink:0;
+  width:52px;height:52px;display:flex;align-items:center;justify-content:center;
+  background:var(--accent);color:#FFF;font-size:20px;font-weight:700;
+  border-radius:50%;border:2px solid var(--line);flex-shrink:0;
 }
 .staffcard .info{flex:1;min-width:0;}
 .staffcard .name{font-size:15px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.staffcard .badge{
-  font-family:'IBM Plex Mono',monospace;font-size:12px;
-  color:var(--text-muted);margin-top:3px;
-}
-.staffcard .actions{
-  display:flex;flex-direction:column;gap:4px;
-}
+.staffcard .badge{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted);margin-top:3px;}
+.staffcard .actions{display:flex;flex-direction:column;gap:4px;}
 .staffcard .actions button{
   background:transparent;border:1px solid var(--line);
   color:var(--text-muted);padding:5px 10px;
@@ -129,14 +110,6 @@
 .field .hint{font-size:11px;color:var(--text-muted);margin-top:5px;}
 .modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
 
-.stat-line{
-  display:flex;justify-content:space-between;
-  padding:8px 0;font-size:13px;
-  border-bottom:1px solid var(--line-soft);
-}
-.stat-line .lbl{color:var(--text-muted);}
-.stat-line .v{font-family:'IBM Plex Mono',monospace;font-weight:600;}
-
 @media (max-width:640px){
   .header{flex-direction:column;align-items:stretch;}
   .controls{justify-content:stretch;}
@@ -161,6 +134,7 @@
       <a class="btn" href="planning.html">Planning</a>
       <a class="btn" href="requests.html">Demandes</a>
       <button class="btn btn-primary" id="btnAdd">+ Ajouter un employé</button>
+      <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
       <button class="btn" id="btnLogout">Déconnexion</button>
     </div>
   </div>
@@ -198,7 +172,7 @@
     <div class="field">
       <label>Nom & Prénom</label>
       <input type="text" id="fName" placeholder="Karim Benali" autocomplete="off">
-      <div class="hint">Doit correspondre au nom utilisé dans le planning PDF pour la détection automatique des retards.</div>
+      <div class="hint">Doit correspondre au nom utilisé dans le planning PDF.</div>
     </div>
 
     <div class="modalactions">
@@ -218,7 +192,30 @@
   'use strict';
 
   const $ = function(id){ return document.getElementById(id); };
-  const R = window.CSMRules;
+
+  // ---------- Theme ----------
+  (function(){
+    const K = 'csct_manager_theme';
+    function apply(){
+      let t = 'light';
+      try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
+      document.documentElement.classList.toggle('theme-light', t === 'light');
+      document.documentElement.classList.toggle('theme-dark', t === 'dark');
+      const b = document.getElementById('btnTheme');
+      if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
+    }
+    apply();
+    const btn = document.getElementById('btnTheme');
+    if(btn){
+      btn.addEventListener('click', function(){
+        let t = 'light';
+        try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
+        const next = t === 'light' ? 'dark' : 'light';
+        try{ localStorage.setItem(K, next); }catch(e){}
+        apply();
+      });
+    }
+  })();
 
   let staff = [];
   let unsubscribeStaff = null;
@@ -226,7 +223,6 @@
   let currentShow = 'active';
   let editingBadge = null;
 
-  // ---------- Auth gating ----------
   let started = false;
   auth.onAuthStateChanged(function(user){
     if(!user){ window.location.replace('login.html'); return; }
@@ -271,7 +267,6 @@
     });
   }
 
-  // ---------- Live staff ----------
   function startLiveStaff(){
     unsubscribeStaff = CSM.refs.staffColl()
       .onSnapshot(function(snap){
@@ -285,7 +280,6 @@
       });
   }
 
-  // ---------- Rendering ----------
   function render(){
     const list = $('staffList');
     const empty = $('emptyState');
@@ -325,12 +319,10 @@
     filtered.forEach(function(s){
       const card = document.createElement('div');
       card.className = 'staffcard' + (s.active === false ? ' inactive' : '');
-
       const initial = ((s.name || '?').trim().charAt(0) || '?').toUpperCase();
       const avatarHtml = s.photo
         ? '<img class="avatar" src="' + escapeAttr(s.photo) + '" alt="">'
         : '<div class="avatar-fallback">' + escapeHtml(initial) + '</div>';
-
       card.innerHTML =
         avatarHtml +
         '<div class="info">' +
@@ -358,7 +350,6 @@
     });
   }
 
-  // ---------- Modal ----------
   const modalBg = $('modalBg');
 
   function openAddModal(){
@@ -412,7 +403,6 @@
     btn.disabled = true;
 
     if(editingBadge){
-      // Update existing
       CSM.refs.staff(editingBadge).update({
         name: name,
         updatedAt: new Date().toISOString()
@@ -424,7 +414,6 @@
         alert('Erreur : ' + err.message);
       });
     } else {
-      // Create new — verify the badge doesn't already exist
       CSM.refs.staff(badge).get().then(function(doc){
         if(doc.exists){
           throw new Error('Un employé avec ce badge existe déjà.');
@@ -447,7 +436,6 @@
     }
   });
 
-  // ---------- Toggle active ----------
   function toggleActive(badge){
     const s = staff.find(function(x){ return String(x.badge) === String(badge); });
     if(!s) return;
@@ -456,7 +444,7 @@
       const ok = confirm(
         'Désactiver ' + (s.name || badge) + ' ?\n\n' +
         "L'employé ne pourra plus pointer, et disparaîtra des vues actives. " +
-        "Son historique de pointages est conservé et le profil peut être réactivé à tout moment."
+        "Son historique de pointages est conservé."
       );
       if(!ok) return;
     }
@@ -468,20 +456,15 @@
     });
   }
 
-  // ---------- Search ----------
   $('searchInput').addEventListener('input', function(e){
     currentQuery = e.target.value;
     render();
   });
 
-  // ---------- Escape helpers ----------
   function escapeHtml(s){
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
   function escapeAttr(s){ return escapeHtml(s); }
 
