@@ -998,7 +998,7 @@ table.preview{
       }
 
       // Save the shift
-      const dateIso = toIsoDate(row.date) || toIsoDate(currentImport.date) || R.todayKey();
+      const dateIso = R.todayKey();
       const shiftData = {
         clockIn: row.clockIn,
         breakStart: row.breakStart,
