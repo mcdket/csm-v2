@@ -1,7 +1,7 @@
 // Minimal service worker — enables "Add to Home Screen" / install
-// prompt for the manager portal. Network-first, no offline caching
-// beyond what the browser does by default. This app needs a live
-// connection to Firestore anyway.
+// prompt for the manager portal. Pass-through only, no caching.
+// The manager portal needs live Firestore anyway, so offline caching
+// would be misleading.
 
 self.addEventListener('install', function(){
   self.skipWaiting();
@@ -12,6 +12,5 @@ self.addEventListener('activate', function(event){
 });
 
 self.addEventListener('fetch', function(event){
-  // Default behavior: pass through to the network. No custom caching
-  // yet — if you later want offline support, add a Cache API strategy here.
+  // Default behavior: pass through to the network.
 });
