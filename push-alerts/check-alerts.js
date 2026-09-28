@@ -1,22 +1,19 @@
 /**
  * check-alerts.js
  * ----------------
- * Runs on a schedule via GitHub Actions (see ../.github/workflows/check-alerts.yml).
- * Reads the live shifts from Firestore, works out who has crossed a
- * threshold (same rules as computeShift() in shared/rules-helpers.js),
- * and sends an alert to your phone via ntfy (https://ntfy.sh).
+ * Runs on a schedule via GitHub Actions.
+ * Reads today's open shifts from Firestore, computes alert state
+ * using the same rules as shared/rules-helpers.js, and sends
+ * alerts to your phone via ntfy.
  *
- * Required environment variables (set as GitHub Actions secrets):
+ * Required environment variables (GitHub Actions secrets):
  *   FIREBASE_SERVICE_ACCOUNT  Full JSON of a Firebase service account key (one line)
- *   NTFY_TOPIC                Your private, unguessable ntfy topic name
+ *   NTFY_TOPIC                Your private ntfy topic name
  *   RESTAURANT_ID             (optional) defaults to "ketia"
  */
 
 const admin = require('firebase-admin');
 
-/* ============================================================
-   CONFIG — must match shared/rules-helpers.js
-   ============================================================ */
 const SEGMENT_MIN      = 4 * 60 + 50;
 const BREAK_MIN        = 30;
 const WARN_MIN         = 4 * 60 + 30;
@@ -26,9 +23,6 @@ const FULL_NOBREAK_MIN = 10 * 60 + 10;
 const REPEAT_MIN = 3;
 const TIMEZONE = 'Africa/Casablanca';
 
-/* ============================================================
-   SETUP
-   ============================================================ */
 if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
   console.error('Missing FIREBASE_SERVICE_ACCOUNT env var.');
   process.exit(1);
@@ -44,9 +38,6 @@ const db = admin.firestore();
 
 const RESTAURANT_ID = process.env.RESTAURANT_ID || 'ketia';
 
-/* ============================================================
-   HELPERS
-   ============================================================ */
 function nowMinutes() {
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: TIMEZONE, hour12: false, hour: '2-digit', minute: '2-digit'
@@ -133,9 +124,6 @@ async function sendNtfy(msg) {
   }
 }
 
-/* ============================================================
-   MAIN
-   ============================================================ */
 async function main() {
   if (process.env.NTFY_TEST === 'true') {
     await sendNtfy({
