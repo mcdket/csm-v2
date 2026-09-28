@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr" class="theme-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#C9701F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<style>
+.app{max-width:1440px;margin:0 auto;padding:20px 20px 60px;}
+
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;
+  background:var(--panel-raised);
+  border-bottom:3px solid var(--accent);
+  box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
+  padding:16px 20px;
+  margin-bottom:18px;
+}
+.brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.brand .arch{
+  width:34px;height:34px;object-fit:cover;border-radius:50%;
+  border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);
+}
+.brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
+.brand .restaurant-badge{
+  color:#2A1F00;font-size:12px;font-weight:700;
+  background:var(--brand-yellow);padding:4px 10px;
+}
+.headerside{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.controls{display:flex;gap:8px;flex-wrap:wrap;}
+.controls .btn svg{width:14px;height:14px;flex:none;}
+
+.filterbar{
+  display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;
+  align-items:center;justify-content:space-between;
+}
+.filter-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.filter-btn{
+  border:1px solid var(--line);background:var(--panel);
+  color:var(--text-muted);padding:6px 12px;
+  font-size:12px;font-weight:600;transition:all .15s ease;
+}
+.filter-btn:hover{border-color:var(--accent);color:var(--text);}
+.filter-btn.active{background:var(--accent);color:#FFF;border-color:var(--accent);}
+
+.search-box{
+  display:flex;align-items:center;background:var(--panel-raised);
+  border:1px solid var(--line);padding:4px 10px;min-width:240px;
+}
+.search-box svg{width:14px;height:14px;color:var(--text-muted);margin-right:6px;flex:none;}
+.search-box input{border:none;background:transparent;color:var(--text);font-size:12px;width:100%;outline:none;}
+
+.alertstrip{display:none;flex-direction:column;gap:6px;margin-bottom:16px;}
+.alertstrip.show{display:flex;}
+.alertrow{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;font-size:13px;font-weight:600;border:1px solid transparent;
+}
+.alertrow.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);border-color:var(--status-crit-line);}
+.alertrow.warn{background:var(--status-warn-bg);color:var(--status-warn-fg);border-color:var(--status-warn-line);}
+.alertrow.brk{background:var(--status-break-bg);color:var(--status-break-fg);border-color:var(--status-break-line);}
+.alertdot{width:8px;height:8px;background:currentColor;flex:none;}
+
+.tablewrap{
+  border:1px solid var(--line);overflow-x:auto;
+  background:var(--panel);box-shadow:var(--shadow);
+}
+table{width:100%;border-collapse:collapse;min-width:1050px;}
+thead th{
+  text-align:left;font-size:11px;font-weight:600;letter-spacing:0.03em;
+  color:var(--text-muted);padding:10px 12px;border-bottom:1px solid var(--line);
+  white-space:nowrap;background:var(--panel);position:sticky;top:0;
+}
+tbody td{padding:11px 12px;font-size:13px;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
+tbody td.name{font-weight:600;white-space:normal;}
+tbody td.name .badgeno{display:block;font-size:11px;font-weight:500;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+tbody tr{border-left:4px solid transparent;}
+tbody tr:hover{background:var(--panel-raised);}
+tbody tr.st-ok{border-left-color:var(--status-ok-line);}
+tbody tr.st-warn{border-left-color:var(--status-warn-line);background:var(--status-warn-bg);}
+tbody tr.st-crit{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
+tbody tr.st-break{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
+tbody tr.st-breakover{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
+tbody tr.st-done{opacity:0.55;}
+
+.action-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.btn-action{
+  padding:7px 12px;font-size:12px;font-weight:700;
+  border:1.5px solid var(--line);background:var(--panel-raised);color:var(--text);
+  white-space:nowrap;transition:all 0.15s ease;
+}
+.btn-action:hover{border-color:var(--accent);transform:translateY(-1px);}
+.btn-action.break-btn{border-color:#A9850F;background:var(--brand-yellow);color:#2A1400;}
+.btn-action.return-btn{border-color:var(--status-ok-line);background:var(--status-ok-line);color:#FFF;}
+.btn-action.out-btn{border-color:var(--accent);color:var(--accent);background:transparent;}
+.btn-action.out-btn:hover{background:var(--status-crit-bg);}
+
+.rowedit{
+  border:1px solid var(--line);background:transparent;color:var(--text-muted);
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+}
+.rowedit:hover{border-color:var(--accent);color:var(--accent);}
+
+.emptystate{
+  padding:60px 20px;text-align:center;color:var(--text-muted);font-size:13px;
+  background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);
+}
+.emptystate b{display:block;color:var(--text);font-size:15px;font-weight:600;margin-bottom:6px;}
+
+.cards{display:none;}
+.empcard{
+  background:var(--panel-raised);border:1px solid var(--line);
+  border-left:4px solid transparent;box-shadow:var(--shadow);
+  margin-bottom:12px;overflow:hidden;
+}
+.empcard.st-ok{border-left-color:var(--status-ok-line);}
+.empcard.st-warn{border-left-color:var(--status-warn-line);background:var(--status-warn-bg);}
+.empcard.st-crit{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
+.empcard.st-break{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
+.empcard.st-breakover{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
+.empcard.st-done{opacity:0.6;}
+.empcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 16px 12px;}
+.empcard-id .empcard-name{font-size:16px;font-weight:700;line-height:1.25;}
+.empcard-id .empcard-sub{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted);margin-top:3px;}
+.empcard-times{padding:0 16px 4px;}
+.time-row{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:8px 0;border-top:1px solid var(--line-soft);
+}
+.time-row:first-child{border-top:none;}
+.time-row .t-label{font-size:12.5px;color:var(--text-muted);font-weight:600;flex-shrink:0;}
+.time-row .t-value{font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;}
+.time-row .t-value .sep{font-family:'Space Grotesk',sans-serif;color:var(--text-muted);font-size:11px;margin:0 5px;}
+.empcard-hours{display:flex;border-top:1px solid var(--line);}
+.empcard-hours .hcell{flex:1;padding:12px 16px;text-align:center;}
+.empcard-hours .hcell + .hcell{border-left:1px solid var(--line);}
+.empcard-hours .hcell .h-label{display:block;font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:3px;}
+.empcard-hours .hcell .h-value{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:700;}
+.empcard-hours .hcell.total .h-value{color:var(--accent-strong);}
+.empcard-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--line);background:var(--panel);}
+.empcard-foot .action-group{flex:1 1 auto;}
+.empcard-foot .btn-action{padding:8px 12px;font-size:12.5px;}
+
+.dash{color:var(--text-muted);}
+.conthrs{font-weight:700;}
+.totalhrs{font-weight:700;color:var(--accent-strong);}
+
+.footnote{
+  margin-top:14px;font-size:11.5px;color:var(--text-muted);
+  display:flex;gap:18px;flex-wrap:wrap;
+}
+.legend{display:flex;align-items:center;gap:6px;}
+.legend i{width:9px;height:9px;display:inline-block;}
+
+.modalbg{
+  position:fixed;inset:0;background:rgba(10,12,10,0.5);
+  display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+}
+.modalbg.show{display:flex;}
+.modal{
+  background:var(--panel-raised);border:1px solid var(--line);
+  width:100%;max-width:440px;padding:20px;box-shadow:var(--shadow);
+}
+.modal h3{margin:0 0 4px;font-size:16px;}
+.modal .sub{font-size:12px;color:var(--text-muted);margin-bottom:16px;}
+.fieldrow{display:flex;gap:10px;}
+.fieldrow .field{flex:1;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:5px;}
+.field input{
+  width:100%;padding:8px 10px;border:1px solid var(--line);
+  background:var(--panel);color:var(--text);font-size:13px;
+}
+.field input[type="time"]{font-family:'IBM Plex Mono',monospace;}
+.modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+
+@media (max-width:720px){
+  .header{flex-direction:column;}
+  .headerside{width:100%;}
+  .liveclock{font-size:20px;margin-left:0;}
+  .filterbar{flex-direction:column;align-items:stretch;}
+  .search-box{min-width:100%;}
+  .tablewrap{display:none;}
+  .cards{display:block;}
+}
+
+.blocked{
+  max-width:560px;margin:80px auto;padding:30px 26px;
+  background:var(--panel-raised);border-top:6px solid var(--status-crit-line);
+  box-shadow:var(--shadow);text-align:center;
+}
+.blocked h2{margin:0 0 8px;color:var(--status-crit-fg);}
+.blocked p{color:var(--text-muted);font-size:13.5px;line-height:1.55;}
+</style>
+</head>
+<body>
+
+<div class="app" id="app" style="display:none;">
+
+  <div class="header">
+    <div class="brand">
+      <img class="arch" src="../shared/200.webp" alt="McDonald's">
+      <h1>Contract Social Manager</h1>
+      <span class="restaurant-badge" id="restaurantBadge" style="display:none;"></span>
+    </div>
+    <div class="headerside">
+      <div class="liveclock"><span class="lbl">Heure Système</span><span id="clockNow">--:--:--</span></div>
+      <div class="controls">
+        <button class="btn" id="btnSetTime">Régler l'heure</button>
+        <button class="btn" id="btnAutoTime">Heure auto</button>
+        <a class="btn" href="planning.html">Planning</a>
+        <a class="btn" href="staff.html">Employés</a>
+        <a class="btn" href="requests.html" id="requestsBtn">Demandes <span id="requestsCount" class="pill crit" style="padding:1px 7px;font-size:10.5px;display:none;"></span></a>
+        <button class="btn" id="btnAdd">Ajouter</button>
+        <button class="btn btn-primary" id="btnPrint">Imprimer</button>
+        <a class="btn" href="../employee/" target="_blank">Portail Employés ↗</a>
+        <button class="btn" id="btnLogout">Déconnexion</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="alertstrip" id="alertStrip"></div>
+
+  <div class="filterbar">
+    <div class="filter-group">
+      <span style="font-size:12px;font-weight:600;color:var(--text-muted);margin-right:2px;">Filtrer :</span>
+      <button class="filter-btn active" data-filter="all">Tous</button>
+      <button class="filter-btn" data-filter="working">En poste</button>
+      <button class="filter-btn" data-filter="break">En pause</button>
+      <button class="filter-btn" data-filter="action">Action requise</button>
+    </div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Rechercher (Nom, Badge)...">
+    </div>
+  </div>
+
+  <div class="tablewrap">
+    <table id="empTable">
+      <thead>
+        <tr>
+          <th>Badge</th>
+          <th>Nom</th>
+          <th>Entrée</th>
+          <th>Pause Sugg.</th>
+          <th>Pause Eff.</th>
+          <th>Retour Sugg.</th>
+          <th>Retour Eff.</th>
+          <th>Sortie Sugg.</th>
+          <th>Sortie</th>
+          <th>Heures Cont.</th>
+          <th>Heures Tot.</th>
+          <th>Statut</th>
+          <th>Actions</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="empBody"></tbody>
+    </table>
+  </div>
+
+  <div class="cards" id="empCards"></div>
+
+  <div class="emptystate" id="emptyState">
+    <b>Aucun quart chargé pour aujourd'hui</b>
+    Les employés qui pointent sur la tablette apparaîtront ici automatiquement. Vous pouvez aussi ajouter une entrée manuellement avec le bouton « Ajouter ».
+  </div>
+
+  <div class="footnote">
+    <span class="legend"><i style="background:var(--status-ok-line)"></i> Conforme</span>
+    <span class="legend"><i style="background:var(--status-warn-line)"></i> Proche limite 4h50 (≥4h30)</span>
+    <span class="legend"><i style="background:var(--status-crit-line)"></i> Limite dépassée / Pause en retard</span>
+    <span class="legend"><i style="background:var(--status-break-line)"></i> En pause</span>
+    <span>Règle : Max 4h50 de travail continu, 30 min de pause obligatoire.</span>
+  </div>
+
+</div>
+
+<div class="app">
+  <div class="blocked hidden" id="blockedState">
+    <h2>Configuration requise</h2>
+    <p>
+      Votre compte est bien connecté, mais aucune configuration de restaurant
+      n'a été trouvée.<br><br>
+      Ouvrez la console Firebase → Firestore → créez les documents
+      <b>managerRestaurants/{votre UID}</b> et <b>restaurants/ketia</b>,
+      puis rechargez cette page.
+    </p>
+    <p style="margin-top:18px;">
+      <button class="btn" id="btnBlockedLogout">Se déconnecter</button>
+    </p>
+  </div>
+</div>
+
+<dialog class="timedlg" id="timeDlg">
+  <form id="timeForm" method="dialog">
+    <h2>Régler l'heure du système</h2>
+    <p>L'heure choisie remplace celle de l'appareil et continue de défiler. Les départs de pause, retours et sorties sont enregistrés avec cette heure. Le réglage ne concerne que cet appareil.</p>
+    <input type="time" id="timeInput" required aria-label="Nouvelle heure">
+    <div class="trow">
+      <button type="button" class="btn" id="timeCancel">Annuler</button>
+      <button type="submit" class="btn btn-primary">Appliquer</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="modalbg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Ajouter un pointage</h3>
+    <div class="sub" id="modalSub">Entrez les pointages manuellement ou corrigez un enregistrement.</div>
+    <div class="fieldrow">
+      <div class="field"><label>N° Badge</label><input type="text" id="fBadge" placeholder="4021"></div>
+      <div class="field"><label>Date</label><input type="date" id="fDate"></div>
+    </div>
+    <div class="field"><label>Nom & Prénom</label><input type="text" id="fName" placeholder="Nom de l'employé"></div>
+    <div class="fieldrow">
+      <div class="field"><label>Entrée</label><input type="time" id="fClockIn"></div>
+      <div class="field"><label>Début de pause</label><input type="time" id="fBreakStart"></div>
+    </div>
+    <div class="fieldrow">
+      <div class="field"><label>Retour de pause</label><input type="time" id="fBreakReturn"></div>
+      <div class="field"><label>Sortie</label><input type="time" id="fClockOut"></div>
+    </div>
+    <div class="modalactions">
+      <button class="linkbtn" id="btnDelete" style="margin-right:auto;display:none;">Supprimer</button>
+      <button class="btn" id="btnCancel">Annuler</button>
+      <button class="btn btn-primary" id="btnSave">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  let shifts = [];
+  let unsubscribeShifts = null;
+  let currentFilter = 'all';
+  let searchQuery = '';
+  let editingId = null;
+  let timeOffsetMs = 0;
+  const TIME_KEY = 'csct_time_offset';
+
+  function appNow(){ return new Date(Date.now() + timeOffsetMs); }
+  function nowMinutes(){ const d = appNow(); return d.getHours()*60 + d.getMinutes(); }
+
+  try{ const v = parseInt(localStorage.getItem(TIME_KEY) || '0', 10); if(isFinite(v)) timeOffsetMs = v; }catch(e){}
+
+  function paintTimeMode(){
+    const manual = timeOffsetMs !== 0;
+    const box = document.querySelector('.liveclock');
+    if(box) box.classList.toggle('manual', manual);
+    $('btnSetTime').classList.toggle('btn-primary', manual);
+    $('btnAutoTime').classList.toggle('btn-primary', !manual);
+  }
+
+  $('btnSetTime').addEventListener('click', function(){
+    const d = appNow();
+    $('timeInput').value = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    $('timeDlg').showModal();
+  });
+  $('timeCancel').addEventListener('click', function(){ $('timeDlg').close(); });
+  $('timeForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const v = $('timeInput').value;
+    if(!v) return;
+    const p = v.split(':').map(Number);
+    const d = new Date();
+    d.setHours(p[0], p[1], 0, 0);
+    timeOffsetMs = d.getTime() - Date.now();
+    try{ localStorage.setItem(TIME_KEY, String(timeOffsetMs)); }catch(err){}
+    $('timeDlg').close();
+    paintTimeMode(); tickClock(); render();
+  });
+  $('btnAutoTime').addEventListener('click', function(){
+    timeOffsetMs = 0;
+    try{ localStorage.removeItem(TIME_KEY); }catch(err){}
+    paintTimeMode(); tickClock(); render();
+  });
+
+  function tickClock(){
+    const d = appNow();
+    $('clockNow').textContent =
+      String(d.getHours()).padStart(2,'0') + ':' +
+      String(d.getMinutes()).padStart(2,'0') + ':' +
+      String(d.getSeconds()).padStart(2,'0');
+  }
+
+  // ---------- Auth gating ----------
+  auth.onAuthStateChanged(function(user){
+    if(!user){ window.location.replace('login.html'); return; }
+    db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+      if(!doc.exists){ window.location.replace('login.html'); return; }
+      return CSM.ready.then(function(){
+        if(!CSM.restaurantId){
+          $('blockedState').classList.remove('hidden');
+          return;
+        }
+        $('app').style.display = 'block';
+        $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
+        $('restaurantBadge').style.display = 'inline-block';
+        paintTimeMode();
+        tickClock();
+        setInterval(tickClock, 1000);
+        setInterval(render, 15000); // refresh statuses every 15s
+        startLiveShifts();
+        watchPendingRequests();
+      });
+    }).catch(function(err){
+      console.error('Auth gating:', err);
+      window.location.replace('login.html');
+    });
+  });
+
+  $('btnBlockedLogout').addEventListener('click', function(){ auth.signOut(); });
+  $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
+
+  // ---------- Live shifts ----------
+  function startLiveShifts(){
+    const today = R.todayKey();
+    unsubscribeShifts = CSM.refs.shifts()
+      .where('date', '==', today)
+      .onSnapshot(function(snap){
+        shifts = snap.docs.map(function(d){
+          return Object.assign({ id: d.id }, d.data());
+        });
+        render();
+      }, function(err){
+        console.error('Live shifts:', err);
+        alert('Erreur de chargement des pointages : ' + err.message);
+      });
+  }
+
+  // ---------- Pending requests badge ----------
+  function watchPendingRequests(){
+    Promise.all([
+      CSM.refs.leaveReqs().where('status','==','pending').get(),
+      CSM.refs.corrections().where('status','==','pending').get()
+    ]).then(function(results){
+      const count = results[0].size + results[1].size;
+      const el = $('requestsCount');
+      if(count > 0){
+        el.textContent = String(count);
+        el.style.display = 'inline-block';
+      } else {
+        el.style.display = 'none';
+      }
+    }).catch(function(){});
+  }
+
+  // ---------- Rendering ----------
+  function statusMeta(status){
+    return ({
+      ok:        {pill:'ok',   row:'st-ok'},
+      warn:      {pill:'warn', row:'st-warn'},
+      crit:      {pill:'crit', row:'st-crit'},
+      break:     {pill:'brk',  row:'st-break'},
+      breakover: {pill:'crit', row:'st-breakover'},
+      done:      {pill:'ok',   row:'st-done'},
+      nodata:    {pill:'done', row:'st-done'}
+    })[status] || {pill:'done', row:''};
+  }
+
+  function render(){
+    if($('app').style.display === 'none') return;
+    const body = $('empBody');
+    const cardsWrap = $('empCards');
+    const empty = $('emptyState');
+    const table = $('empTable');
+    body.innerHTML = '';
+    cardsWrap.innerHTML = '';
+
+    if(shifts.length === 0){
+      table.style.display = 'none';
+      empty.style.display = 'block';
+      renderAlerts([]);
+      return;
+    }
+
+    const alerts = [];
+    const processed = shifts.map(function(s){
+      return { shift: s, calc: R.computeShift(s) };
+    });
+
+    const filtered = processed.filter(function(item){
+      const { shift, calc } = item;
+      if(currentFilter === 'working' && !(calc.status === 'ok' || calc.status === 'warn')) return false;
+      if(currentFilter === 'break' && !(calc.status === 'break' || calc.status === 'breakover')) return false;
+      if(currentFilter === 'action' && !(calc.status === 'warn' || calc.status === 'crit' || calc.status === 'breakover')) return false;
+      if(searchQuery.trim() !== ''){
+        const q = searchQuery.toLowerCase();
+        if(!(shift.name || '').toLowerCase().includes(q) &&
+           !(String(shift.badge || '')).toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+
+    if(filtered.length === 0){
+      table.style.display = 'none';
+      empty.style.display = 'block';
+    } else {
+      table.style.display = 'table';
+      empty.style.display = 'none';
+    }
+
+    filtered.sort(function(a,b){
+      const rank = function(s){ return ({crit:0, breakover:0, warn:1, break:2, ok:3, done:4, nodata:5})[s] ?? 6; };
+      return rank(a.calc.status) - rank(b.calc.status) ||
+             ((a.shift.clockIn ?? 999) - (b.shift.clockIn ?? 999));
+    }).forEach(function(item){
+      const { shift, calc } = item;
+      const meta = statusMeta(calc.status);
+
+      if(calc.status === 'crit' || calc.status === 'breakover'){
+        alerts.push({ shift, calc, kind: calc.status === 'breakover' ? 'brk' : 'crit' });
+      } else if(calc.status === 'warn'){
+        alerts.push({ shift, calc, kind: 'warn' });
+      }
+
+      // ---------- Row ----------
+      const tr = document.createElement('tr');
+      tr.className = meta.row;
+
+      let quickActions = '';
+      if(shift.clockOut !== null && shift.clockOut !== undefined){
+        quickActions = '<span class="dash">Terminé</span>';
+      } else if(shift.breakStart === null || shift.breakStart === undefined){
+        quickActions =
+          '<button class="btn-action break-btn" data-act="break" data-id="'+shift.id+'">Départ Pause</button>' +
+          '<button class="btn-action out-btn"   data-act="out"   data-id="'+shift.id+'">Sortie</button>';
+      } else if(shift.breakReturn === null || shift.breakReturn === undefined){
+        quickActions =
+          '<button class="btn-action return-btn" data-act="return" data-id="'+shift.id+'">Retour Pause</button>' +
+          '<button class="btn-action out-btn"     data-act="out"    data-id="'+shift.id+'">Sortie</button>';
+      } else {
+        quickActions =
+          '<button class="btn-action out-btn" data-act="out" data-id="'+shift.id+'">Sortie</button>';
+      }
+
+      tr.innerHTML =
+        '<td class="mono">' + (shift.badge || '—') + '</td>' +
+        '<td class="name">' + (shift.name || '<span class="dash">Sans nom</span>') + '</td>' +
+        '<td class="mono">' + (R.minToHM(shift.clockIn) || '<span class="dash">—</span>') + '</td>' +
+        '<td class="mono">' + (R.minToHM(calc.suggBreak) || '<span class="dash">—</span>') + '</td>' +
+        '<td class="mono">' + (R.minToHM(shift.breakStart) || '<span class="dash">en attente</span>') + '</td>' +
+        '<td class="mono">' + (R.minToHM(calc.suggReturn) || '<span class="dash">—</span>') + '</td>' +
+        '<td class="mono">' + (R.minToHM(shift.breakReturn) || '<span class="dash">en attente</span>') + '</td>' +
+        '<td class="mono">' + (R.minToHM(calc.suggEnd) || '<span class="dash">—</span>') + '</td>' +
+        '<td class="mono">' + (R.minToHM(shift.clockOut) || '<span class="dash">—</span>') + '</td>' +
+        '<td class="mono conthrs">' + (calc.status === 'break' || calc.status === 'breakover'
+          ? '<span class="dash">en pause</span>'
+          : (calc.status === 'done' ? '<span class="dash">fini</span>' : R.fmtHrs(calc.contMinutes))) + '</td>' +
+        '<td class="mono totalhrs">' + R.fmtHrs(calc.totalMinutes) + '</td>' +
+        '<td><span class="pill ' + meta.pill + '"><span class="pilldot"></span>' + calc.statusLabel + '</span></td>' +
+        '<td><div class="action-group">' + quickActions + '</div></td>' +
+        '<td><button class="rowedit" data-id="' + shift.id + '" title="Modifier">✎</button></td>';
+      body.appendChild(tr);
+
+      // ---------- Card (mobile) ----------
+      const card = document.createElement('div');
+      card.className = 'empcard ' + meta.row;
+      const contHrsDisplay = (calc.status === 'break' || calc.status === 'breakover')
+        ? '<span class="dash">en pause</span>'
+        : (calc.status === 'done' ? '<span class="dash">fini</span>' : R.fmtHrs(calc.contMinutes));
+
+      card.innerHTML =
+        '<div class="empcard-top">' +
+          '<div class="empcard-id">' +
+            '<div class="empcard-name">' + (shift.name || '<span class="dash">Sans nom</span>') + '</div>' +
+            '<div class="empcard-sub">Badge ' + (shift.badge || '—') + '</div>' +
+          '</div>' +
+          '<span class="pill ' + meta.pill + '"><span class="pilldot"></span>' + calc.statusLabel + '</span>' +
+        '</div>' +
+        '<div class="empcard-times">' +
+          '<div class="time-row"><span class="t-label">Entrée</span><span class="t-value">' + (R.minToHM(shift.clockIn) || '<span class="dash">—</span>') + '</span></div>' +
+          '<div class="time-row"><span class="t-label">Pause</span><span class="t-value">' + (R.minToHM(calc.suggBreak) || '<span class="dash">—</span>') + '<span class="sep">prévue ·</span>' + (R.minToHM(shift.breakStart) || '<span class="dash">attente</span>') + '</span></
