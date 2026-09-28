@@ -740,5 +740,12 @@ input,textarea,select{font-family:inherit;}
 
 })();
 </script>
+  <script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('service-worker.js').catch(function(){});
+  });
+}
+</script>
 </body>
 </html>
