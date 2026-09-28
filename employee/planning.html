@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Mes plannings — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14181D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#14181D;
+  --panel:#1B2129;
+  --panel-raised:#232B35;
+  --line:#2C333C;
+  --line-soft:#242A32;
+  --text:#F1F3F6;
+  --text-muted:#8B94A3;
+  --accent:#D9822E;
+  --accent-strong:#A85A15;
+  --brand-yellow:#F0B94A;
+  --brand-yellow-strong:#D89B2E;
+  --ok-bg:#DCEEE1; --ok-fg:#1E7A46; --ok-line:#3DAE72;
+  --warn-bg:#FFF2C6;--warn-fg:#8A5A00;--warn-line:#FFC72C;
+  --crit-bg:#FBDAD3;--crit-fg:#8C2A17;--crit-line:#DA291C;
+  --brk-bg:#D9E8FB; --brk-fg:#1E4F8C; --brk-line:#3D8EE8;
+  --shadow:0 4px 20px rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:linear-gradient(180deg, #0E1116 0%, var(--bg) 30%, #0B0E12 100%);
+  color:var(--text);
+  font-family:'Space Grotesk',-apple-system,sans-serif;
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+  padding-bottom:env(safe-area-inset-bottom, 0);
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+button{font-family:inherit;cursor:pointer;border:none;}
+a{color:inherit;text-decoration:none;}
+
+.shell{
+  max-width:480px;
+  margin:0 auto;
+  padding:0 0 40px;
+}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  background:linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  border-bottom:4px solid var(--brand-yellow);
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:#fff;
+  box-shadow:var(--shadow);
+}
+.topbar .arches{
+  width:38px;height:38px;flex:none;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.9);
+  object-fit:cover;
+}
+.topbar .titles{flex:1;min-width:0;}
+.topbar h1{margin:0;font-size:15px;font-weight:800;line-height:1.2;}
+.topbar .sub{
+  font-size:11px;color:var(--brand-yellow);
+  text-transform:uppercase;letter-spacing:.06em;font-weight:700;
+}
+.backlink{
+  padding:8px;
+  display:flex;align-items:center;
+  color:#fff;
+  margin:-8px;
+}
+.backlink svg{width:22px;height:22px;}
+
+.content{padding:18px 16px 0;}
+
+/* ---------- View toggle ---------- */
+.views{
+  display:grid;grid-template-columns:1fr 1fr;
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  padding:4px;gap:4px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
+}
+.viewbtn{
+  padding:11px 12px;
+  font-size:13.5px;font-weight:700;
+  background:transparent;
+  color:var(--text-muted);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.viewbtn svg{width:15px;height:15px;flex:none;}
+.viewbtn.active{
+  background:var(--accent);color:#fff;
+}
+
+/* ---------- Week ---------- */
+.week-head{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:14px 16px;
+  margin-bottom:14px;
+}
+.week-head h2{
+  margin:0;font-size:15px;font-weight:800;
+}
+.week-head .range{
+  font-size:12.5px;color:var(--text-muted);
+  margin-top:2px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.week-head .total{
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid var(--line-soft);
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+.week-head .total .lbl{
+  font-size:11.5px;color:var(--text-muted);
+  font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+}
+.week-head .total .val{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:22px;font-weight:700;color:var(--accent-strong);
+}
+
+.dayrow{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  border-left:5px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:14px 16px;
+  margin-bottom:10px;
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+}
+.dayrow.today{border-left-color:var(--accent);}
+.dayrow.worked{border-left-color:var(--ok-line);}
+.dayrow.scheduled{border-left-color:var(--brk-line);}
+.dayrow.rest{opacity:.7;border-left-color:var(--line);}
+
+.dayrow .datecol{
+  flex:none;width:52px;text-align:center;
+}
+.dayrow .datecol .dow{
+  font-size:11px;font-weight:700;
+  color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.dayrow .datecol .dnum{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:22px;font-weight:700;
+  margin-top:2px;
+}
+.dayrow.today .datecol .dnum{color:var(--accent);}
+
+.dayrow .body{flex:1;min-width:0;}
+.dayrow .body .main{
+  font-size:14px;font-weight:700;
+}
+.dayrow .body .sub{
+  font-size:12.5px;color:var(--text-muted);
+  margin-top:3px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.dayrow .body .sched{
+  font-size:12.5px;
+  margin-top:5px;
+  color:var(--text-muted);
+}
+.dayrow .body .sched b{
+  color:var(--text);
+  font-weight:600;
+}
+.dayrow .body .badge{
+  display:inline-block;
+  font-size:11px;font-weight:700;
+  padding:2px 8px;
+  margin-top:6px;
+  background:var(--ok-bg);color:var(--ok-fg);
+}
+.dayrow .body .badge.long{
+  background:var(--warn-bg);color:var(--warn-fg);
+}
+.dayrow .body .badge.verylong{
+  background:var(--crit-bg);color:var(--crit-fg);
+}
+
+/* ---------- Month ---------- */
+.month-head{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:14px 16px;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.month-head .nav{
+  background:transparent;
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);
+  color:var(--text);
+}
+.month-head .nav:hover{border-color:var(--accent);}
+.month-head .nav svg{width:16px;height:16px;}
+.month-head .label{
+  flex:1;text-align:center;
+}
+.month-head h2{
+  margin:0;font-size:16px;font-weight:800;
+  text-transform:capitalize;
+}
+.month-head .mtotal{
+  font-size:11.5px;color:var(--text-muted);
+  margin-top:3px;
+  font-weight:600;
+}
+.month-head .mtotal b{
+  color:var(--accent-strong);
+  font-family:'IBM Plex Mono',monospace;
+}
+
+.calgrid{
+  display:grid;
+  grid-template-columns:repeat(7, 1fr);
+  gap:4px;
+  margin-bottom:14px;
+}
+.calgrid .dow{
+  text-align:center;
+  font-size:10.5px;font-weight:700;
+  color:var(--text-muted);
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  padding:6px 0;
+}
+.cell{
+  aspect-ratio:1;
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  padding:2px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+}
+.cell.empty{
+  background:transparent;
+  border-color:transparent;
+  cursor:default;
+  pointer-events:none;
+}
+.cell .num{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;
+}
+.cell.today{border-color:var(--accent);border-width:2px;}
+.cell.today .num{color:var(--accent);font-weight:800;}
+.cell.sel{
+  border-color:var(--accent);
+  background:rgba(217,130,46,0.12);
+}
+.cell .dot{
+  position:absolute;
+  bottom:5px;
+  width:5px;height:5px;
+  border-radius:50%;
+}
+.cell .dot.worked{background:var(--ok-line);}
+.cell .dot.partial{background:var(--warn-line);}
+.cell .dot.sched{background:var(--brk-line);}
+.cell .dot.absent{background:var(--crit-line);}
+
+.legend{
+  display:flex;gap:14px;flex-wrap:wrap;
+  justify-content:center;
+  font-size:11.5px;
+  color:var(--text-muted);
+  margin-bottom:16px;
+}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+.legend i{
+  width:8px;height:8px;border-radius:50%;
+  display:inline-block;
+}
+.legend .w{background:var(--ok-line);}
+.legend .p{background:var(--warn-line);}
+.legend .s{background:var(--brk-line);}
+.legend .a{background:var(--crit-line);}
+
+.daydetail{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:14px 16px;
+  margin-bottom:14px;
+}
+.daydetail h3{
+  margin:0 0 10px;
+  font-size:13.5px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.04em;
+  color:var(--text-muted);
+}
+.dline{
+  display:flex;justify-content:space-between;
+  padding:7px 0;
+  font-size:13.5px;
+  border-bottom:1px solid var(--line-soft);
+}
+.dline:last-child{border-bottom:none;}
+.dline .lbl{color:var(--text-muted);font-weight:600;}
+.dline .val{font-family:'IBM Plex Mono',monospace;font-weight:700;}
+.dline .val.ok{color:var(--ok-fg);}
+.dline .val.muted{color:var(--text-muted);font-weight:500;}
+
+/* ---------- Common ---------- */
+.empty{
+  text-align:center;padding:40px 20px;
+  color:var(--text-muted);font-size:13.5px;
+  background:var(--panel-raised);
+  border:1px dashed var(--line);
+  line-height:1.55;
+}
+.empty b{display:block;color:var(--text);font-size:15px;margin-bottom:6px;font-weight:700;}
+
+.footer{
+  text-align:center;font-size:11px;
+  color:var(--text-muted);
+  padding:14px 20px 24px;opacity:.65;
+}
+
+@media (max-width:380px){
+  .calgrid{gap:3px;}
+  .cell .num{font-size:12px;}
+  .dayrow .datecol .dnum{font-size:20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="topbar">
+    <a class="backlink" href="index.html" aria-label="Retour">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </a>
+    <img class="arches" src="../shared/200.webp" alt="">
+    <div class="titles">
+      <h1>Mes plannings</h1>
+      <div class="sub" id="restLabel">Chargement…</div>
+    </div>
+  </div>
+
+  <div class="content" id="content" style="display:none;">
+
+    <!-- View toggle -->
+    <div class="views">
+      <button class="viewbtn active" data-view="week">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+        Semaine
+      </button>
+      <button class="viewbtn" data-view="month">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M9 14h2M14 14h2M9 18h2M14 18h2"/></svg>
+        Mois
+      </button>
+    </div>
+
+    <!-- Week view -->
+    <div id="viewWeek"></div>
+
+    <!-- Month view -->
+    <div id="viewMonth" style="display:none;"></div>
+
+    <div class="footer">Contract Social Manager — Portail Employé</div>
+
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  const SESSION_KEY = 'csm_session_badge';
+
+  let badge = null;
+  let staff = null;
+  let schedule = null;
+  let myShifts = {};         // { 'YYYY-MM-DD': { totalMinutes, status } } — from shifts collection
+  let myScheduledShifts = {}; // { 'YYYY-MM-DD': { s, e } } — from planning PDF
+  let monthAnchor = null;    // Date — first day of the month currently displayed
+  let selDay = null;
+  let currentView = 'week';
+
+  // ---------- Boot ----------
+  auth.signInAnonymously().then(function(){
+    return CSM.ready;
+  }).then(function(){
+    try{ badge = localStorage.getItem(SESSION_KEY); }catch(e){}
+    if(!badge){ window.location.replace('login.html'); return; }
+    $('restLabel').textContent = CSM.restaurantName || CSM.restaurantId;
+
+    return CSM.refs.staff(badge).get().then(function(doc){
+      if(!doc.exists || doc.data().active === false){
+        try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+        window.location.replace('login.html');
+        return;
+      }
+      staff = doc.data();
+      $('content').style.display = 'block';
+      wireViewToggle();
+      return Promise.all([loadSchedule(), loadMonthShifts(0)]);
+    }).then(function(){
+      renderWeek();
+      renderMonth();
+    });
+  }).catch(function(err){
+    console.error('Boot:', err);
+    window.location.replace('login.html');
+  });
+
+  // ---------- Schedule listener ----------
+  function loadSchedule(){
+    return new Promise(function(resolve){
+      CSM.refs.schedules()
+        .orderBy('importedAt', 'desc')
+        .limit(5)
+        .get()
+        .then(function(snap){
+          // Build a map of all days from all loaded schedules
+          const map = {};
+          snap.forEach(function(doc){
+            const sc = doc.data();
+            if(!sc.employees) return;
+            const start = sc.start;
+            const [y, m, d] = start.split('-').map(Number);
+            sc.employees.forEach(function(emp){
+              if(!R.sameName(staff.name || '', emp.name)) return;
+              Object.keys(emp.d || {}).forEach(function(idx){
+                const dayIdx = Number(idx);
+                const dd = new Date(Date.UTC(y, m-1, d + dayIdx));
+                const dateStr = dd.getUTCFullYear() + '-' +
+                                String(dd.getUTCMonth()+1).padStart(2,'0') + '-' +
+                                String(dd.getUTCDate()).padStart(2,'0');
+                map[dateStr] = {
+                  s: emp.d[idx].s,
+                  e: emp.d[idx].e,
+                  scheduleStart: sc.start,
+                  scheduleEnd: sc.end
+                };
+              });
+            });
+            // Keep reference to latest schedule for header display
+            if(!schedule) schedule = Object.assign({ _id: doc.id }, sc);
+          });
+          myScheduledShifts = map;
+          resolve();
+        })
+        .catch(function(err){
+          console.warn('loadSchedule:', err);
+          resolve();
+        });
+    });
+  }
+
+  // ---------- Load shifts for a month ----------
+  function loadMonthShifts(monthOffset){
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + monthOffset);
+    monthAnchor = d;
+
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const from = y + '-' + m + '-01';
+    const lastDay = new Date(y, d.getMonth() + 1, 0).getDate();
+    const to = y + '-' + m + '-' + String(lastDay).padStart(2, '0');
+
+    return CSM.refs.shifts()
+      .where('badge', '==', String(badge))
+      .where('date', '>=', from)
+      .where('date', '<=', to)
+      .get()
+      .then(function(snap){
+        myShifts = {};
+        snap.forEach(function(doc){
+          const s = doc.data();
+          if(!myShifts[s.date]) myShifts[s.date] = { totalMinutes: 0, closed: false, open: false };
+          myShifts[s.date].totalMinutes += s.totalMinutes || 0;
+          if(s.status === 'closed') myShifts[s.date].closed = true;
+          else myShifts[s.date].open = true;
+        });
+      })
+      .catch(function(err){
+        console.warn('loadMonthShifts:', err);
+      });
+  }
+
+  // ---------- View toggle ----------
+  function wireViewToggle(){
+    document.querySelectorAll('.viewbtn').forEach(function(b){
+      b.addEventListener('click', function(){
+        currentView = b.dataset.view;
+        document.querySelectorAll('.viewbtn').forEach(function(x){
+          x.classList.toggle('active', x === b);
+        });
+        $('viewWeek').style.display = currentView === 'week' ? 'block' : 'none';
+        $('viewMonth').style.display = currentView === 'month' ? 'block' : 'none';
+        if(currentView === 'week') renderWeek();
+        if(currentView === 'month') renderMonth();
+      });
+    });
+  }
+
+  // ---------- WEEK VIEW ----------
+  function renderWeek(){
+    const root = $('viewWeek');
+    root.innerHTML = '';
+
+    const keys = R.weekKeys();
+    const d0 = new Date(keys[0] + 'T00:00:00');
+    const d6 = new Date(keys[6] + 'T00:00:00');
+
+    // Header
+    const head = document.createElement('div');
+    head.className = 'week-head';
+    head.innerHTML =
+      '<h2>Cette semaine</h2>' +
+      '<div class="range mono">' +
+        String(d0.getDate()).padStart(2,'0') + '/' + String(d0.getMonth()+1).padStart(2,'0') +
+        ' → ' +
+        String(d6.getDate()).padStart(2,'0') + '/' + String(d6.getMonth()+1).padStart(2,'0') +
+      '</div>' +
+      '<div class="total">' +
+        '<span class="lbl">Total prévu</span>' +
+        '<span class="val" id="weekTotal">—</span>' +
+      '</div>';
+    root.appendChild(head);
+
+    const dayNames = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    const dayShort = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+    const today = R.todayKey();
+
+    let plannedMinutes = 0;
+    let rowsHtml = '';
+
+    keys.forEach(function(k){
+      const sched = myScheduledShifts[k];
+      const shift = myShifts[k];
+      const dd = new Date(k + 'T00:00:00');
+      const isToday = k === today;
+
+      if(sched && sched.s && sched.e){
+        plannedMinutes += shiftDuration(sched.s, sched.e);
+      }
+
+      let rowClass = 'rest';
+      let mainHtml = 'Repos';
+      let subHtml = '';
+
+      if(shift && shift.totalMinutes > 0){
+        rowClass = 'worked';
+        mainHtml = 'Travaillé';
+        const badgeCls = shift.totalMinutes > R.CRIT_MIN ? 'verylong'
+                       : shift.totalMinutes > R.WARN_MIN ? 'long' : '';
+        subHtml = R.fmtHrs(shift.totalMinutes);
+        if(sched) {
+          subHtml = R.fmtHrs(shift.totalMinutes) + ' · prévu ' + sched.s + ' → ' + sched.e;
+        }
+      } else if(sched){
+        rowClass = 'scheduled';
+        mainHtml = 'Prévu';
+        subHtml = sched.s + ' → ' + sched.e + ' · ' + R.fmtHrs(shiftDuration(sched.s, sched.e));
+      } else if(isToday){
+        rowClass = 'today';
+        mainHtml = 'Aujourd\'hui';
+        subHtml = 'Pas de quart prévu';
+      }
+
+      let badgeHtml = '';
+      if(shift && shift.totalMinutes > 0){
+        const cls = shift.totalMinutes > R.CRIT_MIN ? 'verylong'
+                  : shift.totalMinutes > R.WARN_MIN ? 'long' : '';
+        badgeHtml = '<span class="badge ' + cls + '">' + R.fmtHrs(shift.totalMinutes) + '</span>';
+      }
+
+      rowsHtml +=
+        '<div class="dayrow ' + rowClass + (isToday ? ' today' : '') + '">' +
+          '<div class="datecol">' +
+            '<div class="dow">' + dayShort[dd.getDay()] + '</div>' +
+            '<div class="dnum">' + String(dd.getDate()).padStart(2,'0') + '</div>' +
+          '</div>' +
+          '<div class="body">' +
+            '<div class="main">' + mainHtml + '</div>' +
+            (subHtml ? '<div class="sub">' + subHtml + '</div>' : '') +
+            badgeHtml +
+          '</div>' +
+        '</div>';
+    });
+
+    const wrap = document.createElement('div');
+    wrap.innerHTML = rowsHtml;
+    root.appendChild(wrap);
+
+    $('weekTotal').textContent = plannedMinutes > 0 ? R.fmtHrs(plannedMinutes) : '—';
+  }
+
+  function shiftDuration(s, e){
+    if(!s || !e) return 0;
+    const [h1, m1] = s.split(':').map(Number);
+    const [h2, m2] = e.split(':').map(Number);
+    let total = (h2*60 + m2) - (h1*60 + m1);
+    if(total < 0) total += 24*60;
+    return total;
+  }
+
+  // ---------- MONTH VIEW ----------
+  function renderMonth(){
+    const root = $('viewMonth');
+    root.innerHTML = '';
+
+    if(!monthAnchor) monthAnchor = new Date();
+
+    const y = monthAnchor.getFullYear();
+    const m = monthAnchor.getMonth();
+    const first = new Date(y, m, 1);
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    const startDow = (first.getDay() + 6) % 7; // 0 = Monday
+
+    // Header with prev/next
+    const head = document.createElement('div');
+    head.className = 'month-head';
+    head.innerHTML =
+      '<button class="nav" id="prevMonth" aria-label="Mois précédent">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>' +
+      '</button>' +
+      '<div class="label">' +
+        '<h2>' + monthName(m) + ' ' + y + '</h2>' +
+        '<div class="mtotal">Total ce mois : <b id="monthTotal">—</b></div>' +
+      '</div>' +
+      '<button class="nav" id="nextMonth" aria-label="Mois suivant">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>' +
+      '</button>';
+    root.appendChild(head);
+
+    // Grid
+    const grid = document.createElement('div');
+    grid.className = 'calgrid';
+    ['L','M','M','J','V','S','D'].forEach(function(dn){
+      const c = document.createElement('div');
+      c.className = 'dow';
+      c.textContent = dn;
+      grid.appendChild(c);
+    });
+
+    const today = R.todayKey();
+    let monthTotal = 0;
+
+    // Empty cells for days before the 1st
+    for(let i = 0; i < startDow; i++){
+      const c = document.createElement('div');
+      c.className = 'cell empty';
+      grid.appendChild(c);
+    }
+
+    for(let day = 1; day <= lastDay; day++){
+      const dateStr = y + '-' + String(m+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+      const shift = myShifts[dateStr];
+      const sched = myScheduledShifts[dateStr];
+      const isToday = dateStr === today;
+      const isSel = dateStr === selDay;
+
+      const c = document.createElement('div');
+      c.className = 'cell' + (isToday ? ' today' : '') + (isSel ? ' sel' : '');
+      c.dataset.date = dateStr;
+
+      let dotClass = null;
+      if(shift && shift.totalMinutes > 0){
+        monthTotal += shift.totalMinutes;
+        dotClass = shift.closed ? 'worked' : 'partial';
+      } else if(sched && dateStr < today){
+        dotClass = 'absent';
+      } else if(sched){
+        dotClass = 'sched';
+      }
+
+      c.innerHTML =
+        '<div class="num">' + day + '</div>' +
+        (dotClass ? '<div class="dot ' + dotClass + '"></div>' : '');
+
+      c.addEventListener('click', function(){
+        selDay = dateStr;
+        renderMonth();
+      });
+
+      grid.appendChild(c);
+    }
+
+    root.appendChild(grid);
+
+    // Legend
+    const legend = document.createElement('div');
+    legend.className = 'legend';
+    legend.innerHTML =
+      '<span><i class="w"></i> Travaillé</span>' +
+      '<span><i class="p"></i> En cours</span>' +
+      '<span><i class="s"></i> Prévu</span>' +
+      '<span><i class="a"></i> Manqué</span>';
+    root.appendChild(legend);
+
+    // Selected day detail
+    if(selDay){
+      const dd = new Date(selDay + 'T00:00:00');
+      const shift = myShifts[selDay];
+      const sched = myScheduledShifts[selDay];
+      const detail = document.createElement('div');
+      detail.className = 'daydetail';
+      let html = '<h3>' + dayNamesFull(dd.getDay()) + ' ' + dd.getDate() + ' ' + monthName(dd.getMonth()) + '</h3>';
+      if(sched){
+        html += '<div class="dline"><span class="lbl">Prévu</span><span class="val">' + sched.s + ' → ' + sched.e + '</span></div>';
+        html += '<div class="dline"><span class="lbl">Durée prévue</span><span class="val">' + R.fmtHrs(shiftDuration(sched.s, sched.e)) + '</span></div>';
+      }
+      if(shift && shift.totalMinutes > 0){
+        html += '<div class="dline"><span class="lbl">Travaillé</span><span class="val ok">' + R.fmtHrs(shift.totalMinutes) + '</span></div>';
+      } else if(shift && shift.open){
+        html += '<div class="dline"><span class="lbl">Travaillé</span><span class="val">En cours…</span></div>';
+      } else if(!sched){
+        html += '<div class="dline"><span class="lbl">Journée</span><span class="val muted">Repos</span></div>';
+      } else {
+        html += '<div class="dline"><span class="lbl">Travaillé</span><span class="val muted">Aucun pointage</span></div>';
+      }
+      detail.innerHTML = html;
+      root.appendChild(detail);
+    }
+
+    // Month total
+    const mt = $('monthTotal');
+    if(mt) mt.textContent = monthTotal > 0 ? R.fmtHrs(monthTotal) : '—';
+
+    // Wire nav
+    $('prevMonth').addEventListener('click', function(){
+      selDay = null;
+      loadMonthShifts(-1).then(function(){ renderMonth(); });
+    });
+    $('nextMonth').addEventListener('click', function(){
+      selDay = null;
+      loadMonthShifts(1).then(function(){ renderMonth(); });
+    });
+  }
+
+  function monthName(i){
+    return ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][i];
+  }
+  function dayNamesFull(i){
+    return ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'][i];
+  }
+
+})();
+</script>
+</body>
+</html>
