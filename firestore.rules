@@ -27,8 +27,6 @@ service cloud.firestore {
     }
 
     // A manager is any signed-in user with a managerRestaurants/{uid} doc.
-    // This is set once, manually, in the Firebase Console when you
-    // onboard yourself as the manager.
     function isManager() {
       return isSignedIn()
         && exists(/databases/$(database)/documents/managerRestaurants/$(request.auth.uid));
@@ -47,7 +45,6 @@ service cloud.firestore {
     }
 
     // A restaurant id must exist before anyone can read/write inside it.
-    // Prevents anonymous users from inventing restaurants.
     function restaurantExists(restaurantId) {
       return exists(/databases/$(database)/documents/restaurants/$(restaurantId));
     }
@@ -61,17 +58,13 @@ service cloud.firestore {
     }
 
     // ---------- users/{uid} ----------
-    // Manager account metadata (email, role). Only the manager can read
-    // their own. Nobody writes from the client.
+    // Manager account metadata. Only the manager can read their own.
     match /users/{uid} {
       allow read: if isSignedIn() && request.auth.uid == uid;
       allow write: if false;
     }
 
     // ---------- restaurants/{restaurantId} ----------
-    // The top-level container for everything related to one restaurant.
-    // meta is readable by anyone (the app needs to know the restaurant
-    // exists before it can do anything), and only the manager can write.
     match /restaurants/{restaurantId} {
 
       allow read: if restaurantExists(restaurantId);
@@ -149,7 +142,6 @@ service cloud.firestore {
         allow read: if restaurantExists(restaurantId);
 
         // Create: must declare the badge, dates, type, and pending status.
-        // Status must be 'pending' — you can't approve your own request.
         allow create: if restaurantExists(restaurantId)
           && request.resource.data.badge is string
           && request.resource.data.status == 'pending'
@@ -160,9 +152,6 @@ service cloud.firestore {
           && request.resource.data.toDate.size() == 10
           && request.resource.data.fromDate <= request.resource.data.toDate;
 
-        // No employee updates — once submitted, only the manager can
-        // change status. If an employee wants to cancel, they ask the
-        // manager, or we add a cancel flag later.
         allow update, delete: if isManagerOf(restaurantId);
       }
 
@@ -189,17 +178,18 @@ service cloud.firestore {
       match /auditLog/{logId} {
         allow read, write: if isManagerOf(restaurantId);
       }
-          // ----- dailyImports/{docId} -----
-      // Manager-only. Stores the last daily-import preview.
+
+      // ----- dailyImports/{docId} -----
+      // Manager-only. Stores the last daily-import preview
+      // (survives navigation and reload until the manager
+      // presses "Effacer le tableau").
       match /dailyImports/{docId} {
         allow read, write: if isManagerOf(restaurantId);
       }
     }
 
     // ---------- pushSubscriptions/{deviceId} ----------
-    // Manager's phone subscriptions for ntfy-style alerts. Currently
-    // written by the manager app, read by the GitHub Actions job with
-    // a service account (which bypasses rules).
+    // Manager's phone subscriptions for alerts.
     match /pushSubscriptions/{deviceId} {
       allow read: if isSignedIn() && isManager();
       allow create, update: if isSignedIn() && isManager();
@@ -208,8 +198,7 @@ service cloud.firestore {
 
     // ---------- pushAlertState/{restaurantId} ----------
     // Written by the GitHub Actions job (service account, bypasses rules).
-    // Readable/writable by the manager only, in case you want to reset
-    // state from the UI.
+    // Readable/writable by the manager only.
     match /pushAlertState/{restaurantId} {
       allow read, write: if isSignedIn() && isManagerOf(restaurantId);
     }
