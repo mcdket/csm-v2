@@ -144,22 +144,23 @@
     }
   }
 
-  // If already signed in as a manager, go straight to the dashboard.
-  auth.onAuthStateChanged(function(user){
-    if(user){
-      // Verify they're actually a manager (has a managerRestaurants/{uid} doc).
-      db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
-        if(doc.exists){
+  // If a manager is already signed in, go straight to the dashboard.
+  // We wait for authReady first so we don't miss a persisted session.
+  CSM.authReady.then(function(){
+    auth.onAuthStateChanged(function(user){
+      if(user){
+        db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+          if(doc.exists){
+            window.location.replace('index.html');
+          } else {
+            auth.signOut();
+            setMessage("Ce compte n'est pas autorisé à accéder au portail responsable.");
+          }
+        }).catch(function(){
           window.location.replace('index.html');
-        } else {
-          // Signed in but not a manager — sign them out to avoid confusion.
-          auth.signOut();
-          setMessage("Ce compte n'est pas autorisé à accéder au portail responsable.");
-        }
-      }).catch(function(){
-        window.location.replace('index.html');
-      });
-    }
+        });
+      }
+    });
   });
 
   $('loginForm').addEventListener('submit', function(e){
@@ -170,19 +171,24 @@
     setMessage('');
     btn.disabled = true;
 
-    auth.signInWithEmailAndPassword(email, pass)
-      .then(function(cred){
-        return db.collection('managerRestaurants').doc(cred.user.uid).get();
+    // IMPORTANT: wait for auth persistence to be applied before signing in.
+    // Otherwise the session is lost on the next navigation.
+    CSM.authReady
+      .then(function(){
+        return auth.signInWithEmailAndPassword(email, pass);
       })
-      .then(function(doc){
-        if(!doc.exists){
-          return auth.signOut().then(function(){
-            throw new Error('NOT_A_MANAGER');
+      .then(function(cred){
+        // Double-check that this user is actually a manager.
+        return db.collection('managerRestaurants').doc(cred.user.uid).get()
+          .then(function(doc){
+            if(!doc.exists){
+              return auth.signOut().then(function(){
+                throw new Error('NOT_A_MANAGER');
+              });
+            }
+            $('loginPass').value = '';
+            window.location.replace('index.html');
           });
-        }
-        $('loginPass').value = '';
-        // onAuthStateChanged will redirect; but do it here too for immediacy.
-        window.location.replace('index.html');
       })
       .catch(function(err){
         if(err && err.message === 'NOT_A_MANAGER'){
