@@ -589,4 +589,185 @@ tbody tr.st-done{opacity:0.55;}
         '</div>' +
         '<div class="empcard-times">' +
           '<div class="time-row"><span class="t-label">Entrée</span><span class="t-value">' + (R.minToHM(shift.clockIn) || '<span class="dash">—</span>') + '</span></div>' +
-          '<div class="time-row"><span class="t-label">Pause</span><span class="t-value">' + (R.minToHM(calc.suggBreak) || '<span class="dash">—</span>') + '<span class="sep">prévue ·</span>' + (R.minToHM(shift.breakStart) || '<span class="dash">attente</span>') + '</span></
+          '<div class="time-row"><span class="t-label">Pause</span><span class="t-value">' + (R.minToHM(calc.suggBreak) || '<span class="dash">—</span>') + '<span class="sep">prévue ·</span>' + (R.minToHM(shift.breakStart) || '<span class="dash">attente</span>') + '</span></div>' +
+          '<div class="time-row"><span class="t-label">Retour</span><span class="t-value">' + (R.minToHM(calc.suggReturn) || '<span class="dash">—</span>') + '<span class="sep">prévu ·</span>' + (R.minToHM(shift.breakReturn) || '<span class="dash">attente</span>') + '</span></div>' +
+          '<div class="time-row"><span class="t-label">Sortie</span><span class="t-value">' + (R.minToHM(calc.suggEnd) || '<span class="dash">—</span>') + '<span class="sep">prévue ·</span>' + (R.minToHM(shift.clockOut) || '<span class="dash">—</span>') + '</span></div>' +
+        '</div>' +
+        '<div class="empcard-hours">' +
+          '<div class="hcell"><span class="h-label">En cours</span><span class="h-value">' + contHrsDisplay + '</span></div>' +
+          '<div class="hcell total"><span class="h-label">Total</span><span class="h-value">' + R.fmtHrs(calc.totalMinutes) + '</span></div>' +
+        '</div>' +
+        '<div class="empcard-foot">' +
+          '<div class="action-group">' + quickActions + '</div>' +
+          '<button class="rowedit" data-id="' + shift.id + '" title="Modifier">✎</button>' +
+        '</div>';
+      cardsWrap.appendChild(card);
+    });
+
+    // Wire buttons
+    document.querySelectorAll('.btn-action[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        const id = b.dataset.id;
+        const act = b.dataset.act;
+        if(act === 'break')  doAction(id, 'breakStart');
+        else if(act === 'return') doAction(id, 'breakReturn');
+        else if(act === 'out')    doAction(id, 'clockOut');
+      });
+    });
+    document.querySelectorAll('.rowedit').forEach(function(b){
+      b.addEventListener('click', function(){ openModal(b.dataset.id); });
+    });
+
+    renderAlerts(alerts);
+  }
+
+  function renderAlerts(alerts){
+    const strip = $('alertStrip');
+    strip.innerHTML = '';
+    if(alerts.length === 0){ strip.classList.remove('show'); return; }
+    strip.classList.add('show');
+
+    const crit = alerts.filter(function(a){ return a.kind === 'crit'; });
+    const brk  = alerts.filter(function(a){ return a.kind === 'brk'; });
+    const warn = alerts.filter(function(a){ return a.kind === 'warn'; });
+
+    function nameOf(a){ return a.shift.name || a.shift.badge; }
+
+    if(crit.length){
+      const row = document.createElement('div');
+      row.className = 'alertrow crit';
+      row.innerHTML = '<span class="alertdot"></span> LIMITE 4H50 ATTEINTE — PAUSE IMMÉDIATE : ' + crit.map(nameOf).join(', ');
+      strip.appendChild(row);
+    }
+    if(brk.length){
+      const row = document.createElement('div');
+      row.className = 'alertrow crit';
+      row.innerHTML = '<span class="alertdot"></span> PAUSE DÉPASSÉE (≥ 30 MIN) : ' + brk.map(nameOf).join(', ');
+      strip.appendChild(row);
+    }
+    if(warn.length){
+      const row = document.createElement('div');
+      row.className = 'alertrow warn';
+      row.innerHTML = '<span class="alertdot"></span> Limite 4h50 proche (≥4h30) : ' + warn.map(nameOf).join(', ');
+      strip.appendChild(row);
+    }
+  }
+
+  // ---------- Actions on shifts ----------
+  function doAction(shiftId, field){
+    const t = nowMinutes();
+    const patch = {};
+    patch[field] = t;
+
+    // Special rule: break return must be ≥ 30 min after break start.
+    const shift = shifts.find(function(s){ return s.id === shiftId; });
+    if(field === 'breakReturn' && shift && shift.breakStart != null){
+      let elapsed = t - shift.breakStart; if(elapsed < 0) elapsed += 1440;
+      if(elapsed < R.BREAK_MIN){
+        const proceed = confirm(
+          'Pause non terminée\n\n' +
+          (shift.name || 'Cet employé') + " n'a pris que " + elapsed +
+          " min sur les 30 min obligatoires (encore " + (R.BREAK_MIN - elapsed) + " min).\n\n" +
+          'Confirmer le retour maintenant quand même ?'
+        );
+        if(!proceed) return;
+      }
+    }
+
+    // If setting clockOut, also stamp totalMinutes.
+    if(field === 'clockOut'){
+      const merged = Object.assign({}, shift, patch);
+      patch.totalMinutes = R.computeShift(merged).totalMinutes;
+      patch.status = 'closed';
+    }
+
+    CSM.refs.shift(shiftId).update(patch).catch(function(err){
+      alert('Erreur : ' + err.message);
+    });
+  }
+
+  // ---------- Manual shift modal ----------
+  const modalBg = $('modalBg');
+
+  function openModal(id){
+    editingId = id || null;
+    const shift = id ? shifts.find(function(s){ return s.id === id; }) : null;
+    $('modalTitle').textContent = shift ? 'Modifier le pointage' : 'Ajouter un pointage';
+    $('modalSub').textContent = shift ? 'Corrigez les heures ci-dessous.' : 'Créez un pointage manuellement.';
+    $('fBadge').value = shift ? shift.badge || '' : '';
+    $('fDate').value  = shift ? shift.date || R.todayKey() : R.todayKey();
+    $('fName').value  = shift ? shift.name || '' : '';
+    $('fClockIn').value     = shift ? (R.minToHM(shift.clockIn)     || '') : '';
+    $('fBreakStart').value  = shift ? (R.minToHM(shift.breakStart)  || '') : '';
+    $('fBreakReturn').value = shift ? (R.minToHM(shift.breakReturn) || '') : '';
+    $('fClockOut').value    = shift ? (R.minToHM(shift.clockOut)    || '') : '';
+    $('btnDelete').style.display = shift ? 'block' : 'none';
+    modalBg.classList.add('show');
+  }
+
+  function closeModal(){ modalBg.classList.remove('show'); editingId = null; }
+
+  $('btnAdd').addEventListener('click', function(){ openModal(null); });
+  $('btnCancel').addEventListener('click', closeModal);
+  modalBg.addEventListener('click', function(e){ if(e.target === modalBg) closeModal(); });
+
+  $('btnSave').addEventListener('click', function(){
+    const badge = $('fBadge').value.trim();
+    const date  = $('fDate').value.trim() || R.todayKey();
+    if(!badge){ alert('Le numéro de badge est requis.'); return; }
+
+    const rec = {
+      badge: badge,
+      name: $('fName').value.trim(),
+      date: date,
+      clockIn:     R.hmToMin($('fClockIn').value),
+      breakStart:  R.hmToMin($('fBreakStart').value),
+      breakReturn: R.hmToMin($('fBreakReturn').value),
+      clockOut:    R.hmToMin($('fClockOut').value),
+      updatedAt: new Date().toISOString()
+    };
+    rec.totalMinutes = R.computeShift(rec).totalMinutes;
+    rec.status = rec.clockOut !== null ? 'closed' : 'open';
+
+    if(editingId){
+      CSM.refs.shift(editingId).update(rec).then(closeModal).catch(function(err){
+        alert('Erreur : ' + err.message);
+      });
+    } else {
+      rec.createdAt = new Date().toISOString();
+      rec.source = 'manual';
+      CSM.refs.shifts().add(rec).then(closeModal).catch(function(err){
+        alert('Erreur : ' + err.message);
+      });
+    }
+  });
+
+  $('btnDelete').addEventListener('click', function(){
+    if(!editingId) return;
+    if(!confirm('Supprimer ce pointage ? Cette action est irréversible.')) return;
+    CSM.refs.shift(editingId).delete().then(closeModal).catch(function(err){
+      alert('Erreur : ' + err.message);
+    });
+  });
+
+  // ---------- Filters & search ----------
+  document.querySelectorAll('.filter-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      render();
+    });
+  });
+  $('searchInput').addEventListener('input', function(e){
+    searchQuery = e.target.value;
+    render();
+  });
+
+  // ---------- Print ----------
+  $('btnPrint').addEventListener('click', function(){ window.print(); });
+
+})();
+</script>
+</body>
+</html>
