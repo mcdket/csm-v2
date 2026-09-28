@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Mes demandes — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14181D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#14181D;
+  --panel:#1B2129;
+  --panel-raised:#232B35;
+  --line:#2C333C;
+  --line-soft:#242A32;
+  --text:#F1F3F6;
+  --text-muted:#8B94A3;
+  --accent:#D9822E;
+  --accent-strong:#A85A15;
+  --brand-yellow:#F0B94A;
+  --brand-yellow-strong:#D89B2E;
+  --ok-bg:#DCEEE1; --ok-fg:#1E7A46; --ok-line:#3DAE72;
+  --warn-bg:#FFF2C6;--warn-fg:#8A5A00;--warn-line:#FFC72C;
+  --crit-bg:#FBDAD3;--crit-fg:#8C2A17;--crit-line:#DA291C;
+  --brk-bg:#D9E8FB; --brk-fg:#1E4F8C; --brk-line:#3D8EE8;
+  --shadow:0 4px 20px rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:linear-gradient(180deg, #0E1116 0%, var(--bg) 30%, #0B0E12 100%);
+  color:var(--text);
+  font-family:'Space Grotesk',-apple-system,sans-serif;
+  min-height:100vh;
+  -webkit-tap-highlight-color:transparent;
+  padding-bottom:env(safe-area-inset-bottom, 0);
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+button{font-family:inherit;cursor:pointer;border:none;}
+a{color:inherit;text-decoration:none;}
+input,textarea,select{font-family:inherit;}
+
+.shell{
+  max-width:480px;
+  margin:0 auto;
+  padding:0 0 40px;
+}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  background:linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  border-bottom:4px solid var(--brand-yellow);
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:#fff;
+  box-shadow:var(--shadow);
+}
+.topbar .arches{
+  width:38px;height:38px;flex:none;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.9);
+  object-fit:cover;
+}
+.topbar .titles{flex:1;min-width:0;}
+.topbar h1{margin:0;font-size:15px;font-weight:800;line-height:1.2;}
+.topbar .sub{
+  font-size:11px;color:var(--brand-yellow);
+  text-transform:uppercase;letter-spacing:.06em;font-weight:700;
+}
+.backlink{
+  padding:8px;margin:-8px;
+  display:flex;align-items:center;color:#fff;
+}
+.backlink svg{width:22px;height:22px;}
+
+.content{padding:18px 16px 0;}
+
+/* ---------- Tabs ---------- */
+.tabs{
+  display:grid;grid-template-columns:1fr 1fr;
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  padding:4px;gap:4px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
+}
+.tab{
+  padding:11px 12px;
+  font-size:13.5px;font-weight:700;
+  background:transparent;
+  color:var(--text-muted);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.tab svg{width:15px;height:15px;flex:none;}
+.tab.active{background:var(--accent);color:#fff;}
+
+/* ---------- Form card ---------- */
+.card{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:18px 16px;
+  margin-bottom:16px;
+}
+.card h2{
+  margin:0 0 4px;
+  font-size:16px;font-weight:800;
+}
+.card .hint{
+  font-size:12.5px;color:var(--text-muted);
+  margin:0 0 16px;line-height:1.5;
+}
+
+.field{margin-bottom:12px;}
+.field label{
+  display:block;
+  font-size:11px;font-weight:700;
+  color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.04em;
+  margin-bottom:6px;
+}
+.field input,
+.field textarea,
+.field select{
+  width:100%;
+  padding:11px 12px;
+  border:1.5px solid var(--line);
+  background:var(--panel);
+  color:var(--text);
+  font-size:15px;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus{
+  outline:none;
+  border-color:var(--accent);
+}
+.field textarea{
+  min-height:76px;resize:vertical;
+  font-size:14px;line-height:1.5;
+}
+.field input[type="date"],
+.field input[type="time"]{
+  font-family:'IBM Plex Mono',monospace;
+}
+
+/* Type selector — pill buttons */
+.typerow{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+.typerow button{
+  padding:10px 8px;
+  font-size:12.5px;font-weight:700;
+  background:var(--panel);
+  border:1.5px solid var(--line);
+  color:var(--text-muted);
+}
+.typerow button.active{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+
+.btn{
+  width:100%;
+  padding:14px;
+  font-size:15px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:14px;
+  transition:transform .06s ease, filter .15s ease, background .15s ease;
+  border:2px solid transparent;
+}
+.btn:active{transform:translateY(1px);}
+.btn svg{width:18px;height:18px;flex:none;}
+.btn[disabled]{opacity:.45;pointer-events:none;}
+.btn.primary{
+  background:var(--brand-yellow);
+  color:var(--accent-strong);
+  border-color:var(--brand-yellow-strong);
+}
+.btn.primary:hover{background:var(--brand-yellow-strong);}
+
+.err{
+  color:#FF8B77;
+  font-size:13px;font-weight:600;
+  margin-top:10px;text-align:center;
+  min-height:16px;
+}
+
+/* ---------- List of my requests ---------- */
+.list-title{
+  font-size:12px;font-weight:800;
+  color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.05em;
+  margin:22px 0 10px;
+}
+
+.reqcard{
+  background:var(--panel-raised);
+  border:1px solid var(--line);
+  border-left:5px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:14px 16px;
+  margin-bottom:10px;
+}
+.reqcard.pending{border-left-color:var(--warn-line);}
+.reqcard.approved{border-left-color:var(--ok-line);}
+.reqcard.rejected{border-left-color:var(--crit-line);}
+
+.reqhead{
+  display:flex;justify-content:space-between;
+  align-items:flex-start;gap:10px;
+  margin-bottom:8px;
+}
+.reqhead .main{font-size:14.5px;font-weight:700;line-height:1.35;}
+.reqhead .sub{
+  font-size:12px;color:var(--text-muted);
+  font-family:'IBM Plex Mono',monospace;
+  margin-top:2px;
+}
+.reqstatus{
+  font-size:10.5px;font-weight:800;
+  padding:3px 9px;letter-spacing:.04em;
+  text-transform:uppercase;flex-shrink:0;
+}
+.reqstatus.pending {background:var(--warn-bg);color:var(--warn-fg);}
+.reqstatus.approved{background:var(--ok-bg); color:var(--ok-fg);}
+.reqstatus.rejected{background:var(--crit-bg);color:var(--crit-fg);}
+
+.reqrow{
+  display:flex;justify-content:space-between;
+  font-size:13px;padding:4px 0;
+}
+.reqrow .lbl{color:var(--text-muted);font-weight:600;}
+.reqrow .val{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;}
+.reqrow .val.text{font-family:'Space Grotesk',sans-serif;font-weight:500;}
+
+.reason{
+  font-size:12.5px;font-style:italic;
+  color:var(--text-muted);
+  padding:8px 10px;
+  background:var(--panel);
+  border-left:3px solid var(--line);
+  margin-top:8px;
+  white-space:pre-wrap;
+  line-height:1.5;
+}
+
+.empty{
+  text-align:center;padding:32px 20px;
+  color:var(--text-muted);font-size:13px;
+  background:var(--panel-raised);
+  border:1px dashed var(--line);
+  line-height:1.55;
+}
+
+/* ---------- Confirmation ---------- */
+.confirm{
+  position:fixed;inset:0;
+  background:rgba(20,24,29,0.94);
+  display:none;align-items:center;justify-content:center;
+  z-index:100;padding:20px;text-align:center;
+}
+.confirm.show{display:flex;}
+.confirm .check{
+  width:88px;height:88px;margin:0 auto 18px;
+  border-radius:50%;background:var(--ok-line);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 8px rgba(61,174,114,0.20);
+}
+.confirm .check svg{width:48px;height:48px;color:#fff;}
+.confirm .msg{font-size:20px;font-weight:700;line-height:1.35;margin-bottom:6px;}
+.confirm .sub{font-size:14px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+.confirm .close{
+  margin-top:20px;padding:12px 22px;
+  background:var(--panel-raised);border:1px solid var(--line);
+  color:var(--text);font-size:14px;font-weight:700;
+}
+
+.footer{
+  text-align:center;font-size:11px;
+  color:var(--text-muted);
+  padding:14px 20px 24px;opacity:.65;
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="topbar">
+    <a class="backlink" href="index.html" aria-label="Retour">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </a>
+    <img class="arches" src="../shared/200.webp" alt="">
+    <div class="titles">
+      <h1>Mes demandes</h1>
+      <div class="sub" id="restLabel">Chargement…</div>
+    </div>
+  </div>
+
+  <div class="content" id="content" style="display:none;">
+
+    <div class="tabs">
+      <button class="tab active" data-tab="leave">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+        Congés
+      </button>
+      <button class="tab" data-tab="corrections">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        Corrections
+      </button>
+    </div>
+
+    <!-- ================= LEAVE TAB ================= -->
+    <div id="paneLeave">
+      <div class="card">
+        <h2>Nouvelle demande de congé</h2>
+        <p class="hint">Votre responsable recevra la demande et pourra l'approuver ou la refuser.</p>
+
+        <div class="field">
+          <label>Type</label>
+          <div class="typerow" id="leaveTypes">
+            <button type="button" class="active" data-type="vacation">Congé payé</button>
+            <button type="button" data-type="sick">Maladie</button>
+            <button type="button" data-type="personal">Personnel</button>
+            <button type="button" data-type="other">Autre</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Du</label>
+          <input type="date" id="leaveFrom">
+        </div>
+
+        <div class="field">
+          <label>Au</label>
+          <input type="date" id="leaveTo">
+        </div>
+
+        <div class="field">
+          <label>Motif (facultatif)</label>
+          <textarea id="leaveReason" placeholder="Quelques mots pour expliquer votre demande…" maxlength="500"></textarea>
+        </div>
+
+        <div class="err" id="leaveErr"></div>
+
+        <button class="btn primary" id="btnSubmitLeave">
+          Envoyer la demande
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <div class="list-title">Mes demandes</div>
+      <div id="leaveList"></div>
+    </div>
+
+    <!-- ================= CORRECTIONS TAB ================= -->
+    <div id="paneCorrections" style="display:none;">
+      <div class="card">
+        <h2>Signaler un pointage manquant ou erroné</h2>
+        <p class="hint">Ex. « J'ai oublié de pointer ma sortie hier ». Votre responsable recevra la demande et pourra l'appliquer.</p>
+
+        <div class="field">
+          <label>Date du pointage</label>
+          <input type="date" id="corrDate">
+        </div>
+
+        <div class="field">
+          <label>Quel pointage ?</label>
+          <select id="corrField">
+            <option value="clockIn">Arrivée</option>
+            <option value="breakStart">Départ pause</option>
+            <option value="breakReturn">Retour pause</option>
+            <option value="clockOut">Sortie</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Heure correcte</label>
+          <input type="time" id="corrValue">
+        </div>
+
+        <div class="field">
+          <label>Motif</label>
+          <textarea id="corrReason" placeholder="Expliquez brièvement pourquoi la correction est nécessaire…" maxlength="500"></textarea>
+        </div>
+
+        <div class="err" id="corrErr"></div>
+
+        <button class="btn primary" id="btnSubmitCorr">
+          Envoyer la demande
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <div class="list-title">Mes corrections</div>
+      <div id="corrList"></div>
+    </div>
+
+    <div class="footer">Contract Social Manager — Portail Employé</div>
+
+  </div>
+
+</div>
+
+<div class="confirm" id="confirmOverlay">
+  <div>
+    <div class="check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+    </div>
+    <div class="msg" id="confirmMsg">Demande envoyée</div>
+    <div class="sub mono" id="confirmSub">—</div>
+    <button class="close" id="confirmClose">Fermer</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  const SESSION_KEY = 'csm_session_badge';
+
+  let badge = null;
+  let staff = null;
+  let unsubLeave = null;
+  let unsubCorr = null;
+  let leaveType = 'vacation';
+  let currentTab = 'leave';
+
+  // ---------- Boot ----------
+  auth.signInAnonymously().then(function(){
+    return CSM.ready;
+  }).then(function(){
+    try{ badge = localStorage.getItem(SESSION_KEY); }catch(e){}
+    if(!badge){ window.location.replace('login.html'); return; }
+    $('restLabel').textContent = CSM.restaurantName || CSM.restaurantId;
+
+    return CSM.refs.staff(badge).get().then(function(doc){
+      if(!doc.exists || doc.data().active === false){
+        try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+        window.location.replace('login.html');
+        return;
+      }
+      staff = doc.data();
+      $('content').style.display = 'block';
+      wireTabs();
+      wireLeaveType();
+      wireForms();
+      initDateDefaults();
+      subscribeLeave();
+      subscribeCorrections();
+    });
+  }).catch(function(err){
+    console.error('Boot:', err);
+    window.location.replace('login.html');
+  });
+
+  // ---------- Tabs ----------
+  function wireTabs(){
+    document.querySelectorAll('.tab').forEach(function(t){
+      t.addEventListener('click', function(){
+        currentTab = t.dataset.tab;
+        document.querySelectorAll('.tab').forEach(function(x){
+          x.classList.toggle('active', x === t);
+        });
+        $('paneLeave').style.display = currentTab === 'leave' ? 'block' : 'none';
+        $('paneCorrections').style.display = currentTab === 'corrections' ? 'block' : 'none';
+      });
+    });
+  }
+
+  // ---------- Leave type selector ----------
+  function wireLeaveType(){
+    document.querySelectorAll('#leaveTypes button').forEach(function(b){
+      b.addEventListener('click', function(){
+        leaveType = b.dataset.type;
+        document.querySelectorAll('#leaveTypes button').forEach(function(x){
+          x.classList.toggle('active', x === b);
+        });
+      });
+    });
+  }
+
+  // ---------- Defaults ----------
+  function initDateDefaults(){
+    const today = R.todayKey();
+    $('leaveFrom').value = today;
+    $('leaveTo').value = today;
+    $('corrDate').value = today;
+  }
+
+  // ---------- Form wiring ----------
+  function wireForms(){
+    $('btnSubmitLeave').addEventListener('click', submitLeave);
+    $('btnSubmitCorr').addEventListener('click', submitCorr);
+    $('confirmClose').addEventListener('click', function(){
+      $('confirmOverlay').classList.remove('show');
+    });
+  }
+
+  // ---------- Submit leave ----------
+  async function submitLeave(){
+    const from = $('leaveFrom').value;
+    const to = $('leaveTo').value;
+    const reason = $('leaveReason').value.trim();
+    const err = $('leaveErr');
+    err.textContent = '';
+
+    if(!from){ err.textContent = 'Indiquez la date de début.'; return; }
+    if(!to){ err.textContent = 'Indiquez la date de fin.'; return; }
+    if(from > to){ err.textContent = 'La date de fin doit être après la date de début.'; return; }
+
+    const btn = $('btnSubmitLeave');
+    btn.disabled = true;
+
+    try{
+      await CSM.refs.leaveReqs().add({
+        badge: String(badge),
+        name: staff.name || '',
+        type: leaveType,
+        fromDate: from,
+        toDate: to,
+        reason: reason,
+        status: 'pending',
+        requestedAt: new Date().toISOString()
+      });
+
+      // Reset form
+      $('leaveReason').value = '';
+      $('leaveFrom').value = R.todayKey();
+      $('leaveTo').value = R.todayKey();
+      showConfirm('Demande de congé envoyée', from + ' → ' + to);
+    }catch(e){
+      err.textContent = 'Erreur : ' + e.message;
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  // ---------- Submit correction ----------
+  async function submitCorr(){
+    const date = $('corrDate').value;
+    const field = $('corrField').value;
+    const value = $('corrValue').value;
+    const reason = $('corrReason').value.trim();
+    const err = $('corrErr');
+    err.textContent = '';
+
+    if(!date){ err.textContent = 'Indiquez la date concernée.'; return; }
+    if(!value){ err.textContent = 'Indiquez l\'heure correcte.'; return; }
+    if(!reason){ err.textContent = 'Expliquez brièvement le motif.'; return; }
+
+    const btn = $('btnSubmitCorr');
+    btn.disabled = true;
+
+    try{
+      await CSM.refs.corrections().add({
+        badge: String(badge),
+        name: staff.name || '',
+        date: date,
+        field: field,
+        requestedValue: value,
+        reason: reason,
+        status: 'pending',
+        requestedAt: new Date().toISOString()
+      });
+
+      $('corrReason').value = '';
+      $('corrValue').value = '';
+      $('corrDate').value = R.todayKey();
+      showConfirm('Demande de correction envoyée', date + ' · ' + value);
+    }catch(e){
+      err.textContent = 'Erreur : ' + e.message;
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  // ---------- Live leave list ----------
+  function subscribeLeave(){
+    if(unsubLeave) unsubLeave();
+    unsubLeave = CSM.refs.leaveReqs()
+      .where('badge', '==', String(badge))
+      .onSnapshot(function(snap){
+        const arr = snap.docs.map(function(d){
+          return Object.assign({ _id: d.id }, d.data());
+        }).sort(function(a,b){
+          return (b.requestedAt || '').localeCompare(a.requestedAt || '');
+        });
+        renderLeave(arr);
+      }, function(err){
+        console.warn('leaveReqs:', err);
+      });
+  }
+
+  function renderLeave(arr){
+    const list = $('leaveList');
+    list.innerHTML = '';
+    if(!arr.length){
+      list.innerHTML = '<div class="empty">Vous n\'avez pas encore envoyé de demande de congé.</div>';
+      return;
+    }
+    arr.slice(0, 20).forEach(function(r){
+      list.appendChild(buildLeaveCard(r));
+    });
+  }
+
+  function buildLeaveCard(r){
+    const card = document.createElement('div');
+    card.className = 'reqcard ' + (r.status || 'pending');
+
+    const typeLabel = ({
+      vacation: 'Congé payé',
+      sick:     'Maladie',
+      personal: 'Personnel',
+      other:    'Autre'
+    })[r.type] || r.type;
+
+    const statusLabel = ({
+      pending:  'En attente',
+      approved: 'Approuvée',
+      rejected: 'Refusée'
+    })[r.status] || r.status;
+
+    let days = '';
+    if(r.fromDate && r.toDate){
+      const d1 = new Date(r.fromDate + 'T00:00:00Z');
+      const d2 = new Date(r.toDate   + 'T00:00:00Z');
+      const n = Math.round((d2 - d1) / 86400000) + 1;
+      days = n + (n > 1 ? ' jours' : ' jour');
+    }
+
+    card.innerHTML =
+      '<div class="reqhead">' +
+        '<div>' +
+          '<div class="main">' + esc(typeLabel) + '</div>' +
+          '<div class="sub">' + esc(r.fromDate) + ' → ' + esc(r.toDate) + (days ? ' · ' + days : '') + '</div>' +
+        '</div>' +
+        '<span class="reqstatus ' + r.status + '">' + statusLabel + '</span>' +
+      '</div>' +
+      (r.reason ? '<div class="reason">« ' + esc(r.reason) + ' »</div>' : '');
+
+    return card;
+  }
+
+  // ---------- Live corrections list ----------
+  function subscribeCorrections(){
+    if(unsubCorr) unsubCorr();
+    unsubCorr = CSM.refs.corrections()
+      .where('badge', '==', String(badge))
+      .onSnapshot(function(snap){
+        const arr = snap.docs.map(function(d){
+          return Object.assign({ _id: d.id }, d.data());
+        }).sort(function(a,b){
+          return (b.requestedAt || '').localeCompare(a.requestedAt || '');
+        });
+        renderCorrections(arr);
+      }, function(err){
+        console.warn('corrections:', err);
+      });
+  }
+
+  function renderCorrections(arr){
+    const list = $('corrList');
+    list.innerHTML = '';
+    if(!arr.length){
+      list.innerHTML = '<div class="empty">Vous n\'avez pas encore envoyé de correction.</div>';
+      return;
+    }
+    arr.slice(0, 20).forEach(function(r){
+      list.appendChild(buildCorrCard(r));
+    });
+  }
+
+  function buildCorrCard(r){
+    const card = document.createElement('div');
+    card.className = 'reqcard ' + (r.status || 'pending');
+
+    const fieldLabel = ({
+      clockIn:     'Arrivée',
+      breakStart:  'Départ pause',
+      breakReturn: 'Retour pause',
+      clockOut:    'Sortie'
+    })[r.field] || r.field;
+
+    const statusLabel = ({
+      pending:  'En attente',
+      approved: 'Appliquée',
+      rejected: 'Refusée'
+    })[r.status] || r.status;
+
+    card.innerHTML =
+      '<div class="reqhead">' +
+        '<div>' +
+          '<div class="main">' + esc(fieldLabel) + ' → ' + esc(r.requestedValue || '—') + '</div>' +
+          '<div class="sub">' + esc(r.date || '') + '</div>' +
+        '</div>' +
+        '<span class="reqstatus ' + r.status + '">' + statusLabel + '</span>' +
+      '</div>' +
+      (r.reason ? '<div class="reason">« ' + esc(r.reason) + ' »</div>' : '');
+
+    return card;
+  }
+
+  // ---------- Confirmation ----------
+  function showConfirm(msg, sub){
+    $('confirmMsg').textContent = msg;
+    $('confirmSub').textContent = sub;
+    $('confirmOverlay').classList.add('show');
+  }
+
+  // ---------- Helpers ----------
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+})();
+</script>
+</body>
+</html>
