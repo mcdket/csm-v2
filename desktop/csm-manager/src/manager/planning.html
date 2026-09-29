@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<meta name="theme-color" content="#0D5B6E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<link rel="stylesheet" href="../shared/enterprise.css">
+<style>
+.ent-page{display:flex;flex-direction:column;min-height:100vh;}
+.ent-content{flex:1;padding:20px 26px 40px;overflow-x:auto;}
+
+.ent-section{
+  background:#fff;
+  border:1px solid var(--gray-border);
+  padding:16px;
+  margin-bottom:16px;
+}
+.ent-section h2{
+  font-size:14px;
+  color:var(--teal);
+  font-weight:600;
+  margin:0 0 12px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--gray-border);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.ent-section h2 svg{width:16px;height:16px;fill:none;stroke:var(--teal);stroke-width:2;}
+
+/* Expected list */
+.ent-expected{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  gap:8px;
+}
+.ent-exp-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  border:1px solid var(--gray-border);
+  border-left-width:3px;
+  background:#F7F9FA;
+  font-family:'Segoe UI',sans-serif;
+}
+.ent-exp-item.up{border-left-color:var(--blue-edit-border);}
+.ent-exp-item.soon{border-left-color:var(--amber);background:#FBF0D2;}
+.ent-exp-item.late{border-left-color:var(--red);background:#F7DAD5;}
+.ent-exp-time{
+  font-family:'Consolas',monospace;
+  font-size:15px;
+  font-weight:600;
+  color:var(--teal);
+  min-width:52px;
+}
+.ent-exp-mid{flex:1;min-width:0;}
+.ent-exp-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ent-exp-status{font-size:11.5px;color:var(--ent-text-muted);}
+.ent-exp-item.soon .ent-exp-status{color:#8A5A00;font-weight:600;}
+.ent-exp-item.late .ent-exp-status{color:#A32B1B;font-weight:600;}
+.ent-exp-btn{
+  border:1px solid var(--gray-border);
+  background:#fff;
+  color:var(--teal);
+  padding:4px 10px;
+  font-size:11.5px;
+  cursor:pointer;
+  font-family:inherit;
+  font-weight:600;
+}
+.ent-exp-btn:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+
+/* Dropzone */
+.ent-dropzone{
+  border:2px dashed var(--gray-border);
+  padding:30px 16px;
+  text-align:center;
+  color:var(--ent-text-muted);
+  font-size:13px;
+  cursor:pointer;
+  transition:border-color .15s, background .15s;
+}
+.ent-dropzone:hover, .ent-dropzone.drag{
+  border-color:var(--teal);
+  background:var(--teal-light);
+}
+.ent-dropzone b{color:var(--ent-text);font-weight:600;}
+.ent-dropzone svg{
+  width:32px;height:32px;
+  display:block;margin:0 auto 10px;
+  stroke:var(--teal);fill:none;stroke-width:2;
+}
+.ent-dropzone .sub{font-size:11.5px;margin-top:4px;}
+
+/* Import log */
+.ent-importlog{
+  margin-top:12px;
+  font-size:12px;
+  max-height:160px;
+  overflow-y:auto;
+  border-top:1px solid var(--gray-border);
+  padding-top:10px;
+  display:none;
+  font-family:'Consolas',monospace;
+}
+.ent-importlog.show{display:block;}
+.ent-importlog div{padding:2px 0;}
+.ent-importlog .ok{color:var(--green);}
+.ent-importlog .warn{color:var(--amber);}
+
+/* Week */
+.ent-daytabs{
+  display:flex;
+  gap:4px;
+  overflow-x:auto;
+  padding-bottom:4px;
+  margin-bottom:12px;
+}
+.ent-daytab{
+  flex:1 0 auto;
+  min-width:70px;
+  border:1px solid var(--gray-border);
+  background:#fff;
+  color:var(--ent-text);
+  padding:7px 10px;
+  text-align:center;
+  font-size:12.5px;
+  font-family:inherit;
+  cursor:pointer;
+  font-weight:600;
+}
+.ent-daytab:hover{border-color:var(--teal);}
+.ent-daytab small{display:block;font-weight:400;color:var(--ent-text-muted);font-size:11px;margin-top:2px;}
+.ent-daytab.today{border-bottom:3px solid var(--teal);}
+.ent-daytab.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+.ent-daytab.active small{color:rgba(255,255,255,0.85);}
+
+.ent-daysum{
+  margin:0 0 12px;
+  font-size:13px;
+  color:var(--ent-text-muted);
+  padding:8px 12px;
+  background:#F7F9FA;
+  border:1px solid var(--gray-border);
+}
+.ent-daysum strong{color:var(--ent-text);}
+
+.ent-grid-wrap{
+  background:#fff;
+  border:1px solid var(--gray-border);
+  overflow:auto;
+}
+table.ent-plan{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12.5px;
+  font-family:'Segoe UI',sans-serif;
+}
+table.ent-plan thead th{
+  background:#F7F9FA;
+  color:var(--gray-header);
+  font-weight:600;
+  text-align:left;
+  padding:7px 10px;
+  border-bottom:1px solid var(--gray-border);
+  border-right:1px solid #E8ECEE;
+  font-size:11.5px;
+  text-transform:uppercase;
+  letter-spacing:0.02em;
+  white-space:nowrap;
+}
+table.ent-plan tbody td{
+  padding:6px 10px;
+  border-bottom:1px solid #EDF2F4;
+  border-right:1px solid #EDF2F4;
+  white-space:nowrap;
+}
+table.ent-plan tbody tr.grp td{
+  background:#EDF2F4;
+  font-weight:700;
+  font-size:11.5px;
+  color:var(--teal);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+table.ent-plan td.t{font-family:'Consolas',monospace;font-weight:600;}
+table.ent-plan td.nm{font-weight:600;}
+
+.ent-spill{
+  display:inline-block;
+  padding:2px 8px;
+  font-size:11px;
+  font-weight:600;
+  border-radius:2px;
+}
+.ent-spill.ok{background:#E0F1E4;color:#2F7D46;}
+.ent-spill.warn{background:#FBF0D2;color:#8A5A00;}
+.ent-spill.crit{background:#F7DAD5;color:#A32B1B;}
+.ent-spill.brk{background:#E6F0F7;color:#0D5B6E;}
+
+.ent-empty-plan{
+  padding:40px 20px;
+  text-align:center;
+  color:var(--ent-text-muted);
+  font-size:13px;
+}
+.ent-empty-plan b{display:block;color:var(--ent-text);font-size:14px;margin-bottom:6px;}
+
+body.enterprise .header,body.enterprise .headerside,body.enterprise .controls,body.enterprise .footnote{display:none !important;}
+</style>
+</head>
+<body class="enterprise">
+
+<div class="ent-page" id="app" style="display:none;">
+
+  <div class="topbar">
+    <span class="logo">CSM Manager 1.0.0 · Agadir Ketia</span>
+    <span class="spacer"></span>
+    <span class="item">—</span>
+    <span class="item">▢</span>
+    <span class="item" style="cursor:pointer;">✕</span>
+  </div>
+
+  <div class="menubar">
+    <div class="menu-item" onclick="window.location.href='index.html'">☰ Menu</div>
+    <div class="menu-item" onclick="window.location.href='index.html'">← Tableau de bord</div>
+    <div class="menu-item" onclick="window.location.href='staff.html'">Employés</div>
+    <div class="menu-item" onclick="window.location.href='requests.html'">Demandes</div>
+    <div class="menu-item" onclick="window.location.href='daily-import.html'">Import quotidien</div>
+    <span style="flex:1;"></span>
+    <div class="menu-item" id="btnLogout" style="border-left:1px solid rgba(255,255,255,0.2);">⏻ Déconnexion</div>
+  </div>
+
+  <div class="subnav">
+    <a onclick="window.location.href='index.html'">Pointages du jour</a>
+    <a class="active">Planning</a>
+    <a onclick="window.location.href='staff.html'">Employés</a>
+    <a onclick="window.location.href='requests.html'">Demandes</a>
+    <a onclick="window.location.href='daily-import.html'">Import quotidien</a>
+  </div>
+
+  <div class="page-header">
+    <h1>Planning hebdomadaire</h1>
+    <div class="toolbar">
+      <button class="iconbtn" id="btnPrint" title="Imprimer">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="ent-content">
+
+    <p class="ent-daysum" id="planSub" style="border:none;background:transparent;padding:0 0 12px;font-size:13px;">Chargement...</p>
+
+    <div class="ent-section">
+      <h2>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Attendus prochainement <span id="expectedCount" style="color:var(--ent-text-muted);font-weight:400;font-size:13px;"></span>
+      </h2>
+      <div class="ent-expected" id="expectedList"></div>
+    </div>
+
+    <div class="ent-section">
+      <h2>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Importer le planning hebdomadaire (PDF)
+      </h2>
+      <div class="ent-dropzone" id="dropzone">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        <div><b>Déposez le PDF ici</b> ou cliquez pour parcourir</div>
+        <div class="sub">Format : « Weekly Schedule from ... to ... » avec colonnes Lundi → Dimanche.</div>
+        <input type="file" id="fileInput" accept="application/pdf" style="display:none;">
+      </div>
+      <div class="ent-importlog" id="importLog"></div>
+    </div>
+
+    <div class="ent-section">
+      <h2>
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="1"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+        Semaine en cours <span id="weekRange" style="color:var(--ent-text-muted);font-weight:400;font-size:12px;margin-left:auto;"></span>
+      </h2>
+      <div class="ent-daytabs" id="dayTabs" role="tablist"></div>
+      <div class="ent-daysum" id="daySum"></div>
+      <div class="ent-grid-wrap" id="dayList"></div>
+    </div>
+
+  </div>
+
+  <div class="statusbar">
+    <span><kbd>Alt</kbd> → Menu &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>F4</kbd> → Logout</span>
+    <span class="right">Hotline: it@ma.mcd.com</span>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  if(window['pdfjsLib']){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const DAY_NAMES  = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+  const DAY_SHORT  = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const MONTHS     = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const SCHED_DAYS = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+
+  const EXPECT_LEAD_MIN  = 60;
+  const EXPECT_LATE_MIN  = 120;
+  const EXPECT_GRACE_MIN = 5;
+
+  let schedule = null;
+  let employees = [];
+  let unsubSchedule = null;
+  let unsubShifts = null;
+  let selDay = null;
+  let importNote = '';
+  let timeOffsetMs = 0;
+
+  try{
+    const v = parseInt(localStorage.getItem('csct_time_offset') || '0', 10);
+    if(isFinite(v)) timeOffsetMs = v;
+  }catch(e){}
+
+  function appNow(){ return new Date(Date.now() + timeOffsetMs); }
+  function nowMinutes(){ const d = appNow(); return d.getHours()*60 + d.getMinutes(); }
+
+  let started = false;
+  auth.onAuthStateChanged(function(user){
+    if(!user){ window.location.replace('login.html'); return; }
+    if(started) return;
+    started = true;
+    db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+      if(!doc.exists){ auth.signOut().then(function(){ window.location.replace('login.html'); }); return; }
+      return Promise.race([
+        CSM.ready,
+        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
+      ]).then(function(){
+        document.querySelector('.ent-page').style.display = 'flex';
+        startListeners();
+        setInterval(function(){ renderExpected(); renderWeek(); }, 15000);
+      });
+    }).catch(function(err){ alert('Erreur : ' + err.message); });
+  });
+
+  $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
+
+  function startListeners(){
+    unsubSchedule = CSM.refs.schedules()
+      .orderBy('importedAt', 'desc').limit(1)
+      .onSnapshot(function(snap){
+        const prevStart = schedule && schedule.start;
+        schedule = snap.empty ? null : Object.assign({ _id: snap.docs[0].id }, snap.docs[0].data());
+        if(!schedule || schedule.start !== prevStart) selDay = null;
+        renderAll();
+      }, function(err){ console.error(err); });
+
+    const today = R.todayKey();
+    unsubShifts = CSM.refs.shifts().where('date', '==', today)
+      .onSnapshot(function(snap){
+        employees = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+        renderAll();
+      }, function(err){ console.error(err); });
+  }
+
+  function renderAll(){ renderPlanSub(); renderExpected(); renderWeek(); }
+
+  function renderPlanSub(){
+    const sub = $('planSub');
+    if(!schedule){ sub.textContent = 'Aucun planning chargé. Importez le PDF ci-dessous.'; return; }
+    const ti = todayIdx();
+    let t = 'Planning du ' + fmtShort(schedule.start) + ' au ' + fmtShort(schedule.end);
+    if(importNote) t += ' — ' + importNote;
+    if(ti < 0 || ti > 6) t += ". Il ne couvre pas la date d'aujourd'hui.";
+    sub.textContent = t;
+  }
+
+  function renderExpected(){
+    const list = $('expectedList'), count = $('expectedCount');
+    list.innerHTML = '';
+    count.textContent = '';
+    if(!schedule){ list.innerHTML = '<div class="ent-exp-item" style="border-left-color:var(--gray-border);">Importez le planning pour voir les employés attendus.</div>'; return; }
+    const ti = todayIdx();
+    if(ti < 0 || ti > 6){ list.innerHTML = '<div class="ent-exp-item" style="border-left-color:var(--gray-border);">Le planning chargé ne couvre pas aujourd\'hui.</div>'; return; }
+
+    const nowMin = nowMinutes();
+    const items = [];
+    (schedule.employees || []).forEach(function(emp){
+      const sh = emp.d && emp.d[ti];
+      if(!sh) return;
+      const dt = toMin(sh.s) - nowMin;
+      if(dt > EXPECT_LEAD_MIN || dt < -EXPECT_LATE_MIN) return;
+      if(arrivedFor(emp)) return;
+      items.push({ emp, sh, dt, key: 'd' + ti + '_' + emp.n });
+    });
+    items.sort(function(a,b){ return (a.dt - b.dt) || a.emp.name.localeCompare(b.emp.name); });
+
+    if(!items.length){ list.innerHTML = '<div class="ent-exp-item" style="border-left-color:var(--gray-border);">Personne n\'est attendu dans l\'heure qui vient.</div>'; return; }
+    count.textContent = '(' + items.length + ')';
+    items.forEach(function(it){
+      const state = it.dt > 15 ? 'up' : (it.dt > -EXPECT_GRACE_MIN ? 'soon' : 'late');
+      const row = document.createElement('div');
+      row.className = 'ent-exp-item ' + state;
+      const mid = document.createElement('div');
+      mid.className = 'ent-exp-mid';
+      mid.innerHTML = '<div class="ent-exp-name">' + esc(it.emp.name) + '</div>' +
+        '<div class="ent-exp-status">' + (it.dt > 0 ? 'dans ' + fmtDur(it.dt) : (state === 'late' ? 'en retard de ' + fmtDur(-it.dt) : 'à pointer')) + '</div>';
+      const b = document.createElement('button');
+      b.className = 'ent-exp-btn';
+      b.textContent = 'Arrivé';
+      b.addEventListener('click', function(){ dismissExpected(it.key); });
+      const timeEl = document.createElement('div');
+      timeEl.className = 'ent-exp-time';
+      timeEl.textContent = it.sh.s;
+      row.appendChild(timeEl);
+      row.appendChild(mid);
+      row.appendChild(b);
+      list.appendChild(row);
+    });
+  }
+
+  function renderWeek(){
+    const tabs = $('dayTabs'), list = $('dayList'), sum = $('daySum');
+    list.innerHTML = '';
+    if(!schedule){
+      tabs.innerHTML = '';
+      sum.textContent = '';
+      $('weekRange').textContent = '';
+      $('btnPrint').disabled = true;
+      list.innerHTML = '<div class="ent-empty-plan"><b>Aucun planning</b>Importez le PDF hebdomadaire ci-dessus.</div>';
+      return;
+    }
+    $('weekRange').textContent = fmtShort(schedule.start) + ' → ' + fmtShort(schedule.end);
+
+    const ti = todayIdx();
+    if(selDay === null) selDay = (ti >= 0 && ti <= 6) ? ti : 0;
+
+    tabs.innerHTML = '';
+    for(let i=0; i<7; i++){
+      const d = dayDate(i);
+      const b = document.createElement('button');
+      b.className = 'ent-daytab' + (i === ti ? ' today' : '') + (i === selDay ? ' active' : '');
+      b.type = 'button';
+      b.innerHTML = DAY_SHORT[i] + '<small>' + d.getUTCDate() + '</small>';
+      b.addEventListener('click', function(){ selDay = i; renderWeek(); });
+      tabs.appendChild(b);
+    }
+
+    const isToday = selDay === ti;
+    const nowMin = nowMinutes();
+    const rows = [];
+    (schedule.employees || []).forEach(function(emp){
+      const sh = emp.d && emp.d[selDay];
+      if(sh) rows.push({ emp, sh });
+    });
+    rows.sort(function(a,b){ return toMin(a.sh.s) - toMin(b.sh.s) || a.emp.name.localeCompare(b.emp.name); });
+
+    const d = dayDate(selDay);
+    let arrived = 0;
+    if(isToday) rows.forEach(function(r){ if(arrivedFor(r.emp)) arrived++; });
+    sum.innerHTML = '<strong>' + DAY_NAMES[selDay] + ' ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + '</strong> : ' +
+      rows.length + (rows.length > 1 ? ' employés prévus' : ' employé prévu') +
+      (isToday && rows.length ? ', dont ' + arrived + ' déjà arrivés' : '');
+
+    if(!rows.length){ list.innerHTML = '<div class="ent-empty-plan">Personne n\'est prévu ce jour-là.</div>'; return; }
+
+    const table = document.createElement('table');
+    table.className = 'ent-plan';
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    ['Début','Fin','Employé'].concat(isToday ? ['Statut'] : []).forEach(function(h){
+      const th = document.createElement('th'); th.textContent = h; hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    const groups = [['Matin', 0, 12*60], ['Après-midi', 12*60, 18*60], ['Soir', 18*60, 24*60]];
+    groups.forEach(function(g){
+      const gr = rows.filter(function(r){ const m = toMin(r.sh.s); return m >= g[1] && m < g[2]; });
+      if(!gr.length) return;
+      const head = document.createElement('tr');
+      head.className = 'grp';
+      const td = document.createElement('td');
+      td.colSpan = isToday ? 4 : 3;
+      td.textContent = g[0] + ' (' + gr.length + ')';
+      head.appendChild(td); tbody.appendChild(head);
+      gr.forEach(function(r){
+        const tr = document.createElement('tr');
+        const tdS = document.createElement('td'); tdS.className = 't'; tdS.textContent = r.sh.s; tr.appendChild(tdS);
+        const tdE = document.createElement('td'); tdE.textContent = r.sh.e || '—'; tr.appendChild(tdE);
+        const tdN = document.createElement('td'); tdN.className = 'nm'; tdN.textContent = r.emp.name; tr.appendChild(tdN);
+        if(isToday){
+          const st = statusFor(r.emp, r.sh, nowMin);
+          const tdSt = document.createElement('td');
+          const sp = document.createElement('span');
+          sp.className = 'ent-spill ' + st.cls;
+          sp.textContent = st.text;
+          tdSt.appendChild(sp); tr.appendChild(tdSt);
+        }
+        tbody.appendChild(tr);
+      });
+    });
+    table.appendChild(tbody);
+    list.appendChild(table);
+  }
+
+  function arrivedFor(emp){
+    const key = 'd' + todayIdx() + '_' + emp.n;
+    if(schedule.dismissed && schedule.dismissed[key]) return true;
+    return employees.some(function(e){
+      return e.clockIn !== null && e.clockIn !== undefined && R.sameName(emp.name, e.name);
+    });
+  }
+
+  function statusFor(emp, sh, nowMin){
+    if(arrivedFor(emp)) return { cls: 'ok', text: 'Arrivé' };
+    if(sh.e && nowMin >= toMin(sh.e)) return { cls: '', text: 'Non pointé' };
+    const dt = toMin(sh.s) - nowMin;
+    if(dt > EXPECT_LEAD_MIN) return { cls: '', text: 'À venir' };
+    if(dt > 0) return { cls: 'brk', text: 'Dans ' + fmtDur(dt) };
+    if(dt > -EXPECT_GRACE_MIN) return { cls: 'warn', text: 'Maintenant' };
+    if(dt >= -EXPECT_LATE_MIN) return { cls: 'crit', text: 'En retard de ' + fmtDur(-dt) };
+    return { cls: 'crit', text: 'Non pointé' };
+  }
+
+  function dismissExpected(key){
+    if(!schedule || !schedule._id) return;
+    CSM.refs.schedules().doc(schedule._id).update({ ['dismissed.' + key]: true })
+      .catch(function(err){ console.error(err); });
+  }
+
+  function toMin(hhmm){ const a = String(hhmm).split(':').map(Number); return a[0]*60 + a[1]; }
+  function fmtDur(m){
+    if(m < 60) return m + ' min';
+    const h = Math.floor(m/60), r = m % 60;
+    return h + ' h' + (r ? ' ' + String(r).padStart(2,'0') : '');
+  }
+  function startParts(){ return schedule.start.split('-').map(Number); }
+  function todayIdx(){
+    const now = appNow(), p = startParts();
+    return Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(p[0], p[1]-1, p[2])) / 86400000);
+  }
+  function dayDate(i){
+    const p = startParts();
+    return new Date(Date.UTC(p[0], p[1]-1, p[2] + i));
+  }
+  function fmtShort(iso){ return iso.slice(8,10) + '/' + iso.slice(5,7); }
+
+  async function extractItems(arrayBuffer){
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pages = [];
+    for(let p=1; p<=pdf.numPages; p++){
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      pages.push(content.items.filter(function(i){ return typeof i.str === 'string'; })
+        .map(function(i){ return { str: i.str, x: i.transform[4], y: -i.transform[5], w: i.width }; }));
+    }
+    return pages;
+  }
+
+  function parseSchedule(pages){
+    let start = null, end = null, prevCols = null, prevNameX = null;
+    const employees = [];
+    const dmy = function(s){ const m = /(\d{2})\/(\d{2})\/(\d{4})/.exec(s); return m ? m[3]+'-'+m[2]+'-'+m[1] : null; };
+
+    pages.forEach(function(page){
+      const toks = [];
+      page.forEach(function(it){
+        const s = it.str;
+        if(!s || !s.trim()) return;
+        const re = /\S+/g; let m;
+        while((m = re.exec(s))){
+          const x = it.x + it.w * (m.index / s.length);
+          const w = it.w * (m[0].length / s.length);
+          toks.push({ t: m[0], x, w, c: x + w/2, y: it.y });
+        }
+      });
+      if(!toks.length) return;
+      if(!start){
+        const text = toks.slice().sort(function(a,b){ return (Math.round(a.y)-Math.round(b.y)) || (a.x-b.x); })
+          .map(function(t){ return t.t; }).join(' ');
+        const m = /from\s+(\d{2}\/\d{2}\/\d{4})\s+to\s+(\d{2}\/\d{2}\/\d{4})/i.exec(text);
+        if(m){ start = dmy(m[1]); end = dmy(m[2]); }
+      }
+      const hdr = {};
+      toks.forEach(function(t){
+        const k = t.t.toLowerCase();
+        const di = SCHED_DAYS.indexOf(k);
+        if(di >= 0 && !hdr[di]) hdr[di] = t;
+      });
+      let cols = null, hdrY = null, nameX = prevNameX;
+      if(Object.keys(hdr).length === 7){
+        cols = SCHED_DAYS.map(function(_,i){ return hdr[i].x; });
+        hdrY = hdr[0].y;
+        const nt = toks.find(function(t){ return t.t === 'Name' && Math.abs(t.y - hdrY) < 4; });
+        if(nt) nameX = nt.x;
+        prevCols = cols; prevNameX = nameX;
+      } else if(prevCols){ cols = prevCols; hdrY = -1e9; }
+      if(!cols || nameX == null) return;
+      const colW = (cols[6] - cols[0]) / 6;
+
+      const body = toks.filter(function(t){ return t.y > hdrY + 3; });
+      const anchors = body.filter(function(t){ return /^\d{1,3}$/.test(t.t) && t.c < nameX - 2; })
+        .sort(function(a,b){ return a.y - b.y; });
+      if(!anchors.length) return;
+      const rows = anchors.map(function(a){ return { n: +a.t, y: a.y, lines: {}, cells: [[],[],[],[],[],[],[]] }; });
+
+      body.forEach(function(t){
+        if(anchors.indexOf(t) >= 0) return;
+        let bi = 0, bd = 1e9;
+        rows.forEach(function(r, i){ const d = Math.abs(r.y - t.y); if(d < bd){ bd = d; bi = i; } });
+        if(bd > 22) return;
+        const r = rows[bi];
+        if(/^\d{1,2}:\d{2}\*?$/.test(t.t)){
+          let ci = Math.floor((t.c - cols[0] + colW*0.1) / colW);
+          if(ci < 0 || ci > 6) return;
+          r.cells[ci].push(t);
+        } else if(t.x >= nameX - 3 && t.x < cols[0] - 3){
+          const key = Math.round(t.y / 3);
+          (r.lines[key] = r.lines[key] || []).push(t);
+        }
+      });
+
+      rows.forEach(function(r){
+        const lineKeys = Object.keys(r.lines).map(Number).sort(function(a,b){ return a-b; });
+        const lines = lineKeys.map(function(k){
+          return r.lines[k].sort(function(a,b){ return a.x-b.x; }).map(function(t){ return t.t; });
+        }).filter(function(words){ return words[0] !== '*' && words[0] !== 'Blank'; });
+        let name = '';
+        lines.forEach(function(words){
+          const prevWords = name ? name.split(' ') : [];
+          const last = prevWords[prevWords.length-1] || '';
+          if(name && words.length === 1 && words[0].length === 1 && last.length >= 6){ name += words[0]; }
+          else { name += (name ? ' ' : '') + words.join(' '); }
+        });
+        name = name.replace(/\s+/g,' ').trim();
+        if(!name) return;
+        const d = {};
+        r.cells.forEach(function(cellToks, ci){
+          const ts = cellToks.sort(function(a,b){ return a.x-b.x; });
+          if(ts.length >= 2) d[ci] = { s: ts[0].t.replace('*',''), e: ts[1].t.replace('*',''), o: /\*/.test(ts[1].t) ? 1 : 0 };
+          else if(ts.length === 1) d[ci] = { s: ts[0].t.replace('*',''), e: '', o: 0 };
+        });
+        employees.push({ n: r.n, name, d });
+      });
+    });
+
+    if(!start || !end) throw new Error("Dates du planning introuvables.");
+    return { start, end, employees };
+  }
+
+  $('dropzone').addEventListener('click', function(){ $('fileInput').click(); });
+  $('fileInput').addEventListener('change', function(e){ if(e.target.files[0]) handleFile(e.target.files[0]); });
+  ['dragenter','dragover'].forEach(function(evt){
+    $('dropzone').addEventListener(evt, function(e){ e.preventDefault(); $('dropzone').classList.add('drag'); });
+  });
+  ['dragleave','drop'].forEach(function(evt){
+    $('dropzone').addEventListener(evt, function(e){ e.preventDefault(); $('dropzone').classList.remove('drag'); });
+  });
+  $('dropzone').addEventListener('drop', function(e){
+    e.preventDefault();
+    $('dropzone').classList.remove('drag');
+    const file = e.dataTransfer && e.dataTransfer.files[0];
+    if(file && file.type === 'application/pdf') handleFile(file);
+    else if(file) alert('Veuillez déposer un fichier PDF.');
+  });
+
+  async function handleFile(file){
+    clearLog();
+    log('Lecture du fichier "' + file.name + '"...');
+    try{
+      if(!window['pdfjsLib']) throw new Error('pdf.js non chargé.');
+      const parsed = parseSchedule(await extractItems(await file.arrayBuffer()));
+      const v = validate(parsed);
+      if(v.people === 0) throw new Error('aucun horaire trouvé.');
+      if(v.single > 0) throw new Error('lecture incertaine (' + v.single + ' horaire(s) incomplet(s)).');
+      importNote = 'importé : ' + v.people + ' employés, ' + v.shifts + ' horaires';
+      setTimeout(function(){ importNote = ''; renderPlanSub(); }, 10000);
+      const payload = {
+        start: parsed.start, end: parsed.end,
+        employees: parsed.employees.filter(function(e){ return Object.keys(e.d).length > 0; }),
+        dismissed: {},
+        importedAt: new Date().toISOString(),
+        importedBy: auth.currentUser ? auth.currentUser.uid : null
+      };
+      await CSM.refs.schedules().add(payload);
+      log('Planning enregistré.', 'ok');
+    }catch(err){
+      log('Erreur : ' + err.message, 'warn');
+      alert('Import impossible : ' + err.message);
+    }
+  }
+
+  function validate(sc){
+    let shifts = 0, single = 0, people = 0;
+    sc.employees.forEach(function(e){
+      const days = Object.keys(e.d);
+      if(days.length) people++;
+      days.forEach(function(k){ shifts++; if(!e.d[k].e) single++; });
+    });
+    return { shifts, single, people };
+  }
+
+  function log(msg, cls){
+    const el = $('importLog');
+    el.classList.add('show');
+    const d = document.createElement('div');
+    if(cls) d.className = cls;
+    d.textContent = msg;
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
+  }
+  function clearLog(){ const el = $('importLog'); el.innerHTML = ''; el.classList.remove('show'); }
+
+  $('btnPrint').addEventListener('click', function(){ window.print(); });
+
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+})();
+</script>
+</body>
+</html>

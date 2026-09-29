@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employés — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<meta name="theme-color" content="#0D5B6E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<link rel="stylesheet" href="../shared/enterprise.css">
+<style>
+.ent-page{display:flex;flex-direction:column;min-height:100vh;}
+.ent-content{flex:1;padding:20px 26px 40px;overflow-x:auto;}
+
+.ent-toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.ent-search{
+  display:flex;
+  align-items:center;
+  border:1px solid var(--gray-border);
+  background:#fff;
+  padding:0 8px;
+  height:28px;
+  min-width:280px;
+  font-size:12.5px;
+}
+.ent-search svg{width:13px;height:13px;fill:none;stroke:var(--ent-text-muted);stroke-width:2;margin-right:6px;flex:none;}
+.ent-search input{border:none;outline:none;font-family:inherit;font-size:12.5px;flex:1;background:transparent;}
+
+.ent-stafflist{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+  gap:10px;
+}
+.ent-staffcard{
+  background:#fff;
+  border:1px solid var(--gray-border);
+  border-left:3px solid var(--teal);
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.ent-staffcard.inactive{opacity:0.5;border-left-color:var(--gray-border);}
+.ent-staffcard .av{
+  width:48px;height:48px;border-radius:50%;
+  object-fit:cover;
+  border:1px solid var(--gray-border);
+  background:var(--teal-light);
+  flex:none;
+}
+.ent-staffcard .avf{
+  width:48px;height:48px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--teal);color:#fff;
+  font-size:18px;font-weight:700;
+  border:1px solid var(--teal);
+  flex:none;
+}
+.ent-staffcard .info{flex:1;min-width:0;}
+.ent-staffcard .name{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ent-staffcard .badge{font-family:'Consolas',monospace;font-size:11.5px;color:var(--ent-text-muted);margin-top:2px;}
+.ent-staffcard .acts{display:flex;flex-direction:column;gap:3px;}
+.ent-staffcard .acts button{
+  border:1px solid var(--gray-border);
+  background:#fff;
+  color:var(--ent-text);
+  padding:4px 10px;
+  font-size:11.5px;
+  cursor:pointer;
+  font-family:inherit;
+}
+.ent-staffcard .acts button:hover{border-color:var(--teal);color:var(--teal);}
+.ent-staffcard .acts button.danger:hover{border-color:var(--red);color:var(--red);}
+
+.ent-empty{
+  padding:50px 20px;text-align:center;
+  color:var(--ent-text-muted);font-size:13px;
+  background:#fff;border:1px dashed var(--gray-border);
+}
+.ent-empty b{display:block;color:var(--ent-text);font-size:15px;font-weight:600;margin-bottom:6px;}
+
+.modalbg{position:fixed;inset:0;background:rgba(10,15,20,0.4);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+.modalbg.show{display:flex;}
+body.enterprise .modal{background:#fff;border:1px solid var(--gray-border);width:100%;max-width:460px;padding:22px;font-family:'Segoe UI',sans-serif;}
+body.enterprise .modal h3{margin:0 0 6px;font-size:15px;color:var(--teal);font-weight:600;}
+body.enterprise .modal .sub{font-size:12.5px;color:var(--ent-text-muted);margin-bottom:16px;}
+body.enterprise .modal .field{margin-bottom:14px;}
+body.enterprise .modal .field label{display:block;font-size:11px;font-weight:600;color:var(--ent-text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.03em;}
+body.enterprise .modal .field input{width:100%;padding:7px 10px;border:1px solid var(--gray-border);background:#fff;color:var(--ent-text);font-size:13px;font-family:inherit;}
+body.enterprise .modal .field input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-light);}
+body.enterprise .modal .field .hint{font-size:11px;color:var(--ent-text-muted);margin-top:4px;}
+body.enterprise .modal .modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+
+body.enterprise .header,body.enterprise .headerside,body.enterprise .controls,body.enterprise .footnote{display:none !important;}
+</style>
+</head>
+<body class="enterprise">
+
+<div class="ent-page" id="app" style="display:none;">
+
+  <div class="topbar">
+    <span class="logo">CSM Manager 1.0.0 · Agadir Ketia</span>
+    <span class="spacer"></span>
+    <span class="item">—</span>
+    <span class="item">▢</span>
+    <span class="item" style="cursor:pointer;">✕</span>
+  </div>
+
+  <div class="menubar">
+    <div class="menu-item" onclick="window.location.href='index.html'">☰ Menu</div>
+    <div class="menu-item" onclick="window.location.href='index.html'">← Tableau de bord</div>
+    <div class="menu-item" onclick="window.location.href='planning.html'">Planning</div>
+    <div class="menu-item" onclick="window.location.href='requests.html'">Demandes</div>
+    <div class="menu-item" onclick="window.location.href='daily-import.html'">Import quotidien</div>
+    <span style="flex:1;"></span>
+    <div class="menu-item" id="btnLogout" style="border-left:1px solid rgba(255,255,255,0.2);">⏻ Déconnexion</div>
+  </div>
+
+  <div class="subnav">
+    <a onclick="window.location.href='index.html'">Pointages du jour</a>
+    <a onclick="window.location.href='planning.html'">Planning</a>
+    <a class="active">Employés</a>
+    <a onclick="window.location.href='requests.html'">Demandes</a>
+    <a onclick="window.location.href='daily-import.html'">Import quotidien</a>
+  </div>
+
+  <div class="page-header">
+    <h1>Gestion des employés</h1>
+    <div class="toolbar">
+      <button class="iconbtn" id="btnAdd" title="Ajouter">＋</button>
+    </div>
+  </div>
+
+  <div class="ent-content">
+
+    <div class="ent-toolbar">
+      <div class="ent-search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Rechercher par nom ou badge...">
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="ent-filter btn" data-show="active" id="btnShowActive" style="border:1px solid var(--teal);background:var(--teal);color:#fff;padding:5px 12px;font-size:12px;">Actifs</button>
+        <button class="ent-filter btn" data-show="all" id="btnShowAll" style="border:1px solid var(--gray-border);background:#fff;color:var(--ent-text-muted);padding:5px 12px;font-size:12px;">Tous</button>
+      </div>
+    </div>
+
+    <div class="ent-stafflist" id="staffList"></div>
+    <div class="ent-empty hidden" id="emptyState">
+      <b>Aucun employé pour le moment</b>
+      Cliquez sur + pour créer le premier profil.
+    </div>
+
+  </div>
+
+  <div class="statusbar">
+    <span><kbd>Alt</kbd> → Menu &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>F4</kbd> → Logout</span>
+    <span class="right">Hotline: it@ma.mcd.com</span>
+  </div>
+
+</div>
+
+<div class="modalbg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Ajouter un employé</h3>
+    <div class="sub" id="modalSub">Créez un profil pour un nouvel employé.</div>
+    <div class="field">
+      <label>N° de badge</label>
+      <input type="text" id="fBadge" inputmode="numeric" placeholder="4021" autocomplete="off">
+      <div class="hint" id="badgeHint">Identifiant unique. Non modifiable après création.</div>
+    </div>
+    <div class="field">
+      <label>Nom & Prénom</label>
+      <input type="text" id="fName" placeholder="Karim Benali" autocomplete="off">
+      <div class="hint">Doit correspondre au nom dans le planning PDF.</div>
+    </div>
+    <div class="modalactions">
+      <button class="btn" id="btnCancel">Annuler</button>
+      <button class="btn btn-primary" id="btnSave">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+  const $ = function(id){ return document.getElementById(id); };
+
+  let staff = [];
+  let unsubscribeStaff = null;
+  let currentQuery = '';
+  let currentShow = 'active';
+  let editingBadge = null;
+
+  let started = false;
+  auth.onAuthStateChanged(function(user){
+    if(!user){ window.location.replace('login.html'); return; }
+    if(started) return;
+    started = true;
+    db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+      if(!doc.exists){ auth.signOut().then(function(){ window.location.replace('login.html'); }); return; }
+      return Promise.race([
+        CSM.ready,
+        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
+      ]).then(function(){
+        document.querySelector('.ent-page').style.display = 'flex';
+        startLiveStaff();
+        document.querySelectorAll('.ent-filter').forEach(function(b){
+          b.addEventListener('click', function(){
+            currentShow = b.dataset.show;
+            document.querySelectorAll('.ent-filter').forEach(function(x){
+              const active = x.dataset.show === currentShow;
+              x.style.background = active ? 'var(--teal)' : '#fff';
+              x.style.color = active ? '#fff' : 'var(--ent-text-muted)';
+              x.style.borderColor = active ? 'var(--teal)' : 'var(--gray-border)';
+            });
+            render();
+          });
+        });
+      });
+    }).catch(function(err){ alert('Erreur : ' + err.message); });
+  });
+
+  $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
+
+  function startLiveStaff(){
+    unsubscribeStaff = CSM.refs.staffColl().onSnapshot(function(snap){
+      staff = snap.docs.map(function(d){ return Object.assign({ _docId: d.id }, d.data()); });
+      render();
+    }, function(err){ console.error(err); });
+  }
+
+  function render(){
+    const list = $('staffList');
+    const empty = $('emptyState');
+    list.innerHTML = '';
+    let filtered = staff.slice();
+    if(currentShow === 'active') filtered = filtered.filter(function(s){ return s.active !== false; });
+    if(currentQuery.trim()){
+      const q = currentQuery.toLowerCase();
+      filtered = filtered.filter(function(s){
+        return (s.name || '').toLowerCase().includes(q) || String(s.badge || '').toLowerCase().includes(q);
+      });
+    }
+    filtered.sort(function(a,b){ return String(a.name || '').localeCompare(String(b.name || ''), 'fr'); });
+
+    if(filtered.length === 0){
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    filtered.forEach(function(s){
+      const card = document.createElement('div');
+      card.className = 'ent-staffcard' + (s.active === false ? ' inactive' : '');
+      const initial = ((s.name || '?').trim().charAt(0) || '?').toUpperCase();
+      const avatar = s.photo
+        ? '<img class="av" src="' + esc(s.photo) + '" alt="">'
+        : '<div class="avf">' + esc(initial) + '</div>';
+      card.innerHTML = avatar +
+        '<div class="info">' +
+          '<div class="name">' + (esc(s.name) || 'Sans nom') + '</div>' +
+          '<div class="badge">Badge ' + esc(String(s.badge || '—')) +
+            (s.active === false ? ' · <span style="color:var(--red);">désactivé</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="acts">' +
+          '<button data-act="edit" data-badge="' + esc(String(s.badge)) + '">Modifier</button>' +
+          '<button data-act="toggle" data-badge="' + esc(String(s.badge)) + '" class="' + (s.active === false ? '' : 'danger') + '">' +
+            (s.active === false ? 'Réactiver' : 'Désactiver') + '</button>' +
+        '</div>';
+      list.appendChild(card);
+    });
+
+    document.querySelectorAll('.acts button').forEach(function(b){
+      b.addEventListener('click', function(){
+        if(b.dataset.act === 'edit') openEditModal(b.dataset.badge);
+        else toggleActive(b.dataset.badge);
+      });
+    });
+  }
+
+  const modalBg = $('modalBg');
+  function openAddModal(){
+    editingBadge = null;
+    $('modalTitle').textContent = 'Ajouter un employé';
+    $('modalSub').textContent = 'Créez un profil pour un nouvel employé.';
+    $('fBadge').value = '';
+    $('fBadge').disabled = false;
+    $('fName').value = '';
+    $('badgeHint').style.display = 'block';
+    modalBg.classList.add('show');
+    setTimeout(function(){ $('fBadge').focus(); }, 50);
+  }
+  function openEditModal(badge){
+    const s = staff.find(function(x){ return String(x.badge) === String(badge); });
+    if(!s) return;
+    editingBadge = badge;
+    $('modalTitle').textContent = 'Modifier le profil';
+    $('modalSub').textContent = 'Corrigez le nom. Le badge ne peut pas être modifié.';
+    $('fBadge').value = s.badge || badge;
+    $('fBadge').disabled = true;
+    $('fName').value = s.name || '';
+    $('badgeHint').style.display = 'none';
+    modalBg.classList.add('show');
+    setTimeout(function(){ $('fName').focus(); }, 50);
+  }
+  function closeModal(){ modalBg.classList.remove('show'); editingBadge = null; $('fBadge').disabled = false; }
+
+  $('btnAdd').addEventListener('click', openAddModal);
+  $('btnCancel').addEventListener('click', closeModal);
+  modalBg.addEventListener('click', function(e){ if(e.target === modalBg) closeModal(); });
+
+  $('btnSave').addEventListener('click', function(){
+    const badge = $('fBadge').value.trim();
+    const name  = $('fName').value.trim();
+    if(!badge){ alert('Le numéro de badge est requis.'); return; }
+    if(!name){ alert('Le nom est requis.'); return; }
+    if(!/^[0-9A-Za-z_-]{1,20}$/.test(badge)){ alert('Badge invalide.'); return; }
+    const btn = $('btnSave');
+    btn.disabled = true;
+    if(editingBadge){
+      CSM.refs.staff(editingBadge).update({ name: name, updatedAt: new Date().toISOString() })
+        .then(function(){ btn.disabled = false; closeModal(); })
+        .catch(function(err){ btn.disabled = false; alert('Erreur : ' + err.message); });
+    } else {
+      CSM.refs.staff(badge).get().then(function(doc){
+        if(doc.exists) throw new Error('Un employé avec ce badge existe déjà.');
+        return CSM.refs.staff(badge).set({
+          badge: badge, name: name, active: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          source: 'manual'
+        });
+      }).then(function(){ btn.disabled = false; closeModal(); })
+        .catch(function(err){ btn.disabled = false; alert('Erreur : ' + err.message); });
+    }
+  });
+
+  function toggleActive(badge){
+    const s = staff.find(function(x){ return String(x.badge) === String(badge); });
+    if(!s) return;
+    const willDeactivate = s.active !== false;
+    if(willDeactivate){
+      if(!confirm('Désactiver ' + (s.name || badge) + ' ?\n\nL\'employé ne pourra plus pointer.')) return;
+    }
+    CSM.refs.staff(badge).update({
+      active: !willDeactivate,
+      updatedAt: new Date().toISOString()
+    }).catch(function(err){ alert('Erreur : ' + err.message); });
+  }
+
+  $('searchInput').addEventListener('input', function(e){ currentQuery = e.target.value; render(); });
+
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de bord — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<meta name="theme-color" content="#0D5B6E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<link rel="stylesheet" href="../shared/enterprise.css">
+<script src="../shared/notifications.js" defer></script>
+<style>
+/* Page-specific styles */
+.ent-page{
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+.ent-content{
+  flex:1;
+  padding:20px 26px 40px;
+  overflow-x:auto;
+}
+
+/* Filter bar */
+.ent-filterbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.ent-filter-group{
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.ent-filter-group .flabel{
+  font-size:12px;
+  color:var(--ent-text-muted);
+  font-weight:600;
+  margin-right:4px;
+}
+.ent-filter{
+  border:1px solid var(--gray-border);
+  background:#fff;
+  color:var(--ent-text-muted);
+  padding:5px 12px;
+  font-size:12px;
+  font-family:inherit;
+  cursor:pointer;
+}
+.ent-filter:hover{border-color:var(--teal);color:var(--teal);}
+.ent-filter.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+
+/* Search */
+.ent-search{
+  display:flex;
+  align-items:center;
+  border:1px solid var(--gray-border);
+  background:#fff;
+  padding:0 8px;
+  height:28px;
+  min-width:280px;
+  font-size:12.5px;
+}
+.ent-search svg{
+  width:13px;height:13px;
+  fill:none;stroke:var(--ent-text-muted);stroke-width:2;
+  margin-right:6px;flex:none;
+}
+.ent-search input{
+  border:none;outline:none;
+  font-family:inherit;font-size:12.5px;
+  flex:1;
+  background:transparent;
+}
+
+/* Toolbar above table */
+.ent-table-toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+}
+.ent-toggle{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  color:var(--ent-text-muted);
+}
+.ent-toggle input{accent-color:var(--teal);}
+
+/* Grid */
+.ent-grid-wrap{
+  background:#fff;
+  border:1px solid var(--gray-border);
+  overflow:auto;
+  max-height:calc(100vh - 300px);
+}
+table.ent-grid{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12.5px;
+  font-family:'Segoe UI',sans-serif;
+}
+table.ent-grid thead th{
+  background:#F7F9FA;
+  color:var(--gray-header);
+  font-weight:600;
+  text-align:left;
+  padding:7px 10px;
+  border-bottom:1px solid var(--gray-border);
+  border-right:1px solid #E8ECEE;
+  white-space:nowrap;
+  position:sticky;
+  top:0;
+  font-size:11.5px;
+  text-transform:uppercase;
+  letter-spacing:0.02em;
+  cursor:pointer;
+  user-select:none;
+}
+table.ent-grid thead th:hover{background:#EDF2F4;}
+table.ent-grid tbody td{
+  padding:6px 10px;
+  border-bottom:1px solid #EDF2F4;
+  border-right:1px solid #EDF2F4;
+  white-space:nowrap;
+}
+table.ent-grid tbody tr:hover{background:#F7FAFB;}
+table.ent-grid tbody tr.st-ok td:first-child{border-left:3px solid var(--green);}
+table.ent-grid tbody tr.st-warn td:first-child{border-left:3px solid var(--amber);}
+table.ent-grid tbody tr.st-crit td:first-child{border-left:3px solid var(--red);}
+table.ent-grid tbody tr.st-break td:first-child{border-left:3px solid var(--blue-edit-border);}
+table.ent-grid tbody tr.st-breakover td:first-child{border-left:3px solid var(--red);}
+table.ent-grid tbody tr.st-done{opacity:0.65;}
+table.ent-grid tbody td.mono{
+  font-family:'Consolas','Monaco',monospace;
+  font-size:12px;
+}
+table.ent-grid tbody td.num{text-align:right;}
+table.ent-grid tbody td.center{text-align:center;}
+table.ent-grid tbody td.name{font-weight:600;}
+
+/* Status badges */
+.ent-badge{
+  display:inline-block;
+  padding:2px 8px;
+  font-size:11px;
+  font-weight:600;
+  border-radius:2px;
+  white-space:nowrap;
+}
+.ent-badge.ok{background:#E0F1E4;color:#2F7D46;}
+.ent-badge.warn{background:#FBF0D2;color:#8A5A00;}
+.ent-badge.crit{background:#F7DAD5;color:#A32B1B;}
+.ent-badge.brk{background:#E6F0F7;color:#0D5B6E;}
+.ent-badge.done{background:#E8ECEE;color:#5A6A70;}
+
+/* Action buttons in table */
+.ent-actions{display:flex;gap:4px;}
+.ent-act{
+  border:1px solid var(--gray-border);
+  background:#fff;
+  color:var(--ent-text);
+  padding:3px 9px;
+  font-size:11.5px;
+  cursor:pointer;
+  font-family:inherit;
+  white-space:nowrap;
+}
+.ent-act:hover{border-color:var(--teal);color:var(--teal);}
+.ent-act.primary{background:var(--teal);color:#fff;border-color:var(--teal);}
+.ent-act.primary:hover{background:var(--teal-dark);}
+.ent-act.warn{background:#D68F00;color:#fff;border-color:#D68F00;}
+.ent-act.warn:hover{background:#B87900;}
+.ent-act.crit{background:#fff;color:var(--red);border-color:var(--red);}
+.ent-act.crit:hover{background:#F7DAD5;}
+
+/* Alert strip */
+.ent-alerts{
+  margin:0 26px 14px;
+  display:none;
+  flex-direction:column;
+  gap:6px;
+}
+.ent-alerts.show{display:flex;}
+.ent-alert{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 14px;
+  font-size:12.5px;
+  font-weight:600;
+  border:1px solid;
+  font-family:'Segoe UI',sans-serif;
+}
+.ent-alert.crit{background:#F7DAD5;color:#A32B1B;border-color:#C0392B;}
+.ent-alert.warn{background:#FBF0D2;color:#8A5A00;border-color:#D68F00;}
+.ent-alert .dot{width:8px;height:8px;background:currentColor;flex:none;}
+
+/* Empty state */
+.ent-empty{
+  padding:50px 20px;
+  text-align:center;
+  color:var(--ent-text-muted);
+  font-size:13px;
+  background:#fff;
+  border:1px dashed var(--gray-border);
+}
+.ent-empty b{display:block;color:var(--ent-text);font-size:15px;font-weight:600;margin-bottom:6px;}
+
+/* Modals and dialogs inherit base styles but get colors overridden */
+body.enterprise dialog.timedlg,
+body.enterprise .modal,
+body.enterprise .modalbg .modal{
+  background:#fff !important;
+  border:1px solid var(--gray-border) !important;
+  color:var(--ent-text) !important;
+  font-family:'Segoe UI',sans-serif !important;
+}
+body.enterprise dialog.timedlg h2,
+body.enterprise .modal h3{color:var(--teal) !important;}
+
+body.enterprise input[type="time"],
+body.enterprise input[type="date"],
+body.enterprise input[type="text"],
+body.enterprise input[type="email"],
+body.enterprise input[type="password"]{
+  border:1px solid var(--gray-border) !important;
+  background:#fff !important;
+  color:var(--ent-text) !important;
+  font-family:'Segoe UI',sans-serif !important;
+}
+body.enterprise input:focus{
+  outline:none !important;
+  border-color:var(--teal) !important;
+  box-shadow:0 0 0 2px var(--teal-light) !important;
+}
+
+/* Liveclock override */
+body.enterprise .liveclock{
+  font-family:'Consolas',monospace !important;
+  font-size:15px !important;
+  color:#fff !important;
+  border-left:none !important;
+  padding-left:0 !important;
+}
+body.enterprise .liveclock .lbl{
+  color:rgba(255,255,255,0.75) !important;
+  font-size:10px !important;
+  margin-bottom:0 !important;
+}
+
+/* Hide the old header elements we're replacing */
+body.enterprise .header,
+body.enterprise .headerside,
+body.enterprise .controls,
+body.enterprise .footnote{
+  display:none !important;
+}
+</style>
+</head>
+<body class="enterprise">
+
+<div class="ent-page" id="app" style="display:none;">
+
+  <!-- Top brand bar -->
+  <div class="topbar">
+    <span class="logo">CSM Manager 1.0.0 · Agadir Ketia · <span id="userLabel">Manager</span></span>
+    <span class="spacer"></span>
+    <span class="item">—</span>
+    <span class="item">▢</span>
+    <span class="item" style="cursor:pointer;">✕</span>
+  </div>
+
+  <!-- Menu bar -->
+  <div class="menubar">
+    <div class="menu-item">☰ Menu</div>
+    <div class="menu-item" onclick="window.location.reload()">↻ Actualiser</div>
+    <div class="menu-item" id="navPlanning">Planning</div>
+    <div class="menu-item" id="navStaff">Employés</div>
+    <div class="menu-item" id="navRequests">Demandes</div>
+    <div class="menu-item" id="navImport">Import quotidien</div>
+    <span class="spacer" style="flex:1;"></span>
+    <div class="menu-item" style="border-left:1px solid rgba(255,255,255,0.2);">
+      <span class="liveclock"><span class="lbl">HEURE</span><span id="clockNow">--:--:--</span></span>
+    </div>
+  </div>
+
+  <!-- Sub navigation -->
+  <div class="subnav">
+    <a class="active">Pointages du jour</a>
+    <a id="subnavPlanning">Planning</a>
+    <a id="subnavStaff">Employés</a>
+    <a id="subnavRequests">Demandes</a>
+    <a id="subnavImport">Import quotidien</a>
+  </div>
+
+  <!-- Page header -->
+  <div class="page-header">
+    <h1>Time Punch Maintenance</h1>
+    <div class="toolbar">
+      <button class="iconbtn" id="btnSetTime" title="Régler l'heure">🕒</button>
+      <button class="iconbtn" id="btnAutoTime" title="Heure auto">⚡</button>
+      <button class="iconbtn" id="btnAdd" title="Ajouter un pointage">＋</button>
+      <button class="iconbtn" id="btnPrint" title="Imprimer">PDF</button>
+      <button class="iconbtn" id="btnClearDay" title="Vider le tableau" style="color:#C0392B;">✕</button>
+      <button class="iconbtn" id="btnLogout" title="Déconnexion">⏻</button>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="ent-alerts" id="alertStrip"></div>
+
+  <!-- Content -->
+  <div class="ent-content">
+
+    <div class="ent-filterbar">
+      <div class="ent-filter-group">
+        <span class="flabel">Filtrer :</span>
+        <button class="ent-filter active" data-filter="all">Tous</button>
+        <button class="ent-filter" data-filter="working">En poste</button>
+        <button class="ent-filter" data-filter="break">En pause</button>
+        <button class="ent-filter" data-filter="action">Action requise</button>
+      </div>
+      <div class="ent-search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Rechercher (Nom, Badge)...">
+      </div>
+    </div>
+
+    <div class="ent-grid-wrap">
+      <table class="ent-grid" id="empTable">
+        <thead>
+          <tr>
+            <th style="width:70px;">Badge</th>
+            <th>Nom</th>
+            <th style="width:90px;">Entrée</th>
+            <th style="width:90px;">Pause Prév.</th>
+            <th style="width:90px;">Pause Eff.</th>
+            <th style="width:90px;">Retour Prév.</th>
+            <th style="width:90px;">Retour Eff.</th>
+            <th style="width:90px;">Sortie Prév.</th>
+            <th style="width:90px;">Sortie</th>
+            <th style="width:90px;">Heures Cont.</th>
+            <th style="width:90px;">Heures Tot.</th>
+            <th style="width:200px;">Statut</th>
+            <th style="width:200px;">Actions</th>
+            <th style="width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody id="empBody"></tbody>
+      </table>
+    </div>
+
+    <div class="ent-empty" id="emptyState" style="display:none;">
+      <b>Aucun quart chargé pour aujourd'hui</b>
+      Les employés qui pointent sur la tablette apparaîtront ici automatiquement.
+    </div>
+
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span><kbd>Alt</kbd> → Menu &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>F4</kbd> → Logout</span>
+    <span class="right">Règle : Max 4h50 de travail continu, 30 min de pause obligatoire</span>
+  </div>
+
+</div>
+
+<div class="ent-page">
+  <div class="blocked hidden" id="blockedState">
+    <h2>Configuration requise</h2>
+    <p>
+      Votre compte est bien connecté, mais aucune configuration de restaurant
+      n'a été trouvée.<br><br>
+      Ouvrez la console Firebase → Firestore → créez les documents
+      <b>managerRestaurants/{votre UID}</b> et <b>restaurants/ketia</b>,
+      puis rechargez cette page.
+    </p>
+    <p style="margin-top:18px;">
+      <button class="btn" id="btnBlockedLogout">Se déconnecter</button>
+    </p>
+  </div>
+</div>
+
+<dialog class="timedlg" id="timeDlg">
+  <form id="timeForm" method="dialog">
+    <h2>Régler l'heure du système</h2>
+    <p>L'heure choisie remplace celle de l'appareil et continue de défiler.</p>
+    <input type="time" id="timeInput" required>
+    <div class="trow">
+      <button type="button" class="btn" id="timeCancel">Annuler</button>
+      <button type="submit" class="btn btn-primary">Appliquer</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="modalbg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Ajouter un pointage</h3>
+    <div class="sub" id="modalSub">Entrez les pointages manuellement.</div>
+    <div class="fieldrow">
+      <div class="field"><label>N° Badge</label><input type="text" id="fBadge"></div>
+      <div class="field"><label>Date</label><input type="date" id="fDate"></div>
+    </div>
+    <div class="field"><label>Nom & Prénom</label><input type="text" id="fName"></div>
+    <div class="fieldrow">
+      <div class="field"><label>Entrée</label><input type="time" id="fClockIn"></div>
+      <div class="field"><label>Début pause</label><input type="time" id="fBreakStart"></div>
+    </div>
+    <div class="fieldrow">
+      <div class="field"><label>Retour pause</label><input type="time" id="fBreakReturn"></div>
+      <div class="field"><label>Sortie</label><input type="time" id="fClockOut"></div>
+    </div>
+    <div class="modalactions">
+      <button class="linkbtn" id="btnDelete" style="margin-right:auto;display:none;">Supprimer</button>
+      <button class="btn" id="btnCancel">Annuler</button>
+      <button class="btn btn-primary" id="btnSave">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  let shifts = [];
+  let unsubscribeShifts = null;
+  let currentFilter = 'all';
+  let searchQuery = '';
+  let editingId = null;
+  let timeOffsetMs = 0;
+  const TIME_KEY = 'csct_time_offset';
+
+  function appNow(){ return new Date(Date.now() + timeOffsetMs); }
+  function nowMinutes(){ const d = appNow(); return d.getHours()*60 + d.getMinutes(); }
+
+  try{ const v = parseInt(localStorage.getItem(TIME_KEY) || '0', 10); if(isFinite(v)) timeOffsetMs = v; }catch(e){}
+
+  function paintTimeMode(){
+    $('btnSetTime').style.background = timeOffsetMs !== 0 ? '#D68F00' : '';
+    $('btnSetTime').style.color = timeOffsetMs !== 0 ? '#fff' : '';
+  }
+
+  // Nav wiring
+  ['Planning','Staff','Requests','Import'].forEach(function(name){
+    const menuEl = $('nav' + name);
+    const subEl = $('subnav' + name);
+    if(menuEl) menuEl.addEventListener('click', function(){ goTo(name); });
+    if(subEl) subEl.addEventListener('click', function(){ goTo(name); });
+  });
+  function goTo(name){
+    const map = {
+      Planning: 'planning.html',
+      Staff: 'staff.html',
+      Requests: 'requests.html',
+      Import: 'daily-import.html'
+    };
+    window.location.href = map[name];
+  }
+
+  $('btnSetTime').addEventListener('click', function(){
+    const d = appNow();
+    $('timeInput').value = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    $('timeDlg').showModal();
+  });
+  $('timeCancel').addEventListener('click', function(){ $('timeDlg').close(); });
+  $('timeForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const v = $('timeInput').value;
+    if(!v) return;
+    const p = v.split(':').map(Number);
+    const d = new Date();
+    d.setHours(p[0], p[1], 0, 0);
+    timeOffsetMs = d.getTime() - Date.now();
+    try{ localStorage.setItem(TIME_KEY, String(timeOffsetMs)); }catch(err){}
+    $('timeDlg').close();
+    paintTimeMode(); tickClock(); render();
+  });
+  $('btnAutoTime').addEventListener('click', function(){
+    timeOffsetMs = 0;
+    try{ localStorage.removeItem(TIME_KEY); }catch(err){}
+    paintTimeMode(); tickClock(); render();
+  });
+
+  function tickClock(){
+    const d = appNow();
+    $('clockNow').textContent =
+      String(d.getHours()).padStart(2,'0') + ':' +
+      String(d.getMinutes()).padStart(2,'0') + ':' +
+      String(d.getSeconds()).padStart(2,'0');
+  }
+
+  let dashboardStarted = false;
+  auth.onAuthStateChanged(function(user){
+    if(!user){ window.location.replace('login.html'); return; }
+    if(dashboardStarted) return;
+    dashboardStarted = true;
+
+    db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+      if(!doc.exists){
+        auth.signOut().then(function(){ window.location.replace('login.html'); });
+        return;
+      }
+      if(user.email){
+        const u = $('userLabel');
+        if(u) u.textContent = user.email.split('@')[0];
+      }
+      return Promise.race([
+        CSM.ready,
+        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
+      ]).then(function(){
+        if(!CSM.restaurantId){
+          document.querySelector('.ent-page').style.display = 'block';
+          $('blockedState').classList.remove('hidden');
+          return;
+        }
+        $('app').style.display = 'flex';
+        paintTimeMode();
+        tickClock();
+        setInterval(tickClock, 1000);
+        setInterval(render, 15000);
+        startLiveShifts();
+      });
+    }).catch(function(err){
+      console.error('Auth gating:', err);
+      document.querySelector('.ent-page').style.display = 'block';
+      $('blockedState').classList.remove('hidden');
+    });
+  });
+
+  $('btnBlockedLogout').addEventListener('click', function(){ auth.signOut(); });
+  $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
+
+  function startLiveShifts(){
+    const today = R.todayKey();
+    unsubscribeShifts = CSM.refs.shifts()
+      .where('date', '==', today)
+      .onSnapshot(function(snap){
+        shifts = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+        render();
+      }, function(err){
+        console.error('Live shifts:', err);
+      });
+  }
+
+  function statusMeta(status){
+    return ({
+      ok:        {badge:'ok',   row:'st-ok'},
+      warn:      {badge:'warn', row:'st-warn'},
+      crit:      {badge:'crit', row:'st-crit'},
+      break:     {badge:'brk',  row:'st-break'},
+      breakover: {badge:'crit', row:'st-breakover'},
+      done:      {badge:'done', row:'st-done'},
+      nodata:    {badge:'done', row:'st-done'}
+    })[status] || {badge:'done', row:''};
+  }
+
+  function render(){
+    if($('app').style.display === 'none') return;
+    const body = $('empBody');
+    const empty = $('emptyState');
+    const table = $('empTable');
+    body.innerHTML = '';
+
+    if(shifts.length === 0){
+      table.style.display = 'none';
+      empty.style.display = 'block';
+      renderAlerts([]);
+      return;
+    }
+
+    const alerts = [];
+    const processed = shifts.map(function(s){ return { shift: s, calc: R.computeShift(s) }; });
+
+    const filtered = processed.filter(function(item){
+      const { shift, calc } = item;
+      if(currentFilter === 'working' && !(calc.status === 'ok' || calc.status === 'warn')) return false;
+      if(currentFilter === 'break' && !(calc.status === 'break' || calc.status === 'breakover')) return false;
+      if(currentFilter === 'action' && !(calc.status === 'warn' || calc.status === 'crit' || calc.status === 'breakover')) return false;
+      if(searchQuery.trim() !== ''){
+        const q = searchQuery.toLowerCase();
+        if(!(shift.name || '').toLowerCase().includes(q) &&
+           !(String(shift.badge || '')).toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+
+    if(filtered.length === 0){
+      table.style.display = 'none';
+      empty.style.display = 'block';
+    } else {
+      table.style.display = 'table';
+      empty.style.display = 'none';
+    }
+
+    filtered.sort(function(a,b){
+      const rank = function(s){ return ({crit:0, breakover:0, warn:1, break:2, ok:3, done:4, nodata:5})[s] ?? 6; };
+      return rank(a.calc.status) - rank(b.calc.status) ||
+             ((a.shift.clockIn ?? 999) - (b.shift.clockIn ?? 999));
+    }).forEach(function(item){
+      const { shift, calc } = item;
+      const meta = statusMeta(calc.status);
+
+      if(calc.status === 'crit' || calc.status === 'breakover'){
+        alerts.push({ shift, calc, kind: calc.status === 'breakover' ? 'brk' : 'crit' });
+      } else if(calc.status === 'warn'){
+        alerts.push({ shift, calc, kind: 'warn' });
+      }
+
+      const tr = document.createElement('tr');
+      tr.className = meta.row;
+
+      let quickActions = '';
+      if(shift.clockOut !== null && shift.clockOut !== undefined){
+        quickActions = '<span style="color:var(--ent-text-muted);font-style:italic;">Terminé</span>';
+      } else if(shift.breakStart === null || shift.breakStart === undefined){
+        quickActions =
+          '<button class="ent-act warn" data-act="break" data-id="'+shift.id+'">Départ Pause</button>' +
+          '<button class="ent-act crit" data-act="out"   data-id="'+shift.id+'">Sortie</button>';
+      } else if(shift.breakReturn === null || shift.breakReturn === undefined){
+        quickActions =
+          '<button class="ent-act primary" data-act="return" data-id="'+shift.id+'">Retour Pause</button>' +
+          '<button class="ent-act crit"     data-act="out"    data-id="'+shift.id+'">Sortie</button>';
+      } else {
+        quickActions =
+          '<button class="ent-act crit" data-act="out" data-id="'+shift.id+'">Sortie</button>';
+      }
+
+      tr.innerHTML =
+        '<td class="mono">' + (shift.badge || '—') + '</td>' +
+        '<td class="name">' + (shift.name || '—') + '</td>' +
+        '<td class="mono">' + (R.minToHM(shift.clockIn) || '—') + '</td>' +
+        '<td class="mono">' + (R.minToHM(calc.suggBreak) || '—') + '</td>' +
+        '<td class="mono">' + (R.minToHM(shift.breakStart) || '—') + '</td>' +
+        '<td class="mono">' + (R.minToHM(calc.suggReturn) || '—') + '</td>' +
+        '<td class="mono">' + (R.minToHM(shift.breakReturn) || '—') + '</td>' +
+        '<td class="mono">' + (R.minToHM(calc.suggEnd) || '—') + '</td>' +
+        '<td class="mono">' + (R.minToHM(shift.clockOut) || '—') + '</td>' +
+        '<td class="mono num">' + (calc.status === 'break' || calc.status === 'breakover'
+          ? '—'
+          : (calc.status === 'done' ? '—' : R.fmtHrs(calc.contMinutes))) + '</td>' +
+        '<td class="mono num"><strong>' + R.fmtHrs(calc.totalMinutes) + '</strong></td>' +
+        '<td><span class="ent-badge ' + meta.badge + '">' + calc.statusLabel + '</span></td>' +
+        '<td><div class="ent-actions">' + quickActions + '</div></td>' +
+        '<td><button class="ent-act" data-act="edit" data-id="' + shift.id + '" title="Modifier">✎</button></td>';
+      body.appendChild(tr);
+    });
+
+    document.querySelectorAll('.ent-act[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        const id = b.dataset.id;
+        const act = b.dataset.act;
+        if(act === 'break') doAction(id, 'breakStart');
+        else if(act === 'return') doAction(id, 'breakReturn');
+        else if(act === 'out') doAction(id, 'clockOut');
+        else if(act === 'edit') openModal(id);
+      });
+    });
+
+    renderAlerts(alerts);
+	        // Native desktop notifications
+        if(window.CSMNotify && window.CSMNotify.checkAndNotify){
+          const notifList = alerts.map(function(a){
+            return {
+              badge: a.shift.badge,
+              name: a.shift.name,
+              status: a.kind === 'brk' ? 'breakover' : (a.kind === 'crit' ? 'crit' : 'warn')
+            };
+          });
+          window.CSMNotify.checkAndNotify(notifList);
+        }
+  }
+
+  function renderAlerts(alerts){
+    const strip = $('alertStrip');
+    strip.innerHTML = '';
+    if(alerts.length === 0){ strip.classList.remove('show'); return; }
+    strip.classList.add('show');
+
+    const crit = alerts.filter(function(a){ return a.kind === 'crit'; });
+    const brk  = alerts.filter(function(a){ return a.kind === 'brk'; });
+    const warn = alerts.filter(function(a){ return a.kind === 'warn'; });
+
+    function nameOf(a){ return a.shift.name || a.shift.badge; }
+
+    if(crit.length){
+      const row = document.createElement('div');
+      row.className = 'ent-alert crit';
+      row.innerHTML = '<span class="dot"></span> LIMITE 4H50 ATTEINTE — PAUSE IMMÉDIATE : ' + crit.map(nameOf).join(', ');
+      strip.appendChild(row);
+    }
+    if(brk.length){
+      const row = document.createElement('div');
+      row.className = 'ent-alert crit';
+      row.innerHTML = '<span class="dot"></span> PAUSE DÉPASSÉE (≥ 30 MIN) : ' + brk.map(nameOf).join(', ');
+      strip.appendChild(row);
+    }
+    if(warn.length){
+      const row = document.createElement('div');
+      row.className = 'ent-alert warn';
+      row.innerHTML = '<span class="dot"></span> Limite 4h50 proche (≥4h30) : ' + warn.map(nameOf).join(', ');
+      strip.appendChild(row);
+    }
+  }
+
+  function doAction(shiftId, field){
+    const t = nowMinutes();
+    const patch = {};
+    patch[field] = t;
+
+    const shift = shifts.find(function(s){ return s.id === shiftId; });
+    if(field === 'breakReturn' && shift && shift.breakStart != null){
+      let elapsed = t - shift.breakStart; if(elapsed < 0) elapsed += 1440;
+      if(elapsed < R.BREAK_MIN){
+        const proceed = confirm(
+          'Pause non terminée\n\n' +
+          (shift.name || 'Cet employé') + " n'a pris que " + elapsed +
+          " min sur les 30 min obligatoires.\n\n" +
+          'Confirmer le retour maintenant quand même ?'
+        );
+        if(!proceed) return;
+      }
+    }
+
+    if(field === 'clockOut'){
+      const merged = Object.assign({}, shift, patch);
+      patch.totalMinutes = R.computeShift(merged).totalMinutes;
+      patch.status = 'closed';
+    }
+
+    CSM.refs.shift(shiftId).update(patch).catch(function(err){
+      alert('Erreur : ' + err.message);
+    });
+  }
+
+  const modalBg = $('modalBg');
+
+  function openModal(id){
+    editingId = id || null;
+    const shift = id ? shifts.find(function(s){ return s.id === id; }) : null;
+    $('modalTitle').textContent = shift ? 'Modifier le pointage' : 'Ajouter un pointage';
+    $('fBadge').value = shift ? shift.badge || '' : '';
+    $('fDate').value  = shift ? shift.date || R.todayKey() : R.todayKey();
+    $('fName').value  = shift ? shift.name || '' : '';
+    $('fClockIn').value     = shift ? (R.minToHM(shift.clockIn)     || '') : '';
+    $('fBreakStart').value  = shift ? (R.minToHM(shift.breakStart)  || '') : '';
+    $('fBreakReturn').value = shift ? (R.minToHM(shift.breakReturn) || '') : '';
+    $('fClockOut').value    = shift ? (R.minToHM(shift.clockOut)    || '') : '';
+    $('btnDelete').style.display = shift ? 'block' : 'none';
+    modalBg.classList.add('show');
+  }
+
+  function closeModal(){ modalBg.classList.remove('show'); editingId = null; }
+
+  $('btnAdd').addEventListener('click', function(){ openModal(null); });
+  $('btnCancel').addEventListener('click', closeModal);
+  modalBg.addEventListener('click', function(e){ if(e.target === modalBg) closeModal(); });
+
+  $('btnSave').addEventListener('click', function(){
+    const badge = $('fBadge').value.trim();
+    const date  = $('fDate').value.trim() || R.todayKey();
+    if(!badge){ alert('Le numéro de badge est requis.'); return; }
+
+    const rec = {
+      badge: badge,
+      name: $('fName').value.trim(),
+      date: date,
+      clockIn:     R.hmToMin($('fClockIn').value),
+      breakStart:  R.hmToMin($('fBreakStart').value),
+      breakReturn: R.hmToMin($('fBreakReturn').value),
+      clockOut:    R.hmToMin($('fClockOut').value),
+      updatedAt: new Date().toISOString()
+    };
+    rec.totalMinutes = R.computeShift(rec).totalMinutes;
+    rec.status = rec.clockOut !== null ? 'closed' : 'open';
+
+    if(editingId){
+      CSM.refs.shift(editingId).update(rec).then(closeModal).catch(function(err){
+        alert('Erreur : ' + err.message);
+      });
+    } else {
+      rec.createdAt = new Date().toISOString();
+      rec.source = 'manual';
+      CSM.refs.shifts().add(rec).then(closeModal).catch(function(err){
+        alert('Erreur : ' + err.message);
+      });
+    }
+  });
+
+  $('btnDelete').addEventListener('click', function(){
+    if(!editingId) return;
+    if(!confirm('Supprimer ce pointage ?')) return;
+    CSM.refs.shift(editingId).delete().then(closeModal).catch(function(err){
+      alert('Erreur : ' + err.message);
+    });
+  });
+
+  document.querySelectorAll('.ent-filter').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.ent-filter').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      render();
+    });
+  });
+  $('searchInput').addEventListener('input', function(e){
+    searchQuery = e.target.value;
+    render();
+  });
+
+  $('btnPrint').addEventListener('click', function(){ window.print(); });
+
+  $('btnClearDay').addEventListener('click', async function(){
+    if(shifts.length === 0){
+      alert('Le tableau est déjà vide.');
+      return;
+    }
+    const n = shifts.length;
+    if(!confirm(
+      'Effacer tous les pointages du jour ?\n\n' +
+      n + ' pointage(s) seront supprimés pour aujourd\'hui.\n\n' +
+      'Cette action est irréversible.'
+    )) return;
+
+    let deleted = 0, failed = 0;
+    for(const s of shifts){
+      try{
+        await CSM.refs.shift(s.id).delete();
+        deleted++;
+      }catch(err){ failed++; }
+    }
+    alert(failed === 0 ? ('✓ ' + deleted + ' pointage(s) supprimé(s).') : ('Supprimés : ' + deleted + ' — Échecs : ' + failed));
+  });
+
+})();
+</script>
+</body>
+</html>

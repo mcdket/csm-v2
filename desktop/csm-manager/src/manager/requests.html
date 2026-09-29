@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demandes — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<meta name="theme-color" content="#0D5B6E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<link rel="stylesheet" href="../shared/enterprise.css">
+<style>
+.ent-page{display:flex;flex-direction:column;min-height:100vh;}
+.ent-content{flex:1;padding:20px 26px 40px;overflow-x:auto;}
+
+/* Tabs */
+.ent-tabs{
+  display:flex;
+  gap:0;
+  margin-bottom:20px;
+  border-bottom:1px solid var(--gray-border);
+}
+.ent-tab{
+  background:none;
+  border:none;
+  padding:10px 20px;
+  font-size:13px;
+  font-family:inherit;
+  font-weight:600;
+  color:var(--ent-text-muted);
+  cursor:pointer;
+  border-bottom:3px solid transparent;
+  margin-bottom:-1px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.ent-tab:hover{color:var(--teal);}
+.ent-tab.active{color:var(--teal);border-bottom-color:var(--teal);}
+.ent-tab .cnt{
+  background:var(--teal);
+  color:#fff;
+  font-size:10.5px;
+  font-weight:700;
+  min-width:18px;
+  height:18px;
+  padding:0 6px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:9px;
+}
+.ent-tab .cnt:empty{display:none;}
+
+.ent-filterbar{
+  display:flex;
+  gap:6px;
+  margin-bottom:14px;
+  align-items:center;
+}
+.ent-filter{
+  border:1px solid var(--gray-border);
+  background:#fff;
+  color:var(--ent-text-muted);
+  padding:5px 12px;
+  font-size:12px;
+  font-family:inherit;
+  cursor:pointer;
+}
+.ent-filter:hover{border-color:var(--teal);color:var(--teal);}
+.ent-filter.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+
+/* Request cards */
+.ent-reqlist{display:flex;flex-direction:column;gap:10px;}
+.ent-reqcard{
+  background:#fff;
+  border:1px solid var(--gray-border);
+  border-left:3px solid var(--gray-border);
+  padding:14px 16px;
+}
+.ent-reqcard.pending{border-left-color:var(--amber);}
+.ent-reqcard.approved{border-left-color:var(--green);}
+.ent-reqcard.rejected{border-left-color:var(--red);opacity:0.75;}
+
+.ent-reqhead{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:10px;
+}
+.ent-reqwho{font-size:14px;font-weight:700;color:var(--ent-text);}
+.ent-reqbadge{font-family:'Consolas',monospace;font-size:11.5px;color:var(--ent-text-muted);margin-top:2px;}
+.ent-reqwhen{font-size:11.5px;color:var(--ent-text-muted);font-family:'Consolas',monospace;}
+
+.ent-reqstatus{
+  font-size:11px;
+  font-weight:700;
+  padding:3px 10px;
+  text-transform:uppercase;
+  letter-spacing:0.03em;
+  white-space:nowrap;
+}
+.ent-reqstatus.pending{background:#FBF0D2;color:#8A5A00;}
+.ent-reqstatus.approved{background:#E0F1E4;color:#2F7D46;}
+.ent-reqstatus.rejected{background:#F7DAD5;color:#A32B1B;}
+
+.ent-reqbody{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+  gap:6px 18px;
+  margin:8px 0 12px;
+  padding:10px 12px;
+  background:#F7F9FA;
+  border:1px solid var(--gray-border);
+  font-size:12.5px;
+}
+.ent-reqline{display:flex;gap:8px;align-items:baseline;}
+.ent-reqline .lbl{
+  color:var(--ent-text-muted);
+  font-weight:600;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.03em;
+  min-width:80px;
+}
+.ent-reqline .val{color:var(--ent-text);}
+.ent-reqline .val.mono{font-family:'Consolas',monospace;font-weight:600;}
+
+.ent-reqreason{
+  margin:8px 0;
+  padding:8px 12px;
+  background:#fff;
+  border-left:3px solid var(--gray-border);
+  font-size:12.5px;
+  color:var(--ent-text);
+  font-style:italic;
+  line-height:1.5;
+  white-space:pre-wrap;
+}
+
+.ent-reqactions{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  padding-top:12px;
+  border-top:1px solid var(--gray-border);
+}
+.ent-btn{
+  border:1px solid var(--gray-border);
+  background:#fff;
+  color:var(--ent-text);
+  padding:6px 14px;
+  font-size:12px;
+  font-family:inherit;
+  font-weight:600;
+  cursor:pointer;
+}
+.ent-btn:hover{border-color:var(--teal);color:var(--teal);}
+.ent-btn.approve{background:var(--green);color:#fff;border-color:var(--green);}
+.ent-btn.approve:hover{background:#3D7D4C;border-color:#3D7D4C;}
+.ent-btn.reject{background:#fff;color:var(--red);border-color:var(--red);}
+.ent-btn.reject:hover{background:#F7DAD5;}
+
+.ent-empty{
+  padding:50px 20px;
+  text-align:center;
+  color:var(--ent-text-muted);
+  font-size:13px;
+  background:#fff;
+  border:1px dashed var(--gray-border);
+}
+.ent-empty b{display:block;color:var(--ent-text);font-size:14px;font-weight:600;margin-bottom:6px;}
+
+body.enterprise .header,body.enterprise .headerside,body.enterprise .controls,body.enterprise .footnote{display:none !important;}
+</style>
+</head>
+<body class="enterprise">
+
+<div class="ent-page" id="app" style="display:none;">
+
+  <div class="topbar">
+    <span class="logo">CSM Manager 1.0.0 · Agadir Ketia</span>
+    <span class="spacer"></span>
+    <span class="item">—</span>
+    <span class="item">▢</span>
+    <span class="item" style="cursor:pointer;">✕</span>
+  </div>
+
+  <div class="menubar">
+    <div class="menu-item" onclick="window.location.href='index.html'">☰ Menu</div>
+    <div class="menu-item" onclick="window.location.href='index.html'">← Tableau de bord</div>
+    <div class="menu-item" onclick="window.location.href='planning.html'">Planning</div>
+    <div class="menu-item" onclick="window.location.href='staff.html'">Employés</div>
+    <div class="menu-item" onclick="window.location.href='daily-import.html'">Import quotidien</div>
+    <span style="flex:1;"></span>
+    <div class="menu-item" id="btnLogout" style="border-left:1px solid rgba(255,255,255,0.2);">⏻ Déconnexion</div>
+  </div>
+
+  <div class="subnav">
+    <a onclick="window.location.href='index.html'">Pointages du jour</a>
+    <a onclick="window.location.href='planning.html'">Planning</a>
+    <a onclick="window.location.href='staff.html'">Employés</a>
+    <a class="active">Demandes</a>
+    <a onclick="window.location.href='daily-import.html'">Import quotidien</a>
+  </div>
+
+  <div class="page-header">
+    <h1>Demandes</h1>
+  </div>
+
+  <div class="ent-content">
+
+    <div class="ent-tabs">
+      <button class="ent-tab active" data-tab="leave">Congés <span class="cnt" id="countLeave"></span></button>
+      <button class="ent-tab" data-tab="corrections">Corrections <span class="cnt" id="countCorrections"></span></button>
+    </div>
+
+    <div id="paneLeave">
+      <div class="ent-filterbar">
+        <button class="ent-filter active" data-filter="pending" data-pane="leave">En attente</button>
+        <button class="ent-filter" data-filter="all" data-pane="leave">Toutes</button>
+      </div>
+      <div class="ent-reqlist" id="leaveList"></div>
+      <div class="ent-empty hidden" id="leaveEmpty"></div>
+    </div>
+
+    <div id="paneCorrections" class="hidden">
+      <div class="ent-filterbar">
+        <button class="ent-filter active" data-filter="pending" data-pane="corrections">En attente</button>
+        <button class="ent-filter" data-filter="all" data-pane="corrections">Toutes</button>
+      </div>
+      <div class="ent-reqlist" id="correctionsList"></div>
+      <div class="ent-empty hidden" id="correctionsEmpty"></div>
+    </div>
+
+  </div>
+
+  <div class="statusbar">
+    <span><kbd>Alt</kbd> → Menu &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>F4</kbd> → Logout</span>
+    <span class="right">Hotline: it@ma.mcd.com</span>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  let leaveReqs = [];
+  let corrections = [];
+  let unsubLeave = null;
+  let unsubCorrections = null;
+  let filterLeave = 'pending';
+  let filterCorrections = 'pending';
+
+  let started = false;
+  auth.onAuthStateChanged(function(user){
+    if(!user){ window.location.replace('login.html'); return; }
+    if(started) return;
+    started = true;
+    db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+      if(!doc.exists){ auth.signOut().then(function(){ window.location.replace('login.html'); }); return; }
+      return Promise.race([
+        CSM.ready,
+        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
+      ]).then(function(){
+        document.querySelector('.ent-page').style.display = 'flex';
+        startListeners();
+        wireTabs();
+        wireFilters();
+      });
+    }).catch(function(err){ alert('Erreur : ' + err.message); });
+  });
+
+  $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
+
+  function startListeners(){
+    unsubLeave = CSM.refs.leaveReqs().orderBy('requestedAt', 'desc')
+      .onSnapshot(function(snap){
+        leaveReqs = snap.docs.map(function(d){ return Object.assign({ _id: d.id }, d.data()); });
+        renderLeave(); updateCounts();
+      }, function(err){ console.error(err); });
+    unsubCorrections = CSM.refs.corrections().orderBy('requestedAt', 'desc')
+      .onSnapshot(function(snap){
+        corrections = snap.docs.map(function(d){ return Object.assign({ _id: d.id }, d.data()); });
+        renderCorrections(); updateCounts();
+      }, function(err){ console.error(err); });
+  }
+
+  function updateCounts(){
+    const pl = leaveReqs.filter(function(r){ return r.status === 'pending'; }).length;
+    const pc = corrections.filter(function(r){ return r.status === 'pending'; }).length;
+    $('countLeave').textContent = pl > 0 ? String(pl) : '';
+    $('countCorrections').textContent = pc > 0 ? String(pc) : '';
+  }
+
+  function wireTabs(){
+    document.querySelectorAll('.ent-tab').forEach(function(t){
+      t.addEventListener('click', function(){
+        const tab = t.dataset.tab;
+        document.querySelectorAll('.ent-tab').forEach(function(x){ x.classList.toggle('active', x === t); });
+        $('paneLeave').classList.toggle('hidden', tab !== 'leave');
+        $('paneCorrections').classList.toggle('hidden', tab !== 'corrections');
+      });
+    });
+  }
+
+  function wireFilters(){
+    document.querySelectorAll('.ent-filter').forEach(function(b){
+      b.addEventListener('click', function(){
+        const pane = b.dataset.pane;
+        const filter = b.dataset.filter;
+        document.querySelectorAll('.ent-filter[data-pane="'+pane+'"]').forEach(function(x){ x.classList.toggle('active', x === b); });
+        if(pane === 'leave'){ filterLeave = filter; renderLeave(); }
+        else { filterCorrections = filter; renderCorrections(); }
+      });
+    });
+  }
+
+  function renderLeave(){
+    const list = $('leaveList');
+    const empty = $('leaveEmpty');
+    list.innerHTML = '';
+    let arr = leaveReqs.slice();
+    if(filterLeave === 'pending') arr = arr.filter(function(r){ return r.status === 'pending'; });
+    if(arr.length === 0){
+      empty.classList.remove('hidden');
+      empty.innerHTML = filterLeave === 'pending'
+        ? '<b>Aucune demande de congé en attente</b>Les nouvelles demandes apparaîtront ici.'
+        : '<b>Aucune demande de congé</b>Les employés n\'ont rien soumis.';
+      return;
+    }
+    empty.classList.add('hidden');
+    arr.forEach(function(r){ list.appendChild(buildLeaveCard(r)); });
+  }
+
+  function buildLeaveCard(r){
+    const card = document.createElement('div');
+    card.className = 'ent-reqcard ' + (r.status || 'pending');
+    const statusLabel = ({ pending: 'En attente', approved: 'Approuvée', rejected: 'Refusée' })[r.status] || r.status;
+    const typeLabel = ({ vacation: 'Congé payé', sick: 'Maladie', personal: 'Personnel', other: 'Autre' })[r.type] || r.type;
+    const when = formatRelative(r.requestedAt);
+    let days = '—';
+    if(r.fromDate && r.toDate){
+      const d1 = new Date(r.fromDate + 'T00:00:00Z');
+      const d2 = new Date(r.toDate + 'T00:00:00Z');
+      const n = Math.round((d2 - d1) / 86400000) + 1;
+      days = n + (n > 1 ? ' jours' : ' jour');
+    }
+    let html = '';
+    html += '<div class="ent-reqhead">';
+    html += '<div><div class="ent-reqwho">' + esc(r.name || 'Employé') + '</div><div class="ent-reqbadge">Badge ' + esc(r.badge || '—') + '</div></div>';
+    html += '<div style="text-align:right"><span class="ent-reqstatus ' + r.status + '">' + statusLabel + '</span><div class="ent-reqwhen" style="margin-top:4px">' + when + '</div></div>';
+    html += '</div>';
+    html += '<div class="ent-reqbody">';
+    html += '<div class="ent-reqline"><span class="lbl">Type</span><span class="val">' + esc(typeLabel) + '</span></div>';
+    html += '<div class="ent-reqline"><span class="lbl">Du</span><span class="val mono">' + esc(r.fromDate || '—') + '</span></div>';
+    html += '<div class="ent-reqline"><span class="lbl">Au</span><span class="val mono">' + esc(r.toDate || '—') + '</span></div>';
+    html += '<div class="ent-reqline"><span class="lbl">Durée</span><span class="val">' + days + '</span></div>';
+    html += '</div>';
+    if(r.reason) html += '<div class="ent-reqreason">« ' + esc(r.reason) + ' »</div>';
+    if(r.status === 'pending'){
+      html += '<div class="ent-reqactions">';
+      html += '<button class="ent-btn approve" data-act="approve" data-id="' + esc(r._id) + '">Approuver</button>';
+      html += '<button class="ent-btn reject" data-act="reject" data-id="' + esc(r._id) + '">Refuser</button>';
+      html += '</div>';
+    }
+    card.innerHTML = html;
+    card.querySelectorAll('[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        decideLeave(b.dataset.id, b.dataset.act === 'approve' ? 'approved' : 'rejected');
+      });
+    });
+    return card;
+  }
+
+  function renderCorrections(){
+    const list = $('correctionsList');
+    const empty = $('correctionsEmpty');
+    list.innerHTML = '';
+    let arr = corrections.slice();
+    if(filterCorrections === 'pending') arr = arr.filter(function(r){ return r.status === 'pending'; });
+    if(arr.length === 0){
+      empty.classList.remove('hidden');
+      empty.innerHTML = filterCorrections === 'pending'
+        ? '<b>Aucune correction en attente</b>Les demandes de correction apparaîtront ici.'
+        : '<b>Aucune correction</b>Les employés n\'ont rien signalé.';
+      return;
+    }
+    empty.classList.add('hidden');
+    arr.forEach(function(r){ list.appendChild(buildCorrectionCard(r)); });
+  }
+
+  function buildCorrectionCard(r){
+    const card = document.createElement('div');
+    card.className = 'ent-reqcard ' + (r.status || 'pending');
+    const statusLabel = ({ pending: 'En attente', approved: 'Appliquée', rejected: 'Refusée' })[r.status] || r.status;
+    const fieldLabel = ({ clockIn: 'Entrée', breakStart: 'Début de pause', breakReturn: 'Retour de pause', clockOut: 'Sortie' })[r.field] || r.field;
+    const when = formatRelative(r.requestedAt);
+    let html = '';
+    html += '<div class="ent-reqhead">';
+    html += '<div><div class="ent-reqwho">' + esc(r.name || 'Employé') + '</div><div class="ent-reqbadge">Badge ' + esc(r.badge || '—') + '</div></div>';
+    html += '<div style="text-align:right"><span class="ent-reqstatus ' + r.status + '">' + statusLabel + '</span><div class="ent-reqwhen" style="margin-top:4px">' + when + '</div></div>';
+    html += '</div>';
+    html += '<div class="ent-reqbody">';
+    html += '<div class="ent-reqline"><span class="lbl">Date</span><span class="val mono">' + esc(r.date || '—') + '</span></div>';
+    html += '<div class="ent-reqline"><span class="lbl">Champ</span><span class="val">' + esc(fieldLabel) + '</span></div>';
+    html += '<div class="ent-reqline"><span class="lbl">Valeur</span><span class="val mono">' + esc(r.requestedValue || '—') + '</span></div>';
+    html += '</div>';
+    if(r.reason) html += '<div class="ent-reqreason">« ' + esc(r.reason) + ' »</div>';
+    if(r.status === 'pending'){
+      html += '<div class="ent-reqactions">';
+      html += '<button class="ent-btn approve" data-act="approve" data-id="' + esc(r._id) + '">Appliquer</button>';
+      html += '<button class="ent-btn reject" data-act="reject" data-id="' + esc(r._id) + '">Refuser</button>';
+      html += '</div>';
+    }
+    card.innerHTML = html;
+    card.querySelectorAll('[data-act]').forEach(function(b){
+      b.addEventListener('click', function(){ decideCorrection(b.dataset.id, b.dataset.act === 'approve'); });
+    });
+    return card;
+  }
+
+  function decideLeave(requestId, newStatus){
+    const req = leaveReqs.find(function(r){ return r._id === requestId; });
+    if(!req) return;
+    const verb = newStatus === 'approved' ? 'approuver' : 'refuser';
+    if(!confirm('Voulez-vous ' + verb + ' cette demande ?')) return;
+    CSM.refs.leaveReqs().doc(requestId).update({
+      status: newStatus,
+      decidedAt: new Date().toISOString(),
+      decidedBy: auth.currentUser ? auth.currentUser.uid : null
+    }).then(function(){
+      writeAudit('leave.' + newStatus, requestId, { badge: req.badge, fromDate: req.fromDate, toDate: req.toDate });
+    }).catch(function(err){ alert('Erreur : ' + err.message); });
+  }
+
+  async function decideCorrection(requestId, apply){
+    const req = corrections.find(function(r){ return r._id === requestId; });
+    if(!req) return;
+    if(!apply){
+      if(!confirm('Refuser cette correction ?')) return;
+      CSM.refs.corrections().doc(requestId).update({
+        status: 'rejected',
+        decidedAt: new Date().toISOString(),
+        decidedBy: auth.currentUser ? auth.currentUser.uid : null
+      }).catch(function(err){ alert('Erreur : ' + err.message); });
+      return;
+    }
+    if(!confirm('Appliquer cette correction au pointage ?')) return;
+    const badge = String(req.badge || '');
+    const date = req.date;
+    if(!badge || !date){ alert('Données manquantes.'); return; }
+    try{
+      const snap = await CSM.refs.shifts().where('badge', '==', badge).where('date', '==', date).limit(1).get();
+      if(snap.empty){ alert('Aucun pointage trouvé pour ce badge à cette date.'); return; }
+      const shiftDoc = snap.docs[0];
+      const before = shiftDoc.data();
+      const newVal = R.hmToMin(req.requestedValue);
+      if(newVal === null){ alert('Valeur invalide : ' + req.requestedValue); return; }
+      const patch = {};
+      patch[req.field] = newVal;
+      const merged = Object.assign({}, before, patch);
+      patch.totalMinutes = R.computeShift(merged).totalMinutes;
+      patch.updatedAt = new Date().toISOString();
+      await shiftDoc.ref.update(patch);
+      await CSM.refs.corrections().doc(requestId).update({
+        status: 'approved',
+        decidedAt: new Date().toISOString(),
+        decidedBy: auth.currentUser ? auth.currentUser.uid : null,
+        appliedTo: shiftDoc.id
+      });
+      writeAudit('correction.applied', shiftDoc.id, {
+        badge, date, field: req.field, before: before[req.field], after: newVal
+      });
+    }catch(err){
+      console.error(err);
+      alert('Erreur : ' + err.message);
+    }
+  }
+
+  function writeAudit(action, targetId, details){
+    CSM.refs.auditLog().add({
+      actor: auth.currentUser ? auth.currentUser.uid : 'unknown',
+      action, target: targetId, details: details || {},
+      at: new Date().toISOString()
+    }).catch(function(err){ console.warn(err); });
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function formatRelative(iso){
+    if(!iso) return '';
+    try{
+      const then = new Date(iso).getTime();
+      const diff = Math.floor((Date.now() - then) / 1000);
+      if(diff < 60) return 'il y a ' + diff + 's';
+      if(diff < 3600) return 'il y a ' + Math.floor(diff/60) + ' min';
+      if(diff < 86400) return 'il y a ' + Math.floor(diff/3600) + 'h';
+      if(diff < 604800) return 'il y a ' + Math.floor(diff/86400) + 'j';
+      const d = new Date(iso);
+      return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+    }catch(e){ return ''; }
+  }
+})();
+</script>
+</body>
+</html>

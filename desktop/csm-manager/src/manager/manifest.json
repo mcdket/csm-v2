@@ -1,0 +1,26 @@
+{
+  "name": "CSM Responsable",
+  "short_name": "CSM Manager",
+  "description": "Tableau de bord responsable — Contract Social Manager",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F7F9FB",
+  "theme_color": "#C9701F",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "../shared/200.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "../shared/200.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}

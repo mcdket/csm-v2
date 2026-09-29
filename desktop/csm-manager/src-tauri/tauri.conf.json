@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Contract Social Manager",
+  "version": "1.0.0",
+  "identifier": "com.mcdket.csm",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Contract Social Manager",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1000,
+        "minHeight": 600,
+        "resizable": true,
+        "maximizable": true,
+        "center": true
+      }
+    ],
+    "security": {
+  "csp": null,
+  "capabilities": [
+    {
+      "identifier": "default",
+      "description": "Default capabilities for the manager app",
+      "windows": ["main"],
+      "permissions": [
+        "core:default",
+        "notification:default",
+        "notification:allow-is-permission-granted",
+        "notification:allow-request-permission",
+        "notification:allow-notify"
+      ]
+    }
+  ]
+}
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

@@ -1,0 +1,241 @@
+/* ============================================================
+   Enterprise theme — MyStore-style look
+   Loaded AFTER styles.css so it overrides the base.
+   ============================================================ */
+
+body.enterprise{
+  --teal:#0D5B6E;
+  --teal-dark:#094A5A;
+  --teal-light:#E8F0F2;
+  --blue-edit:#E6F0F7;
+  --blue-edit-border:#8FC0D9;
+  --gray-bg:#F2F4F5;
+  --gray-border:#CDD3D6;
+  --gray-header:#5A6A70;
+  --ent-text:#1A2A30;
+  --ent-text-muted:#5A6A70;
+  --red:#C0392B;
+  --green:#4C9A5D;
+  --amber:#D68F00;
+
+  font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif !important;
+  font-size:13px !important;
+  color:var(--ent-text) !important;
+  background:var(--gray-bg) !important;
+  margin:0;
+}
+
+body.enterprise h1,
+body.enterprise h2,
+body.enterprise h3{
+  color:var(--ent-text);
+  font-family:'Segoe UI',sans-serif;
+}
+body.enterprise p,
+body.enterprise label,
+body.enterprise span{
+  color:inherit;
+}
+
+body.enterprise .topbar{
+  background:var(--teal);
+  color:#fff;
+  height:32px;
+  display:flex;
+  align-items:center;
+  padding:0 12px;
+  font-size:12px;
+}
+body.enterprise .topbar .logo{font-weight:600;margin-right:16px;}
+body.enterprise .topbar .spacer{flex:1;}
+body.enterprise .topbar .item{
+  padding:0 12px;
+  border-left:1px solid rgba(255,255,255,0.15);
+  height:32px;
+  display:flex;
+  align-items:center;
+  color:#fff;
+}
+
+body.enterprise .menubar{
+  background:var(--teal-dark);
+  color:#fff;
+  height:34px;
+  display:flex;
+  align-items:center;
+  padding:0 8px;
+  font-size:13px;
+}
+body.enterprise .menubar .menu-item{
+  padding:0 12px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  cursor:pointer;
+  color:#fff;
+}
+body.enterprise .menubar .menu-item:hover{background:rgba(255,255,255,0.12);}
+
+body.enterprise .subnav{
+  background:#fff;
+  border-bottom:1px solid var(--gray-border);
+  height:30px;
+  display:flex;
+  align-items:center;
+  padding:0 20px;
+  gap:2px;
+}
+body.enterprise .subnav a{
+  color:var(--ent-text-muted);
+  text-decoration:none;
+  padding:6px 14px;
+  font-size:12.5px;
+  border-bottom:3px solid transparent;
+  cursor:pointer;
+  user-select:none;
+}
+body.enterprise .subnav a:hover{color:var(--teal);}
+body.enterprise .subnav a.active{
+  color:var(--teal);
+  border-bottom-color:var(--teal);
+  font-weight:600;
+}
+
+body.enterprise .page-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:20px 26px 22px;
+  position:relative;
+}
+body.enterprise .page-header h1{
+  font-size:20px;
+  color:var(--teal);
+  font-weight:400;
+  margin:0;
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+}
+body.enterprise .page-header .toolbar{
+  display:flex;
+  gap:6px;
+  margin-left:auto;
+}
+body.enterprise .iconbtn{
+  width:34px;height:34px;
+  border:1px solid var(--gray-border);
+  background:#fff;
+  color:var(--teal);
+  border-radius:50%;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:11px;
+}
+body.enterprise .iconbtn:hover{background:var(--teal-light);border-color:var(--teal);}
+
+body.enterprise .statusbar{
+  background:#fff;
+  border-top:1px solid var(--gray-border);
+  height:24px;
+  display:flex;
+  align-items:center;
+  padding:0 12px;
+  font-size:11.5px;
+  color:var(--ent-text-muted);
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+}
+body.enterprise .statusbar .right{margin-left:auto;}
+body.enterprise .statusbar kbd{
+  font-family:inherit;
+  background:#F0F3F5;
+  border:1px solid var(--gray-border);
+  border-radius:2px;
+  padding:0 4px;
+  font-size:10.5px;
+  color:var(--ent-text);
+}
+
+body.enterprise .btn,
+body.enterprise button.btn{
+  border:1px solid var(--gray-border) !important;
+  background:#fff !important;
+  color:var(--ent-text) !important;
+  padding:6px 14px !important;
+  font-size:12.5px !important;
+  cursor:pointer;
+  font-family:'Segoe UI',sans-serif !important;
+  font-weight:500 !important;
+  border-radius:0 !important;
+}
+body.enterprise .btn:hover{
+  background:var(--teal-light) !important;
+  border-color:var(--teal) !important;
+}
+body.enterprise .btn-primary,
+body.enterprise button.btn-primary{
+  background:var(--teal) !important;
+  border-color:var(--teal) !important;
+  color:#fff !important;
+  font-weight:600 !important;
+}
+body.enterprise .btn-primary:hover{
+  background:var(--teal-dark) !important;
+  border-color:var(--teal-dark) !important;
+}
+
+body.enterprise .login-shell{
+  background:var(--gray-bg) !important;
+}
+body.enterprise .login-card{
+  background:#fff !important;
+  border:1px solid var(--gray-border) !important;
+  border-top:4px solid var(--teal) !important;
+  color:var(--ent-text) !important;
+}
+body.enterprise .login-card h1{
+  color:var(--teal) !important;
+}
+body.enterprise .login-sub{
+  color:var(--ent-text-muted) !important;
+}
+body.enterprise .login-card label{
+  color:var(--ent-text-muted) !important;
+}
+body.enterprise .login-card input{
+  background:#fff !important;
+  color:var(--ent-text) !important;
+  border:1px solid var(--gray-border) !important;
+  font-size:14px !important;
+  padding:9px 12px !important;
+  font-family:'Segoe UI',sans-serif !important;
+}
+body.enterprise .login-card input:focus{
+  outline:none !important;
+  border-color:var(--teal) !important;
+  box-shadow:0 0 0 2px var(--teal-light) !important;
+}
+body.enterprise .login-card .btn{
+  padding:11px !important;
+  font-size:13px !important;
+}
+body.enterprise .login-error{
+  color:var(--red) !important;
+}
+body.enterprise .login-info{
+  color:var(--green) !important;
+}
+body.enterprise .linkbtn{
+  color:var(--ent-text-muted) !important;
+  background:transparent !important;
+  border:none !important;
+  font-size:12px !important;
+  text-decoration:underline;
+}

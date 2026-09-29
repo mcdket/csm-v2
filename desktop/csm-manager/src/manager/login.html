@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — Contract Social Manager</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0D5B6E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<link rel="stylesheet" href="../shared/enterprise.css">
+<style>
+.login-shell{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:var(--gray-bg);
+}
+.login-card{
+  width:100%;
+  max-width:400px;
+  background:#fff;
+  border:1px solid var(--gray-border);
+  border-top:4px solid var(--teal);
+  padding:34px 30px 30px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.08);
+}
+.login-card .login-arch{
+  width:72px;
+  height:72px;
+  object-fit:cover;
+  display:block;
+  margin:0 auto 8px;
+  border-radius:50%;
+  border:2px solid var(--teal-light);
+}
+.login-card h1{
+  margin:0;
+  font-size:18px;
+  color:var(--teal);
+  text-align:center;
+  font-weight:600;
+  letter-spacing:0.01em;
+}
+.login-sub{
+  margin:-8px 0 8px;
+  font-size:12.5px;
+  color:var(--text-muted);
+  text-align:center;
+}
+.login-card label{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--text-muted);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+.login-card input{
+  font:inherit;
+  font-size:14px;
+  padding:9px 12px;
+  border:1px solid var(--gray-border);
+  background:#fff;
+  color:var(--text);
+}
+.login-card input:focus{
+  outline:none;
+  border-color:var(--teal);
+  box-shadow:0 0 0 2px var(--teal-light);
+}
+.login-card .btn{
+  justify-content:center;
+  padding:11px;
+  font-size:13px;
+}
+.login-card .linkbtn{
+  align-self:center;
+  color:var(--text-muted);
+  font-size:12px;
+}
+.login-error{
+  min-height:18px;
+  font-size:12.5px;
+  color:var(--red);
+  text-align:center;
+}
+.login-info{
+  color:var(--green);
+}
+</style>
+</head>
+<body class="enterprise">
+
+<div class="login-shell">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <img class="login-arch" src="../shared/200.webp" alt="McDonald's">
+    <h1>Contract Social Manager</h1>
+    <p class="login-sub">Connexion réservée au responsable</p>
+
+    <label>Email
+      <input type="email" id="loginEmail" name="email" autocomplete="username" required>
+    </label>
+    <label>Mot de passe
+      <input type="password" id="loginPass" name="password" autocomplete="current-password" required>
+    </label>
+
+    <div class="login-error" id="loginError" role="alert"></div>
+
+    <button type="submit" class="btn btn-primary" id="loginBtn">Se connecter</button>
+    <button type="button" class="linkbtn" id="loginReset">Mot de passe oublié ?</button>
+  </form>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+
+  function setMessage(text, isInfo){
+    const el = $('loginError');
+    el.textContent = text || '';
+    el.classList.toggle('login-info', !!isInfo);
+  }
+
+  function errorText(err){
+    switch(err && err.code){
+      case 'auth/invalid-credential':
+      case 'auth/wrong-password':
+      case 'auth/user-not-found':    return 'Email ou mot de passe incorrect.';
+      case 'auth/invalid-email':     return 'Adresse email invalide.';
+      case 'auth/user-disabled':     return 'Ce compte est désactivé.';
+      case 'auth/too-many-requests': return 'Trop de tentatives. Réessayez dans quelques minutes.';
+      case 'auth/network-request-failed': return 'Pas de connexion internet.';
+      default: return 'Connexion impossible. Réessayez.';
+    }
+  }
+
+  CSM.authReady.then(function(){
+    auth.onAuthStateChanged(function(user){
+      if(user){
+        db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+          if(doc.exists){
+            window.location.replace('index.html');
+          } else {
+            auth.signOut();
+            setMessage("Ce compte n'est pas autorisé à accéder au portail responsable.");
+          }
+        }).catch(function(){
+          window.location.replace('index.html');
+        });
+      }
+    });
+  });
+
+  $('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const email = $('loginEmail').value.trim();
+    const pass  = $('loginPass').value;
+    const btn   = $('loginBtn');
+    setMessage('');
+    btn.disabled = true;
+
+    CSM.authReady
+      .then(function(){
+        return auth.signInWithEmailAndPassword(email, pass);
+      })
+      .then(function(cred){
+        return db.collection('managerRestaurants').doc(cred.user.uid).get()
+          .then(function(doc){
+            if(!doc.exists){
+              return auth.signOut().then(function(){
+                throw new Error('NOT_A_MANAGER');
+              });
+            }
+            $('loginPass').value = '';
+            window.location.replace('index.html');
+          });
+      })
+      .catch(function(err){
+        if(err && err.message === 'NOT_A_MANAGER'){
+          setMessage("Ce compte n'est pas autorisé à accéder au portail responsable.");
+        } else {
+          setMessage(errorText(err));
+        }
+      })
+      .then(function(){ btn.disabled = false; });
+  });
+
+  $('loginReset').addEventListener('click', function(){
+    const email = $('loginEmail').value.trim();
+    if(!email){
+      setMessage("Entrez votre email ci-dessus, puis cliquez sur « Mot de passe oublié ? ».");
+      return;
+    }
+    auth.sendPasswordResetEmail(email)
+      .then(function(){
+        setMessage("Si ce compte existe, un email de réinitialisation vient d'être envoyé.", true);
+      })
+      .catch(function(err){ setMessage(errorText(err)); });
+  });
+
+})();
+</script>
+</body>
+</html>
