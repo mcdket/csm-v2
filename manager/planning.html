@@ -70,22 +70,58 @@
 .tablewrap{overflow-x:auto;}
 table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 .plan th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
-.plan td{padding:9px 10px;border-bottom:1px solid var(--line-soft);}
+.plan td{padding:9px 10px;border-bottom:1px solid var(--line-soft);vertical-align:middle;}
 .plan td.t{font-family:'IBM Plex Mono',monospace;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .plan td.nm{font-weight:600;}
 .plan td.end{font-family:'IBM Plex Mono',monospace;color:var(--text-muted);font-size:12.5px;}
+.plan td.act{white-space:nowrap;text-align:right;width:1%;}
 .plan tr.grp td{background:var(--panel-raised);font-weight:700;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
+.plan tr.st-absent td.nm{text-decoration:line-through;color:var(--text-muted);}
+.plan tr.st-sick{background:var(--status-warn-bg);}
+.plan tr.st-sick td.nm{color:var(--status-warn-fg);}
+.plan tr.st-cancelled{opacity:.55;}
+.plan tr.st-cancelled td.nm{text-decoration:line-through;color:var(--status-crit-fg);}
+.plan tr.st-replaced{background:rgba(155,110,200,0.12);}
+.plan tr.st-replaced td.nm{color:#5A2F8F;font-weight:700;}
+.repl-arrow{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:12px;font-weight:600;color:#5A2F8F;}
+.repl-arrow .who{padding:2px 8px;background:#F3E6FA;border:1px solid #C39BE0;}
 .spill{display:inline-block;padding:2px 10px;font-size:12px;font-weight:700;border:1px solid var(--line);color:var(--text-muted);white-space:nowrap;}
 .spill.ok{background:var(--status-ok-bg);color:var(--status-ok-fg);border-color:var(--status-ok-line);}
 .spill.warn{background:var(--status-warn-bg);color:var(--status-warn-fg);border-color:var(--status-warn-line);}
 .spill.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);border-color:var(--status-crit-line);}
 .spill.brk{background:var(--status-break-bg);color:var(--status-break-fg);border-color:var(--status-break-line);}
+.spill.mut{background:var(--panel-raised);color:var(--text-muted);border-color:var(--line);}
+.iconact{background:transparent;border:1px solid var(--line);color:var(--text-muted);font-size:13px;padding:4px 8px;margin-left:4px;cursor:pointer;font-family:inherit;}
+.iconact:hover{border-color:var(--accent);color:var(--accent);}
+.addrow{margin-bottom:10px;}
+.addrow .btn{padding:7px 12px;font-size:12.5px;}
 .empty-plan{text-align:center;padding:50px 20px;color:var(--text-muted);font-size:14px;}
 .empty-plan b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
+.modalbg{position:fixed;inset:0;background:rgba(10,15,20,0.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+.modalbg.show{display:flex;}
+.modalbox{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);max-width:420px;width:100%;padding:20px;}
+.modalbox h3{margin:0 0 4px;font-size:16px;color:var(--accent);font-weight:700;}
+.modalbox .sub{font-size:12.5px;color:var(--text-muted);margin-bottom:16px;}
+.modalbox .field{margin-bottom:12px;}
+.modalbox .field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;}
+.modalbox .field input,.modalbox .field select{width:100%;padding:9px 10px;border:1px solid var(--line);background:var(--panel-raised);color:var(--text);font-family:inherit;font-size:14px;outline:none;}
+.modalbox .field input:focus,.modalbox .field select:focus{border-color:var(--accent);}
+.modalbox .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modalbox .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft);}
+.modalbox .actions .btn{padding:8px 16px;font-size:13px;}
+.statbtn{display:flex;flex-direction:column;gap:6px;}
+.statbtn button{width:100%;padding:10px;font-size:13.5px;font-family:inherit;font-weight:600;border:1px solid var(--line);background:var(--panel-raised);color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;}
+.statbtn button:hover{border-color:var(--accent);}
+.statbtn button .dot{width:12px;height:12px;border-radius:50%;flex:none;}
+.dot-absent{background:#999;}
+.dot-sick{background:#D68F00;}
+.dot-cancel{background:#C0392B;}
+.dot-replace{background:#7A4DAB;}
+.dot-clear{background:#4C9A5D;}
 @media print{
   @page{margin:14mm;}
   body{background:#fff;color:#000;}
-  .header,.plansub,.expected,.import,.week-head,.daytabs,.daysum{display:none !important;}
+  .header,.plansub,.expected,.import,.week-head,.daytabs,.daysum,.addrow,.plan td.act{display:none !important;}
   .app{max-width:none;padding:0;}
   .week{background:none;border:0;padding:0;box-shadow:none;}
   .tablewrap{overflow:visible;}
@@ -149,9 +185,98 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     </div>
     <div class="daytabs" id="dayTabs" role="tablist"></div>
     <div class="daysum" id="daySum"></div>
+    <div class="addrow" id="addRowWrap" style="display:none;">
+      <button class="btn" id="btnAddEmp">+ Ajouter un employé à ce jour</button>
+    </div>
     <div class="tablewrap" id="dayList"></div>
   </section>
 
+</div>
+
+<!-- MODAL: Edit shift -->
+<div class="modalbg" id="editBg">
+  <div class="modalbox">
+    <h3 id="editTitle">Modifier l'horaire</h3>
+    <div class="sub" id="editSub">—</div>
+    <div class="field">
+      <label>Nom (ce jour seulement)</label>
+      <input type="text" id="editName" placeholder="Nom pour ce jour">
+    </div>
+    <div class="row2">
+      <div class="field"><label>Début</label><input type="time" id="editStart"></div>
+      <div class="field"><label>Fin</label><input type="time" id="editEnd"></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="editCancel" type="button">Annuler</button>
+      <button class="btn btn-primary" id="editSave" type="button">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Status -->
+<div class="modalbg" id="statBg">
+  <div class="modalbox">
+    <h3 id="statTitle">Marquer</h3>
+    <div class="sub" id="statSub">—</div>
+    <div class="statbtn">
+      <button type="button" data-stat="absent"><span class="dot dot-absent"></span>Absent</button>
+      <button type="button" data-stat="sick"><span class="dot dot-sick"></span>Maladie</button>
+      <button type="button" data-stat="cancelled"><span class="dot dot-cancel"></span>Annulé</button>
+      <button type="button" data-stat="replaced"><span class="dot dot-replace"></span>Remplacé par…</button>
+      <button type="button" data-stat="clear"><span class="dot dot-clear"></span>Rétablir (normal)</button>
+    </div>
+    <div class="actions">
+      <button class="btn" id="statCancel" type="button">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Replacement name -->
+<div class="modalbg" id="replBg">
+  <div class="modalbox">
+    <h3>Remplacé par…</h3>
+    <div class="sub" id="replSub">—</div>
+    <div class="field">
+      <label>Nom du remplaçant</label>
+      <input type="text" id="replName" placeholder="Ex: YASSINE ALAOUI" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Ou choisir dans la liste</label>
+      <select id="replSelect">
+        <option value="">— Choisir un employé —</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="btn" id="replCancel" type="button">Annuler</button>
+      <button class="btn btn-primary" id="replSave" type="button">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add employee -->
+<div class="modalbg" id="addBg">
+  <div class="modalbox">
+    <h3>Ajouter un employé</h3>
+    <div class="sub" id="addSub">—</div>
+    <div class="field">
+      <label>Nom</label>
+      <input type="text" id="addName" placeholder="Nom de l'employé" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Ou choisir dans la liste</label>
+      <select id="addSelect">
+        <option value="">— Choisir un employé —</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Début</label><input type="time" id="addStart" value="09:00"></div>
+      <div class="field"><label>Fin</label><input type="time" id="addEnd" value="17:00"></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="addCancel" type="button">Annuler</button>
+      <button class="btn btn-primary" id="addSave" type="button">Ajouter</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -211,6 +336,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   let selDay = null;
   let importNote = '';
   let timeOffsetMs = 0;
+  let staffList = [];
 
   try{
     const v = parseInt(localStorage.getItem('csct_time_offset') || '0', 10);
@@ -238,7 +364,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         document.querySelector('.app').style.display = 'block';
         $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
         $('restaurantBadge').style.display = 'inline-block';
+        loadStaff();
         startListeners();
+        wireModals();
         setInterval(function(){ renderExpected(); renderWeek(); }, 15000);
       });
     }).catch(function(err){
@@ -249,6 +377,20 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
   $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
 
+  function loadStaff(){
+    CSM.refs.staffColl().get().then(function(snap){
+      staffList = snap.docs
+        .map(function(d){ return Object.assign({ _id: d.id }, d.data()); })
+        .filter(function(s){ return s.active !== false; })
+        .sort(function(a,b){ return String(a.name || '').localeCompare(String(b.name || ''), 'fr'); });
+      const opts = staffList.map(function(s){
+        return '<option value="' + escAttr(s.name) + '">' + esc(s.name) + ' (badge ' + esc(String(s.badge)) + ')</option>';
+      }).join('');
+      $('replSelect').innerHTML = '<option value="">— Choisir un employé —</option>' + opts;
+      $('addSelect').innerHTML  = '<option value="">— Choisir un employé —</option>' + opts;
+    }).catch(function(err){ console.warn(err); });
+  }
+
   function startListeners(){
     unsubSchedule = CSM.refs.schedules()
       .orderBy('importedAt', 'desc').limit(1)
@@ -257,24 +399,25 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         schedule = snap.empty ? null : Object.assign({ _id: snap.docs[0].id }, snap.docs[0].data());
         if(!schedule || schedule.start !== prevStart) selDay = null;
         renderAll();
-      }, function(err){
-        console.error('Schedule listener:', err);
-      });
+      }, function(err){ console.error('Schedule listener:', err); });
 
     const today = R.todayKey();
     unsubShifts = CSM.refs.shifts().where('date', '==', today)
       .onSnapshot(function(snap){
         employees = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
         renderAll();
-      }, function(err){
-        console.error('Shifts listener:', err);
-      });
+      }, function(err){ console.error('Shifts listener:', err); });
   }
 
   function renderAll(){
     renderPlanSub();
     renderExpected();
     renderWeek();
+    updateAddRow();
+  }
+
+  function updateAddRow(){
+    $('addRowWrap').style.display = schedule ? 'block' : 'none';
   }
 
   function renderPlanSub(){
@@ -309,6 +452,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     (schedule.employees || []).forEach(function(emp){
       const sh = emp.d && emp.d[ti];
       if(!sh) return;
+      if(sh.st) return;   // skip non-normal statuses
       const dt = toMin(sh.s) - nowMin;
       if(dt > EXPECT_LEAD_MIN || dt < -EXPECT_LATE_MIN) return;
       if(arrivedFor(emp)) return;
@@ -422,7 +566,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     table.className = 'plan';
     const thead = document.createElement('thead');
     const hr = document.createElement('tr');
-    ['Début','Fin','Employé'].concat(isToday ? ['Statut'] : []).forEach(function(h){
+    ['Début','Fin','Employé'].concat(isToday ? ['Statut'] : []).concat(['']).forEach(function(h){
       const th = document.createElement('th');
       th.textContent = h;
       hr.appendChild(th);
@@ -442,13 +586,14 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       const head = document.createElement('tr');
       head.className = 'grp';
       const td = document.createElement('td');
-      td.colSpan = isToday ? 4 : 3;
+      td.colSpan = isToday ? 5 : 4;
       td.textContent = g[0] + ' (' + gr.length + ')';
       head.appendChild(td);
       tbody.appendChild(head);
 
       gr.forEach(function(r){
         const tr = document.createElement('tr');
+        if(r.sh.st) tr.classList.add('st-' + r.sh.st);
         const tdS = document.createElement('td');
         tdS.className = 't';
         tdS.textContent = r.sh.s;
@@ -459,7 +604,14 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         tr.appendChild(tdE);
         const tdN = document.createElement('td');
         tdN.className = 'nm';
-        tdN.textContent = r.emp.name;
+        const displayName = r.sh.ov || r.emp.name;
+        tdN.textContent = displayName;
+        if(r.sh.st === 'replaced' && r.sh.rn){
+          const arrow = document.createElement('span');
+          arrow.className = 'repl-arrow';
+          arrow.innerHTML = ' ← remplacé par <span class="who">' + esc(r.sh.rn) + '</span>';
+          tdN.appendChild(arrow);
+        }
         tr.appendChild(tdN);
         if(isToday){
           const st = statusFor(r.emp, r.sh, nowMin);
@@ -470,6 +622,25 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
           tdSt.appendChild(sp);
           tr.appendChild(tdSt);
         }
+        // Actions
+        const tdA = document.createElement('td');
+        tdA.className = 'act';
+        const bEdit = document.createElement('button');
+        bEdit.className = 'iconact';
+        bEdit.type = 'button';
+        bEdit.title = 'Modifier';
+        bEdit.textContent = '✎';
+        bEdit.addEventListener('click', function(){ openEditModal(r); });
+        const bStat = document.createElement('button');
+        bStat.className = 'iconact';
+        bStat.type = 'button';
+        bStat.title = 'Marquer (absent, maladie, etc.)';
+        bStat.textContent = '⊘';
+        bStat.addEventListener('click', function(){ openStatusModal(r); });
+        tdA.appendChild(bEdit);
+        tdA.appendChild(bStat);
+        tr.appendChild(tdA);
+
         tbody.appendChild(tr);
       });
     });
@@ -487,7 +658,11 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   }
 
   function statusFor(emp, sh, nowMin){
-    if(arrivedFor(emp)) return { cls: 'ok', text: 'Arrivé' };
+    if(sh.st === 'absent')    return { cls: 'mut', text: 'Absent' };
+    if(sh.st === 'sick')      return { cls: 'warn', text: 'Maladie' };
+    if(sh.st === 'cancelled') return { cls: 'crit', text: 'Annulé' };
+    if(sh.st === 'replaced')  return { cls: 'brk', text: 'Remplacé' };
+    if(arrivedFor(emp))       return { cls: 'ok', text: 'Arrivé' };
     if(sh.e && nowMin >= toMin(sh.e)) return { cls: '', text: 'Non pointé' };
     const dt = toMin(sh.s) - nowMin;
     if(dt > EXPECT_LEAD_MIN) return { cls: '', text: 'À venir' };
@@ -504,6 +679,174 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     }).catch(function(err){ console.error('Dismiss:', err); });
   }
 
+  // ============================================================
+  // Modals
+  // ============================================================
+  let editing = null;   // { empIndex, dayIndex, emp, sh }
+  let statTarget = null;
+  let replTarget = null;
+
+  function openEditModal(r){
+    const empIndex = schedule.employees.indexOf(r.emp);
+    editing = { empIndex: empIndex, dayIndex: selDay, emp: r.emp, sh: r.sh };
+    $('editSub').textContent = r.emp.name + ' — ' + DAY_NAMES[selDay] + ' ' + dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
+    $('editName').value  = r.sh.ov || r.emp.name;
+    $('editStart').value = r.sh.s || '';
+    $('editEnd').value   = r.sh.e || '';
+    $('editBg').classList.add('show');
+  }
+  function closeEdit(){ $('editBg').classList.remove('show'); editing = null; }
+  $('editCancel').addEventListener('click', closeEdit);
+  $('editBg').addEventListener('click', function(e){ if(e.target === $('editBg')) closeEdit(); });
+
+  $('editSave').addEventListener('click', async function(){
+    if(!editing) return;
+    const newName  = $('editName').value.trim();
+    const newStart = $('editStart').value.trim();
+    const newEnd   = $('editEnd').value.trim();
+    const updates = {};
+    const dayKey = 'employees.' + editing.empIndex + '.d.' + editing.dayIndex;
+    if(newName && newName !== editing.emp.name){
+      updates[dayKey + '.ov'] = newName;
+    } else {
+      updates[dayKey + '.ov'] = firebase.firestore.FieldValue.delete();
+    }
+    updates[dayKey + '.s'] = newStart;
+    updates[dayKey + '.e'] = newEnd;
+    try{
+      await CSM.refs.schedules().doc(schedule._id).update(updates);
+      closeEdit();
+    }catch(err){ alert('Erreur : ' + err.message); }
+  });
+
+  function openStatusModal(r){
+    const empIndex = schedule.employees.indexOf(r.emp);
+    statTarget = { empIndex: empIndex, dayIndex: selDay, emp: r.emp, sh: r.sh };
+    $('statSub').textContent = r.emp.name + ' — ' + DAY_NAMES[selDay] + ' ' + dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
+    $('statBg').classList.add('show');
+  }
+  function closeStat(){ $('statBg').classList.remove('show'); statTarget = null; }
+  $('statCancel').addEventListener('click', closeStat);
+  $('statBg').addEventListener('click', function(e){ if(e.target === $('statBg')) closeStat(); });
+
+  document.querySelectorAll('#statBg .statbtn button').forEach(function(b){
+    b.addEventListener('click', function(){
+      const stat = b.dataset.stat;
+      if(!statTarget) return;
+      if(stat === 'replaced'){
+        closeStat();
+        openReplModal();
+        return;
+      }
+      applyStatus(stat === 'clear' ? null : stat, null);
+    });
+  });
+
+  function openReplModal(){
+    replTarget = statTarget;   // carried from status modal
+    $('replSub').textContent = replTarget.emp.name + ' — ' + DAY_NAMES[replTarget.dayIndex] + ' ' + dayDate(replTarget.dayIndex).getUTCDate() + ' ' + MONTHS[dayDate(replTarget.dayIndex).getUTCMonth()];
+    $('replName').value = '';
+    $('replSelect').value = '';
+    $('replBg').classList.add('show');
+  }
+  function closeRepl(){ $('replBg').classList.remove('show'); replTarget = null; }
+  $('replCancel').addEventListener('click', closeRepl);
+  $('replBg').addEventListener('click', function(e){ if(e.target === $('replBg')) closeRepl(); });
+  $('replSelect').addEventListener('change', function(e){
+    if(e.target.value) $('replName').value = e.target.value;
+  });
+  $('replSave').addEventListener('click', function(){
+    if(!replTarget) return;
+    const name = $('replName').value.trim();
+    if(!name){ alert('Entrez le nom du remplaçant.'); return; }
+    const t = replTarget; replTarget = null;
+    statTarget = t;
+    applyStatus('replaced', name);
+    closeRepl();
+  });
+
+  async function applyStatus(stat, replName){
+    if(!statTarget) return;
+    const { empIndex, dayIndex } = statTarget;
+    const base = 'employees.' + empIndex + '.d.' + dayIndex;
+    const updates = {};
+    if(!stat){
+      updates[base + '.st'] = firebase.firestore.FieldValue.delete();
+      updates[base + '.rn'] = firebase.firestore.FieldValue.delete();
+    } else {
+      updates[base + '.st'] = stat;
+      if(stat === 'replaced') updates[base + '.rn'] = replName;
+      else updates[base + '.rn'] = firebase.firestore.FieldValue.delete();
+    }
+    try{
+      await CSM.refs.schedules().doc(schedule._id).update(updates);
+      closeStat();
+    }catch(err){ alert('Erreur : ' + err.message); }
+  }
+
+  // ---- Add employee to a day ----
+  $('btnAddEmp').addEventListener('click', function(){
+    if(!schedule) return;
+    $('addSub').textContent = 'Ajouter à ' + DAY_NAMES[selDay] + ' ' + dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
+    $('addName').value = '';
+    $('addSelect').value = '';
+    $('addStart').value = '09:00';
+    $('addEnd').value   = '17:00';
+    $('addBg').classList.add('show');
+  });
+  $('addCancel').addEventListener('click', function(){ $('addBg').classList.remove('show'); });
+  $('addBg').addEventListener('click', function(e){ if(e.target === $('addBg')) $('addBg').classList.remove('show'); });
+  $('addSelect').addEventListener('change', function(e){
+    if(e.target.value) $('addName').value = e.target.value;
+  });
+
+  $('addSave').addEventListener('click', async function(){
+    const name = $('addName').value.trim();
+    const s = $('addStart').value.trim();
+    const e = $('addEnd').value.trim();
+    if(!name){ alert('Entrez le nom de l\'employé.'); return; }
+    if(!s || !e){ alert('Entrez les heures de début et de fin.'); return; }
+
+    // Try to find an existing employee with this name
+    let existing = (schedule.employees || []).find(function(x){
+      return R.sameName(x.name, name);
+    });
+    let updates = {};
+    if(existing){
+      // Just add the day to this employee
+      const idx = schedule.employees.indexOf(existing);
+      updates['employees.' + idx + '.d.' + selDay] = { s: s, e: e, o: 0 };
+    } else {
+      // New employee — build the d map with only this day
+      const newEmp = { n: nextEmployeeNumber(), name: name, d: {} };
+      newEmp.d[selDay] = { s: s, e: e, o: 0 };
+      // We can't use dot-path for array push with Firestore if it's a nested object.
+      // Instead, read the current employees array, append, and set.
+      const current = (schedule.employees || []).slice();
+      current.push(newEmp);
+      try{
+        await CSM.refs.schedules().doc(schedule._id).update({ employees: current });
+        $('addBg').classList.remove('show');
+      }catch(err){ alert('Erreur : ' + err.message); }
+      return;
+    }
+    try{
+      await CSM.refs.schedules().doc(schedule._id).update(updates);
+      $('addBg').classList.remove('show');
+    }catch(err){ alert('Erreur : ' + err.message); }
+  });
+
+  function nextEmployeeNumber(){
+    let max = 0;
+    (schedule.employees || []).forEach(function(x){ if(x.n > max) max = x.n; });
+    return max + 1;
+  }
+
+  function wireModals(){ /* nothing extra */ }
+
+  // ============================================================
+  // Helpers
+  // ============================================================
   function toMin(hhmm){ const a = String(hhmm).split(':').map(Number); return a[0]*60 + a[1]; }
   function fmtDur(m){
     if(m < 60) return m + ' min';
@@ -523,7 +866,16 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     return new Date(Date.UTC(p[0], p[1]-1, p[2] + i));
   }
   function fmtShort(iso){ return iso.slice(8,10) + '/' + iso.slice(5,7); }
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function escAttr(s){ return esc(s); }
 
+  // ============================================================
+  // PDF import (unchanged)
+  // ============================================================
   async function extractItems(arrayBuffer){
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const pages = [];
