@@ -1,224 +1,227 @@
 <!DOCTYPE html>
-<html lang="fr" class="theme-light">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Import quotidien — Contract Social Manager</title>
-<link rel="icon" type="image/webp" href="../shared/200.webp">
-<link rel="apple-touch-icon" href="../shared/200.webp">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#C9701F">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0D5B6E">
+<title>Import quotidien — CSM Manager</title>
+<link rel="icon" type="image/webp" href="../200.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
-.app{max-width:1240px;margin:0 auto;padding:20px 20px 60px;}
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:20px;flex-wrap:wrap;
-  background:var(--panel-raised);
-  border-bottom:3px solid var(--accent);
-  box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
-  padding:16px 20px;margin-bottom:18px;
+:root{
+  --teal:#0D5B6E;--teal-dark:#094A5A;--teal-light:#E8F0F2;
+  --gray-bg:#F2F4F5;--gray-border:#CDD3D6;--gray-muted:#5A6A70;
+  --text:#1A2A30;--red:#C0392B;--green:#4C9A5D;--amber:#D68F00;--gold:#C9A227;
 }
-.brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
-.brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
-.brand .restaurant-badge{color:#2A1F00;font-size:12px;font-weight:700;background:var(--brand-yellow);padding:4px 10px;}
-.controls{display:flex;gap:8px;flex-wrap:wrap;}
-
-.help{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:18px;font-size:13px;line-height:1.55;color:var(--text-muted);}
-.help b{color:var(--text);font-weight:600;}
-
-.import{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:18px;margin-bottom:20px;}
-.import-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
-.import-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
-.dropzone{
-  border:1.5px dashed var(--line);padding:36px 16px;text-align:center;
-  color:var(--text-muted);font-size:14px;
-  transition:border-color .15s ease, background .15s ease;cursor:pointer;
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Space Grotesk',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  font-size:15px;color:var(--text);background:var(--gray-bg);
+  min-height:100vh;padding-bottom:calc(72px + env(safe-area-inset-bottom, 0px));
 }
-.dropzone:hover, .dropzone.drag{border-color:var(--accent);background:var(--status-break-bg);}
-.dropzone b{color:var(--text);font-weight:600;font-size:15px;}
-.dropzone .sub{font-size:12.5px;margin-top:6px;}
-.dropzone svg{width:32px;height:32px;color:var(--accent);display:block;margin:0 auto 12px;}
-.importlog{margin-top:14px;font-size:12.5px;color:var(--text-muted);max-height:180px;overflow-y:auto;border-top:1px solid var(--line-soft);padding-top:12px;display:none;line-height:1.6;}
-.importlog.show{display:block;}
-.importlog div{padding:2px 0;}
-.importlog .ok{color:var(--status-ok-fg);}
-.importlog .warn{color:var(--status-warn-fg);}
-.importlog .err{color:var(--status-crit-fg);}
 
-.summary{
-  background:var(--panel-raised);border:1px solid var(--line);box-shadow:var(--shadow);
-  padding:16px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:14px;
-}
-.summary-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
-.summary-left{display:flex;flex-direction:column;gap:2px;}
-.summary-left .lbl{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-muted);text-transform:uppercase;}
-.summary-left .date{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace;}
-.summary-left .date-sub{font-size:12.5px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
-.summary-stats{display:flex;gap:10px;flex-wrap:wrap;}
-.statbox{padding:8px 14px;border:1px solid var(--line);background:var(--panel);text-align:center;min-width:96px;}
-.statbox.ok  {border-color:var(--status-ok-line);}
-.statbox.warn{border-color:var(--status-warn-line);background:var(--status-warn-bg);}
-.statbox.crit{border-color:var(--status-crit-line);background:var(--status-crit-bg);}
-.statbox.new {border-color:var(--brand-yellow);background:rgba(240,185,74,0.20);}
-.statbox .num{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;line-height:1;}
-.statbox.ok  .num{color:var(--status-ok-fg);}
-.statbox.warn .num{color:var(--status-warn-fg);}
-.statbox.crit .num{color:var(--status-crit-fg);}
-.statbox.new  .num{color:#8A5A00;}
-.statbox .lbl{font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;}
-.summary-actions{display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line-soft);padding-top:14px;}
-.summary-actions .btn{flex:1;justify-content:center;min-width:150px;}
+.topbar{background:var(--teal);color:#FFFFFF;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;padding-top:calc(14px + env(safe-area-inset-top, 0px));}
+.topbar h1{margin:0;font-size:17px;font-weight:600;flex:1;}
 
-.tablewrap{border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);overflow-x:auto;margin-bottom:16px;}
-table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13px;}
-.preview thead th{
-  text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);
-  text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;
-  border-bottom:2px solid var(--line);white-space:nowrap;
-  background:var(--panel-raised);position:sticky;top:0;
-}
-.preview tbody td{padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle;}
-.preview tbody tr:hover{background:var(--panel-raised);}
-.preview tbody tr.flagged-ok   {border-left:4px solid var(--status-ok-line);}
-.preview tbody tr.flagged-warn {border-left:4px solid var(--status-warn-line);background:var(--status-warn-bg);}
-.preview tbody tr.flagged-crit {border-left:4px solid var(--status-crit-line);background:var(--status-crit-bg);}
-.preview tbody tr.flagged-new  {border-left:4px solid var(--brand-yellow);background:rgba(240,185,74,0.12);}
-.preview td.mono{font-family:'IBM Plex Mono',monospace;}
-.preview td.center{text-align:center;}
-.preview td.name{font-weight:600;}
+.page-head{padding:20px 18px 12px;}
+.page-head .title{font-size:22px;font-weight:600;color:var(--text);margin:0 0 2px;}
+.page-head .sub{font-size:13px;color:var(--gray-muted);}
 
-.match-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;font-size:11.5px;font-weight:700;letter-spacing:.02em;}
-.match-pill.ok  {background:var(--status-ok-bg);color:var(--status-ok-fg);}
-.match-pill.warn{background:var(--status-warn-bg);color:var(--status-warn-fg);}
-.match-pill.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);}
-.match-pill.new {background:rgba(240,185,74,0.30);color:#8A5A00;}
+.info-banner{margin:0 18px 16px;padding:12px 14px;background:#E8F0F2;border:1px solid #8FC0D9;color:var(--teal);font-size:13px;font-weight:500;display:flex;align-items:flex-start;gap:10px;line-height:1.5;}
+.info-banner svg{width:16px;height:16px;flex-shrink:0;margin-top:2px;stroke:currentColor;stroke-width:2;fill:none;}
 
-.picker{padding:6px 8px;font-size:12.5px;background:var(--panel);color:var(--text);border:1px solid var(--line);max-width:220px;}
-.picker:focus{outline:2px solid var(--accent);}
+.section{background:#FFFFFF;border:1px solid var(--gray-border);margin:0 18px 16px;padding:16px;}
+.section h2{font-size:14px;color:var(--teal);font-weight:600;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--gray-border);display:flex;align-items:center;gap:8px;}
+.section h2 svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;}
 
-.rowaction{padding:6px 10px;font-size:11.5px;font-weight:700;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;}
-.rowaction:hover{border-color:var(--accent);color:var(--accent);}
+.dropzone{border:2px dashed var(--gray-border);padding:36px 20px;text-align:center;color:var(--gray-muted);font-size:13.5px;cursor:pointer;transition:border-color .15s, background .15s;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.dropzone:active, .dropzone.drag{border-color:var(--teal);background:var(--teal-light);}
+.dropzone svg{width:42px;height:42px;stroke:var(--teal);stroke-width:1.8;fill:none;}
+.dropzone b{color:var(--text);font-weight:600;font-size:14.5px;display:block;}
+.dropzone .sub{font-size:12px;margin-top:4px;color:var(--gray-muted);}
 
-.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;background:var(--panel);border:1px dashed var(--line);}
-.empty-state b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
+.import-log{margin-top:12px;font-size:12px;max-height:150px;overflow-y:auto;border-top:1px solid var(--gray-border);padding-top:10px;display:none;font-family:'IBM Plex Mono',monospace;color:var(--gray-muted);line-height:1.55;}
+.import-log.show{display:block;}
+.import-log div{padding:2px 0;}
+.import-log .ok{color:var(--green);}
+.import-log .warn{color:var(--amber);}
+.import-log .err{color:var(--red);}
 
-.toast{
-  position:fixed;bottom:24px;left:50%;
-  transform:translateX(-50%) translateY(120%);
-  background:var(--status-ok-fg);color:#fff;
-  padding:14px 22px;font-size:14px;font-weight:700;
-  box-shadow:0 8px 24px rgba(0,0,0,0.35);
-  transition:transform .3s cubic-bezier(.2,.9,.3,1.2);z-index:200;
-}
+.summary{background:#FFFFFF;border:1px solid var(--gray-border);margin:0 18px 16px;padding:16px;}
+.summary-head{display:flex;flex-direction:column;gap:4px;padding-bottom:14px;border-bottom:1px solid var(--gray-border);margin-bottom:14px;}
+.summary-head .lbl{font-size:11px;color:var(--gray-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
+.summary-head .date{font-size:18px;font-weight:700;color:var(--teal);font-family:'IBM Plex Mono',monospace;}
+.summary-head .sub{font-size:12px;color:var(--gray-muted);font-family:'IBM Plex Mono',monospace;}
+
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.stat-box{padding:12px 10px;border:1px solid var(--gray-border);background:#F7F9FA;text-align:center;}
+.stat-box.ok{border-color:var(--green);background:#E0F1E4;}
+.stat-box.warn{border-color:var(--amber);background:#FBF0D2;}
+.stat-box.crit{border-color:var(--red);background:#F7DAD5;}
+.stat-box.new{border-color:var(--teal);background:var(--teal-light);}
+.stat-box .num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;line-height:1;}
+.stat-box.ok .num{color:#2F7D46;}
+.stat-box.warn .num{color:#8A5A00;}
+.stat-box.crit .num{color:#A32B1B;}
+.stat-box.new .num{color:var(--teal);}
+.stat-box .lbl{font-size:10.5px;font-weight:600;color:var(--gray-muted);text-transform:uppercase;letter-spacing:0.03em;margin-top:4px;}
+
+.summary-actions{display:flex;flex-direction:column;gap:8px;}
+.btn{width:100%;padding:14px;font-size:15px;font-family:inherit;font-weight:600;border:1px solid var(--gray-border);background:#FFFFFF;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;touch-action:manipulation;transition:background .15s, transform .1s;}
+.btn:active{transform:scale(0.98);}
+.btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.2;fill:none;}
+.btn.primary{background:var(--teal);color:#FFFFFF;border-color:var(--teal);}
+.btn.primary:active{background:var(--teal-dark);}
+.btn[disabled]{opacity:0.5;cursor:not-allowed;}
+
+.emp-list{padding:0 18px 16px;display:flex;flex-direction:column;gap:8px;}
+.emp-row{background:#FFFFFF;border:1px solid var(--gray-border);border-left:4px solid var(--gray-border);padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.emp-row.ok{border-left-color:var(--green);}
+.emp-row.warn{border-left-color:var(--amber);background:#FFFCF5;}
+.emp-row.crit{border-left-color:var(--red);background:#FFF8F6;}
+.emp-row.new{border-left-color:var(--teal);background:var(--teal-light);}
+
+.emp-row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.emp-row-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+.emp-row-badge{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gray-muted);margin-top:2px;}
+.match-pill{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:2px;white-space:nowrap;flex-shrink:0;}
+.match-pill.ok{background:#E0F1E4;color:#2F7D46;}
+.match-pill.warn{background:#FBF0D2;color:#8A5A00;}
+.match-pill.crit{background:#F7DAD5;color:#A32B1B;}
+.match-pill.new{background:#FFFFFF;color:var(--teal);border:1px solid var(--teal);}
+
+.emp-times-inline{display:grid;grid-template-columns:repeat(4, 1fr);gap:6px;font-size:12px;}
+.emp-times-inline .cell{text-align:center;padding:6px 4px;background:#F7F9FA;border:1px solid var(--gray-border);}
+.emp-times-inline .cell .l{display:block;font-size:9.5px;color:var(--gray-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:2px;}
+.emp-times-inline .cell .v{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text);font-size:12.5px;}
+
+.emp-match-select{width:100%;padding:10px 12px;font-size:14px;font-family:inherit;border:1px solid var(--gray-border);background:#FFFFFF;color:var(--text);outline:none;}
+.emp-match-select:focus{border-color:var(--teal);}
+
+.emp-row-actions{display:flex;gap:6px;}
+.emp-row-actions button{flex:1;padding:9px;font-size:12.5px;font-weight:600;font-family:inherit;border:1px solid var(--gray-border);background:#FFFFFF;color:var(--gray-muted);cursor:pointer;min-height:38px;}
+.emp-row-actions button:active{background:var(--gray-bg);}
+
+.empty{padding:60px 24px;text-align:center;color:var(--gray-muted);background:#FFFFFF;border:1px dashed var(--gray-border);margin:0 18px;font-size:14px;}
+.empty svg{width:48px;height:48px;margin:0 auto 14px;stroke:var(--gray-border);stroke-width:1.5;fill:none;}
+.empty b{display:block;color:var(--text);font-size:15px;font-weight:600;margin-bottom:6px;}
+
+.toast{position:fixed;bottom:calc(88px + env(safe-area-inset-bottom, 0px));left:50%;transform:translateX(-50%) translateY(150%);background:var(--green);color:#FFFFFF;padding:12px 22px;font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);transition:transform .3s cubic-bezier(.2,.9,.3,1.2);z-index:200;max-width:calc(100% - 40px);text-align:center;border-radius:2px;}
 .toast.show{transform:translateX(-50%) translateY(0);}
 
-.loading-overlay{position:fixed;inset:0;background:rgba(20,24,29,0.6);display:none;align-items:center;justify-content:center;z-index:150;}
+.loading-overlay{position:fixed;inset:0;background:rgba(15,20,25,0.6);display:none;align-items:center;justify-content:center;z-index:150;}
 .loading-overlay.show{display:flex;}
-.loading-overlay .spinner{width:48px;height:48px;border:4px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;}
+.loading-overlay .spinner{width:48px;height:48px;border:4px solid var(--teal);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-@media (max-width:640px){
-  .header{flex-direction:column;align-items:stretch;}
-  .controls{justify-content:stretch;}
-  .controls .btn{flex:1;justify-content:center;}
-  .summary-top{flex-direction:column;align-items:stretch;}
-  .summary-stats{justify-content:space-between;}
-  .statbox{flex:1;min-width:0;}
-  table.preview{font-size:12px;}
-}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;background:#FFFFFF;border-top:1px solid var(--gray-border);display:grid;grid-template-columns:repeat(5, 1fr);padding-bottom:env(safe-area-inset-bottom, 0px);z-index:30;box-shadow:0 -2px 8px rgba(0,0,0,0.04);}
+.nav-item{background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px 10px;color:var(--gray-muted);font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer;touch-action:manipulation;min-height:64px;position:relative;}
+.nav-item:active{background:var(--gray-bg);}
+.nav-item.active{color:var(--teal);}
+.nav-item svg{width:24px;height:24px;stroke:currentColor;stroke-width:2;fill:none;}
+.nav-item.active svg{stroke-width:2.4;}
+.nav-item .badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--red);color:#FFFFFF;font-size:9.5px;font-weight:700;min-width:16px;height:16px;padding:0 4px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:2px solid #FFFFFF;}
+.nav-item .badge.hidden{display:none;}
+
+#loadingOverlay{position:fixed;inset:0;background:#0D5B6E;color:#fff;display:flex;align-items:center;justify-content:center;z-index:100;font-size:14px;letter-spacing:0.05em;}
+#loadingOverlay.hidden{display:none;}
 </style>
 </head>
 <body>
 
-<div class="app" id="app" style="display:none;">
+<div id="loadingOverlay">Chargement…</div>
 
-  <div class="header">
-    <div class="brand">
-      <img class="arch" src="../shared/200.webp" alt="McDonald's">
-      <h1>Import quotidien</h1>
-      <span class="restaurant-badge" id="restaurantBadge" style="display:none;"></span>
+<div class="topbar">
+  <h1>Import quotidien</h1>
+</div>
+
+<div class="page-head">
+  <h1 class="title">Import quotidien</h1>
+  <div class="sub">Rapport de pointage PDF</div>
+</div>
+
+<div class="info-banner">
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+  <span>Déposez le PDF du jour. Les employés non enregistrés seront créés automatiquement à l'enregistrement.</span>
+</div>
+
+<div class="section" id="importSection">
+  <h2>
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    Charger le rapport
+  </h2>
+  <div class="dropzone" id="dropzone">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    <div>
+      <b>Déposez le PDF ici</b>
+      <div class="sub">ou touchez pour parcourir</div>
     </div>
-    <div class="controls">
-      <a class="btn" href="index.html">← Tableau de bord</a>
-      <a class="btn" href="planning.html">Planning</a>
-      <a class="btn" href="staff.html">Employés</a>
-      <a class="btn" href="requests.html">Demandes</a>
-      <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
-      <button class="btn" id="btnLogout">Déconnexion</button>
+    <input type="file" id="fileInput" accept="application/pdf" style="display:none;">
+  </div>
+  <div class="import-log" id="importLog"></div>
+</div>
+
+<div class="empty" id="emptyState" style="display:none;">
+  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+  <b>Aucun aperçu en cours</b>
+  Chargez un PDF ci-dessus pour voir les pointages du jour.
+</div>
+
+<div id="previewWrap" style="display:none;">
+
+  <div class="summary">
+    <div class="summary-head">
+      <span class="lbl">Date détectée dans le PDF</span>
+      <span class="date" id="sumDate">—</span>
+      <span class="sub" id="sumStore">—</span>
+    </div>
+    <div class="stats-grid" id="sumStats"></div>
+    <div class="summary-actions">
+      <button class="btn primary" id="btnSaveAll">
+        <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+        Enregistrer dans la base
+      </button>
+      <button class="btn" id="btnClearPreview">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        Effacer le tableau
+      </button>
     </div>
   </div>
 
-  <div class="help">
-    <b>Importation d'un rapport quotidien.</b>
-    Déposez le PDF du jour. L'application lit chaque ligne, associe le badge (colonne <b>Bno</b>)
-    à un employé existant, et affiche un aperçu. <b>Les employés qui ne sont pas encore
-    enregistrés seront automatiquement créés</b> avec leur badge et leur nom quand vous cliquez
-    sur « Enregistrer ». Un pointage existant pour la même date sera automatiquement remplacé.
-    Les pointages sont enregistrés à la <b>date du jour</b> pour apparaître immédiatement sur
-    le tableau de bord.
-  </div>
-
-  <div class="import" id="importZone">
-    <div class="import-head">
-      <div class="import-title">Étape 1 — Charger le rapport quotidien</div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn" id="btnNewFile" style="display:none;">Charger un autre PDF</button>
-      </div>
-    </div>
-    <div class="dropzone" id="dropzone">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-      <div><b>Déposez le PDF ici</b> ou cliquez pour parcourir</div>
-      <div class="sub">Format attendu : « Time Recorder Transaction Report » d'un jour (tous employés)</div>
-      <input type="file" id="fileInput" accept="application/pdf" style="display:none;">
-    </div>
-    <div class="importlog" id="importLog"></div>
-  </div>
-
-  <div class="empty-state" id="emptyState">
-    <b>Aucun aperçu en cours</b>
-    Chargez un PDF ci-dessus pour voir les pointages du jour.<br>
-    Rien n'est enregistré tant que vous n'aurez pas confirmé.
-  </div>
-
-  <div id="previewWrap" style="display:none;">
-    <div class="summary" id="summary">
-      <div class="summary-top">
-        <div class="summary-left">
-          <span class="lbl">Date détectée</span>
-          <span class="date" id="sumDate">—</span>
-          <span class="date-sub" id="sumStore">—</span>
-        </div>
-        <div class="summary-stats" id="sumStats"></div>
-      </div>
-      <div class="summary-actions">
-        <button class="btn" id="btnClearPreview">Effacer le tableau</button>
-        <button class="btn btn-primary" id="btnSaveAll">✓ Enregistrer dans la base</button>
-      </div>
-    </div>
-
-    <div class="tablewrap">
-      <table class="preview">
-        <thead>
-          <tr>
-            <th>Badge</th><th>Nom (PDF)</th><th>Employé associé</th>
-            <th>Entrée</th><th>Pause</th><th>Retour</th><th>Sortie</th>
-            <th>Heures</th><th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="previewBody"></tbody>
-      </table>
-    </div>
-  </div>
+  <div class="emp-list" id="empList"></div>
 
 </div>
 
+<div class="bottomnav">
+  <button class="nav-item" data-page="dashboard">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span>Pointages</span>
+  </button>
+  <button class="nav-item" data-page="planning">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+    <span>Planning</span>
+  </button>
+  <button class="nav-item" data-page="staff">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1"/></svg>
+    <span>Employés</span>
+  </button>
+  <button class="nav-item" data-page="requests">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
+    <span>Demandes</span>
+    <span class="badge hidden" id="requestsBadge">0</span>
+  </button>
+  <button class="nav-item active" data-page="daily-import">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    <span>Import</span>
+  </button>
+</div>
+
 <div class="toast" id="toast">—</div>
-<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+<div class="loading-overlay" id="busyOverlay"><div class="spinner"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -229,7 +232,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 <script>
 (function(){
   'use strict';
-
   const $ = function(id){ return document.getElementById(id); };
   const R = window.CSMRules;
 
@@ -237,66 +239,45 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
 
-  // ---------- Theme ----------
-  (function(){
-    const K = 'csct_manager_theme';
-    function apply(){
-      let t = 'light';
-      try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-      document.documentElement.classList.toggle('theme-light', t === 'light');
-      document.documentElement.classList.toggle('theme-dark', t === 'dark');
-      const b = document.getElementById('btnTheme');
-      if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
-    }
-    apply();
-    const btn = document.getElementById('btnTheme');
-    if(btn){
-      btn.addEventListener('click', function(){
-        let t = 'light';
-        try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-        const next = t === 'light' ? 'dark' : 'light';
-        try{ localStorage.setItem(K, next); }catch(e){}
-        apply();
-      });
-    }
-  })();
+  // ============================================================
+  // Column positions (from the PDF header row, x-coordinates)
+  // ============================================================
+  const COL = {
+    BNO:      { min: 30,  max: 55  },
+    EMPLNO:   { min: 60,  max: 95  },
+    NAME:     { min: 96,  max: 185 },
+    DATE:     { min: 186, max: 275 },
+    IN:       { min: 276, max: 330 },
+    OUT:      { min: 331, max: 430 },
+    BREAK:    { min: 435, max: 475 },
+    HRS:      { min: 476, max: 525 },
+    SUM:      { min: 526, max: 600 }
+  };
 
   let staffList = [];
   let staffByBadge = {};
   let currentImport = null;
   let unsubImport = null;
-
   let started = false;
-  auth.onAuthStateChanged(function(user){
-    if(!user){ window.location.replace('login.html'); return; }
-    if(started) return;
-    started = true;
 
-    db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
-      if(!doc.exists){
-        auth.signOut().then(function(){ window.location.replace('login.html'); });
-        return;
-      }
-      return Promise.race([
-        CSM.ready,
-        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
-      ]).then(function(){
-        document.querySelector('.app').style.display = 'block';
-        $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
-        $('restaurantBadge').style.display = 'inline-block';
-        wireImport();
-        wireActions();
-        loadStaff().then(function(){
-          subscribeCurrentImport();
-        });
-      });
-    }).catch(function(err){
-      console.error('Auth gating:', err);
-      alert('Erreur de chargement : ' + err.message);
+  CSM.authReady.then(function(){
+    auth.onAuthStateChanged(function(user){
+      if(!user){ window.location.replace('login.html'); return; }
+      if(started) return;
+      started = true;
+      db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+        if(!doc.exists){ auth.signOut(); return; }
+        CSM.ready.then(startLive);
+      }).catch(function(){ CSM.ready.then(startLive); });
     });
   });
 
-  $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
+  function startLive(){
+    $('loadingOverlay').classList.add('hidden');
+    wireImport();
+    wireActions();
+    loadStaff().then(subscribeCurrentImport);
+  }
 
   function loadStaff(){
     return CSM.refs.staffColl().get().then(function(snap){
@@ -308,11 +289,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         staffList.push(s);
         staffByBadge[String(s.badge)] = s;
       });
-      staffList.sort(function(a,b){
-        return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
-      });
-    }).catch(function(err){
-      console.warn('loadStaff:', err);
+      staffList.sort(function(a,b){ return String(a.name || '').localeCompare(String(b.name || ''), 'fr'); });
     });
   }
 
@@ -327,9 +304,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         currentImport = null;
         render();
       }
-    }, function(err){
-      console.warn('subscribeCurrentImport:', err);
-    });
+    }, function(err){ console.warn(err); });
   }
 
   function wireImport(){
@@ -338,198 +313,231 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       if(e.target.files[0]) handleFile(e.target.files[0]);
       e.target.value = '';
     });
-    ['dragenter','dragover'].forEach(function(evt){
-      $('dropzone').addEventListener(evt, function(e){
-        e.preventDefault(); $('dropzone').classList.add('drag');
-      });
-    });
-    ['dragleave','drop'].forEach(function(evt){
-      $('dropzone').addEventListener(evt, function(e){
-        e.preventDefault(); $('dropzone').classList.remove('drag');
-      });
-    });
-    $('dropzone').addEventListener('drop', function(e){
-      e.preventDefault();
-      $('dropzone').classList.remove('drag');
-      const file = e.dataTransfer && e.dataTransfer.files[0];
-      if(file && file.type === 'application/pdf') handleFile(file);
-      else if(file) alert('Veuillez déposer un fichier PDF.');
-    });
-    $('btnNewFile').addEventListener('click', function(){ $('fileInput').click(); });
   }
 
   async function handleFile(file){
     clearLog();
     log('Lecture du fichier "' + file.name + '"…');
-    $('loadingOverlay').classList.add('show');
+    $('busyOverlay').classList.add('show');
     try{
       if(!window['pdfjsLib']) throw new Error('Le lecteur PDF n\'est pas chargé.');
-      const text = await extractPdfText(await file.arrayBuffer());
-      const parsed = parseDailyReport(text);
-      if(!parsed.rows.length){
-        throw new Error('Aucun employé détecté dans le PDF. Vérifiez le format.');
-      }
+      const pages = await extractPdfItems(await file.arrayBuffer());
+      const parsed = parseDailyReport(pages);
+      if(!parsed.rows.length) throw new Error('Aucun employé détecté dans le PDF.');
       log('PDF analysé — ' + parsed.rows.length + ' employés trouvés.', 'ok');
-
       const payload = {
-        date: parsed.date,
-        store: parsed.store,
-        location: parsed.location,
+        date: parsed.date, store: parsed.store, location: parsed.location,
         rows: parsed.rows,
         importedAt: new Date().toISOString(),
         importedBy: auth.currentUser ? auth.currentUser.uid : null,
         fileName: file.name,
-        savedAt: null,
-        savedCount: 0
+        savedAt: null, savedCount: 0
       };
       await CSM.refs.dailyImport('current').set(payload);
       log('Aperçu enregistré.', 'ok');
     }catch(err){
-      console.error('handleFile:', err);
+      console.error(err);
       log('Erreur : ' + err.message, 'err');
       alert('Import impossible : ' + err.message);
     }finally{
-      $('loadingOverlay').classList.remove('show');
+      $('busyOverlay').classList.remove('show');
     }
   }
 
-  async function extractPdfText(arrayBuffer){
+  // ============================================================
+  // PDF extraction — keep x, y, w positions
+  // ============================================================
+  async function extractPdfItems(arrayBuffer){
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
+    const pages = [];
     for(let p = 1; p <= pdf.numPages; p++){
       const page = await pdf.getPage(p);
       const content = await page.getTextContent();
-      const lineMap = new Map();
-      content.items.forEach(function(item){
-        const y = Math.round(item.transform[5]);
-        if(!lineMap.has(y)) lineMap.set(y, []);
-        lineMap.get(y).push(item);
-      });
-      const sortedY = Array.from(lineMap.keys()).sort(function(a,b){ return b - a; });
-      sortedY.forEach(function(y){
-        const items = lineMap.get(y).sort(function(a,b){ return a.transform[4] - b.transform[4]; });
-        fullText += items.map(function(i){ return i.str; }).join('') + '\n';
-      });
+      const items = content.items
+        .filter(function(i){ return typeof i.str === 'string' && i.str.trim(); })
+        .map(function(i){
+          return {
+            str: i.str,
+            x: i.transform[4],
+            y: i.transform[5],
+            w: i.width
+          };
+        });
+      pages.push(items);
     }
-    return fullText;
+    return pages;
   }
 
-  function parseDailyReport(text){
-    const dateMatch = /Date\s*(\d{2}\/\d{2}\/\d{4})/.exec(text);
-    const storeMatch = /Store\s*(\d+)/.exec(text);
-    const locationMatch = /\d{2}\/\d{2}\/\d{4}([A-Z][A-Z\s]+?)Store/.exec(text);
-    const date = dateMatch ? dateMatch[1] : null;
+  // ============================================================
+  // Column assignment by X position
+  // ============================================================
+  function colOf(x){
+    for(const key in COL){
+      const c = COL[key];
+      if(x >= c.min && x <= c.max) return key;
+    }
+    return null;
+  }
 
-    const lines = text.split(/\r?\n/);
-    const blocks = [];
-    let buffer = [];
+  // ============================================================
+  // Parse the report
+  // ============================================================
+  function parseDailyReport(pages){
+    // 1. Extract date / store / location from page 1 header
+    let date = null, store = null, location = null;
+    if(pages[0]){
+      const p1 = pages[0];
+      // Date "09/08/2025" near "Date" label at top
+      const dateItem = p1.find(function(i){
+        return /^\d{2}\/\d{2}\/\d{4}$/.test(i.str) && i.y > 780;
+      });
+      if(dateItem) date = dateItem.str;
 
-    lines.forEach(function(line){
-      const trimmed = line.trim();
-      if(!trimmed) return;
-
-      if(/^Bno\b/i.test(trimmed)) return;
-      if(/^No\s*$/i.test(trimmed)) return;
-      if(/^Sum Of Worked/i.test(trimmed)) return;
-      if(/^G\s*=\s*Punched/i.test(trimmed)) return;
-      if(/^Page\s*\d+\/\d+/i.test(trimmed)) return;
-      if(/^Time Recorder/i.test(trimmed)) return;
-      if(/^Selection\s*:/i.test(trimmed)) return;
-      if(/^Sorting\s*:/i.test(trimmed)) return;
-      if(/^Time\s*\d{2}:\d{2}/i.test(trimmed)) return;
-      if(/^Date\s*\d{2}\/\d{2}\/\d{4}/i.test(trimmed)) return;
-
-      const isSum = /^SUM\s*[\d.]+/i.test(trimmed);
-      if(isSum){
-        if(buffer.length){
-          blocks.push(buffer.join(' '));
-          buffer = [];
-        }
-        return;
+      // Store number
+      const storeIdx = p1.findIndex(function(i){ return i.str === 'Store'; });
+      if(storeIdx >= 0 && p1[storeIdx + 1] && /^\d+$/.test(p1[storeIdx + 1].str)){
+        store = p1[storeIdx + 1].str;
       }
-      buffer.push(trimmed);
+
+      // Location (uppercase words before Store)
+      const locItem = p1.find(function(i){
+        return /^[A-Z][A-Z\s]+$/.test(i.str) && i.x > 230 && i.x < 410 && i.y > 780;
+      });
+      if(locItem) location = locItem.str.trim();
+    }
+
+    // 2. Find the header row (contains "Bno" and "Empl-" and "Employee")
+    //    We use it to detect the START of the data section on each page.
+    // 3. Collect all items with y below the header, group into employee blocks.
+    //    Each employee starts when an item appears in the BNO column range.
+
+    const allItems = [];
+    pages.forEach(function(pageItems, pageIdx){
+      // Find header y on this page
+      const headerItem = pageItems.find(function(i){
+        return i.str === 'Bno' && i.x >= COL.BNO.min && i.x <= COL.BNO.max;
+      });
+      const headerY = headerItem ? headerItem.y : Infinity;
+
+      pageItems.forEach(function(i){
+        if(i.y < headerY) return;          // above header = title/date, skip
+        if(i.str === 'Bno') return;         // header itself
+        if(i.str === 'No') return;          // 2nd line of header
+        if(i.str === 'Empl-') return;
+        if(i.str === 'Employee') return;
+        if(i.str === 'Date') return;
+        if(i.str === 'In') return;
+        if(i.str === 'Out') return;
+        if(i.str === 'Break') return;
+        if(i.str === 'Hrs') return;
+        if(i.str === 'Sum') return;
+        if(i.str === 'SUM') return;
+        allItems.push(i);
+      });
     });
-    if(buffer.length) blocks.push(buffer.join(' '));
 
-    const rows = [];
-    blocks.forEach(function(blockText){
-      const startMatch = /^(\d{5,10})\s+/.exec(blockText);
-      if(!startMatch) return;
-      const rawNum = startMatch[1];
+    // Group by employee: a new employee starts when an item is in BNO column.
+    // Sort by page, then y desc (top to bottom in PDF means y decreasing... 
+    // actually in PDF coords y increases upward, so we go from high y to low y)
+    // But we've flattened pages, so we need to be careful.
+    // Instead: iterate page by page, sort by y desc, and start new block on BNO.
 
-      const dateDay = /(\d{2}\/\d{2}\/\d{4})\s*(Mon|Tue|Wed|Thu|Fri|Sat|Sun|Lun|Mar|Mer|Jeu|Ven|Sam|Dim)(?=\s|\d|$)/i.exec(blockText);
-      if(!dateDay) return;
+    const blocks = [];
+    pages.forEach(function(pageItems){
+      // Skip page 1's header area
+      const headerItem = pageItems.find(function(i){
+        return i.str === 'Bno' && i.x >= COL.BNO.min && i.x <= COL.BNO.max;
+      });
+      const headerY = headerItem ? headerItem.y : Infinity;
 
-      const afterNum = blockText.slice(startMatch[0].length);
-      const dateIdx = afterNum.indexOf(dateDay[1]);
-      let namePart = dateIdx > 0 ? afterNum.slice(0, dateIdx) : afterNum;
-      const afterDate = afterNum.slice(dateIdx + dateDay[0].length);
-      let nameTail = afterDate
-        .replace(/\d{1,2}:\d{2}[GPKMSAC]/gi, ' ')
-        .replace(/\d+\.\d+/g, ' ')
-        .replace(/-/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+      // All items below header (y <= headerY), sorted by y desc, then x asc
+      const items = pageItems
+        .filter(function(i){ return i.y < headerY; })
+        .filter(function(i){ return i.str !== 'SUM'; })
+        .sort(function(a, b){
+          if(Math.abs(a.y - b.y) > 2) return b.y - a.y;
+          return a.x - b.x;
+        });
 
-      let fullName = (namePart + ' ' + nameTail).replace(/\s+/g, ' ').trim();
-      fullName = stripParens(fullName);
-      fullName = fullName.replace(/\s+/g, ' ').trim();
-
-      const times = [];
-      const TIME_TAG_RE = /(\d{1,2}):(\d{2})([GPKMSAC])/gi;
-      let m;
-      while((m = TIME_TAG_RE.exec(blockText)) !== null){
-        times.push({ h: parseInt(m[1],10), min: parseInt(m[2],10), tag: m[3].toUpperCase() });
-      }
-
-      let clockIn = null, breakStart = null, breakReturn = null, clockOut = null;
-      let gSeen = 0;
-      times.forEach(function(t){
-        if(t.tag === 'G'){
-          gSeen++;
-          if(gSeen === 1) clockIn = t.h*60 + t.min;
-          else if(gSeen === 2) breakReturn = t.h*60 + t.min;
-          else if(gSeen === 3) clockOut = t.h*60 + t.min;
-        } else if(t.tag === 'P'){
-          if(breakStart === null) breakStart = t.h*60 + t.min;
+      let current = null;
+      items.forEach(function(it){
+        const col = colOf(it.x);
+        if(col === 'BNO' && /^\d+$/.test(it.str)){
+          // Start new employee block
+          if(current) blocks.push(current);
+          current = {
+            bno: it.str,
+            emplNo: null,
+            nameParts: [],
+            date: null,
+            inTime: null,
+            outTime: null,
+            breakTime: null
+          };
+        } else if(!current){
+          return;   // ignore items before first BNO
+        } else {
+          if(col === 'EMPLNO' && /^\d+$/.test(it.str)){
+            current.emplNo = (current.emplNo || '') + it.str;
+          } else if(col === 'NAME'){
+            current.nameParts.push(it.str);
+          } else if(col === 'DATE' && !current.date){
+            current.date = it.str;
+          } else if(col === 'IN' && !current.inTime){
+            current.inTime = it.str;
+          } else if(col === 'OUT'){
+            // Could be on next Y line. Append if there's room.
+            if(!current.outTime) current.outTime = it.str;
+            else if(!current.outTime.includes(it.str)) current.outTime = it.str;
+          } else if(col === 'BREAK' && !current.breakTime){
+            current.breakTime = it.str;
+          }
         }
       });
+      if(current) blocks.push(current);
+    });
 
-      rows.push({
-        rawNum: rawNum,
-        namePdf: fullName,
-        date: dateDay[1],
-        day: dateDay[2],
-        clockIn: clockIn,
-        breakStart: breakStart,
-        breakReturn: breakReturn,
-        clockOut: clockOut,
+    // 4. Convert to rows
+    const rows = blocks.map(function(b){
+      const name = cleanName(b.nameParts.join(' '));
+      const inMin  = parseTimeTag(b.inTime);
+      const outMin = parseTimeTag(b.outTime);
+      const brkMin = parseTimeTag(b.breakTime);
+      return {
+        rawNum: b.bno,                    // Bno from PDF = badge
+        emplNo: b.emplNo,
+        namePdf: name,
+        date: b.date,
+        clockIn: inMin,
+        breakStart: brkMin,               // PDF gives one break duration, treat as start+end combined
+        breakReturn: null,
+        clockOut: outMin,
         match: null,
         chosenBadge: null,
         isNew: false
-      });
-    });
+      };
+    }).filter(function(r){ return r.namePdf; });
 
-    return {
-      date: date,
-      store: storeMatch ? storeMatch[1] : null,
-      location: locationMatch ? locationMatch[1].trim() : null,
-      rows: rows
-    };
+    return { date: date, store: store, location: location, rows: rows };
   }
 
-  function stripParens(s){
-    let out = '';
-    let depth = 0;
-    for(let i = 0; i < s.length; i++){
-      const c = s[i];
-      if(c === '(') depth++;
-      else if(c === ')'){ if(depth > 0) depth--; }
-      else if(depth === 0) out += c;
-    }
-    return out;
+  function parseTimeTag(str){
+    if(!str) return null;
+    const m = /^(\d{1,2}):(\d{2})/.exec(str);
+    if(!m) return null;
+    return (parseInt(m[1], 10) * 60) + parseInt(m[2], 10);
   }
 
+  function cleanName(s){
+    return String(s || '')
+      .replace(/\([^)]*\)/g, '')   // remove (Equipier), (Form), etc.
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // ============================================================
+  // Match against staff
+  // ============================================================
   function matchAgainstStaff(){
     if(!currentImport) return;
     currentImport.rows.forEach(function(row){
@@ -539,68 +547,52 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     });
   }
 
-  function splitBadge(raw){
-    const candidates = [];
-    for(let len = 3; len >= 1; len--){
-      if(raw.length <= len) continue;
-      const prefix = raw.slice(0, len);
-      const rest = raw.slice(len);
-      if(rest.length < 5 || rest.length > 6) continue;
-      candidates.push({ badge: prefix, emplNo: rest });
-    }
-    return candidates;
-  }
-
   function resolveRow(row){
-    const raw = row.rawNum;
-    const splits = splitBadge(raw);
-    const matchedSplits = splits.filter(function(s){ return !!staffByBadge[s.badge]; });
+    const bno = String(row.rawNum || '').trim();
 
-    if(matchedSplits.length === 1){
-      const s = matchedSplits[0];
-      const staff = staffByBadge[s.badge];
+    // 1. Try exact badge match
+    if(bno && staffByBadge[bno]){
+      const staff = staffByBadge[bno];
       const nameOk = R.sameName(staff.name, row.namePdf);
       return {
-        badge: s.badge, emplNo: s.emplNo, staffName: staff.name,
+        badge: bno,
+        staffName: staff.name,
         level: nameOk ? 'ok' : 'warn',
         reason: nameOk ? 'badge + nom' : 'badge seulement (nom différent)'
       };
     }
-    if(matchedSplits.length > 1){
-      return { badge: null, emplNo: null, staffName: null, level: 'crit', reason: 'plusieurs badges possibles' };
-    }
 
+    // 2. Try name match
     const byName = staffList.find(function(s){ return R.sameName(s.name, row.namePdf); });
     if(byName){
       return {
-        badge: String(byName.badge), emplNo: null, staffName: byName.name,
-        level: 'warn', reason: 'nom seulement (badge déduit)'
+        badge: String(byName.badge),
+        staffName: byName.name,
+        level: 'warn',
+        reason: 'nom seulement (badge ' + byName.badge + ')'
       };
     }
 
-    const best = splits[0];
-    if(best){
-      return {
-        badge: best.badge, emplNo: best.emplNo, staffName: null,
-        level: 'new', reason: 'nouvel employé (créé à l\'enregistrement)'
-      };
-    }
+    // 3. New employee — use Bno as badge
     return {
-      badge: raw, emplNo: null, staffName: null,
-      level: 'new', reason: 'nouvel employé (badge = numéro complet)'
+      badge: bno,
+      staffName: null,
+      level: 'new',
+      reason: 'nouvel employé'
     };
   }
 
+  // ============================================================
+  // Render
+  // ============================================================
   function render(){
     if(!currentImport){
       $('previewWrap').style.display = 'none';
       $('emptyState').style.display = 'block';
-      $('btnNewFile').style.display = 'none';
       return;
     }
     $('previewWrap').style.display = 'block';
     $('emptyState').style.display = 'none';
-    $('btnNewFile').style.display = 'inline-flex';
 
     $('sumDate').textContent = currentImport.date || '—';
     const store = currentImport.store ? ('Store ' + currentImport.store) : '';
@@ -619,15 +611,16 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       (warnRows ? statBox(warnRows, 'À vérifier', 'warn') : '') +
       (critRows ? statBox(critRows, 'Introuvables', 'crit') : '');
 
-    const body = $('previewBody');
-    body.innerHTML = '';
-    rows.forEach(function(row, idx){ body.appendChild(buildRow(row, idx)); });
+    const list = $('empList');
+    list.innerHTML = '';
+    rows.forEach(function(row, idx){ list.appendChild(buildRow(row, idx)); });
 
     const saveBtn = $('btnSaveAll');
     saveBtn.disabled = rows.length === 0;
-    saveBtn.textContent = currentImport.savedAt
-      ? '✓ Enregistré (' + (currentImport.savedCount || 0) + ') — réenregistrer'
-      : '✓ Enregistrer dans la base (' + rows.length + ')';
+    saveBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>' +
+      (currentImport.savedAt
+        ? 'Réenregistrer (' + (currentImport.savedCount || 0) + ' enregistrés)'
+        : 'Enregistrer dans la base (' + rows.length + ')');
   }
 
   function effectiveLevel(row){
@@ -642,49 +635,53 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   }
 
   function statBox(num, label, cls){
-    return '<div class="statbox ' + cls + '"><div class="num">' + num + '</div><div class="lbl">' + label + '</div></div>';
+    return '<div class="stat-box ' + cls + '"><div class="num">' + num + '</div><div class="lbl">' + label + '</div></div>';
   }
 
   function buildRow(row, idx){
-    const tr = document.createElement('tr');
+    const div = document.createElement('div');
     const level = effectiveLevel(row);
-    tr.className = 'flagged-' + level;
+    div.className = 'emp-row ' + level;
     const badgeDisplay = currentImportChosenBadge(row) || '—';
     const matchLabel = { ok: 'Reconnu', warn: 'À vérifier', new: 'Nouveau', crit: 'Introuvable' }[level];
 
-    let employeeCell = '';
+    let html = '';
+    html += '<div class="emp-row-top">';
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div class="emp-row-name">' + esc(row.namePdf) + '</div>';
+    html += '<div class="emp-row-badge">Badge ' + esc(badgeDisplay) + '</div>';
+    html += '</div>';
+    html += '<span class="match-pill ' + level + '">' + esc(matchLabel) + '</span>';
+    html += '</div>';
+
     if(level === 'ok' && !row.chosenBadge){
       const name = row.match && row.match.staffName ? row.match.staffName : badgeDisplay;
-      employeeCell = '<div class="match-pill ok">✓ ' + esc(name) + '</div>';
+      html += '<div style="font-size:12px;color:var(--gray-muted);">Associé à <strong>' + esc(name) + '</strong></div>';
     } else if(level === 'new' && !row.chosenBadge){
-      employeeCell =
-        '<div class="match-pill new">+ ' + esc(row.namePdf) + ' sera créé</div>' +
-        '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + esc(row.match ? row.match.reason : '') + '</div>';
+      html += '<div style="font-size:12px;color:var(--gray-muted);">Sera créé lors de l\'enregistrement.</div>';
     } else {
       const options = ['<option value="">— Choisir un employé —</option>']
         .concat(staffList.map(function(s){
           const sel = (currentImportChosenBadge(row) === String(s.badge)) ? ' selected' : '';
-          return '<option value="' + escAttr(String(s.badge)) + '"' + sel + '>' + esc(s.name) + ' (badge ' + esc(String(s.badge)) + ')</option>';
+          return '<option value="' + esc(String(s.badge)) + '"' + sel + '>' + esc(s.name) + ' (' + esc(String(s.badge)) + ')</option>';
         })).join('');
-      employeeCell =
-        '<div class="match-pill ' + level + '" style="margin-bottom:6px;">' +
-          esc(matchLabel) + (row.match && row.match.reason ? ' · ' + esc(row.match.reason) : '') +
-        '</div>' +
-        '<select class="picker" data-idx="' + idx + '">' + options + '</select>';
+      html += '<select class="emp-match-select" data-idx="' + idx + '">' + options + '</select>';
     }
 
-    tr.innerHTML =
-      '<td class="mono"><b>' + esc(badgeDisplay) + '</b></td>' +
-      '<td class="name">' + esc(row.namePdf) + '</td>' +
-      '<td>' + employeeCell + '</td>' +
-      '<td class="mono center">' + (R.minToHM(row.clockIn) || '—') + '</td>' +
-      '<td class="mono center">' + (R.minToHM(row.breakStart) || '—') + '</td>' +
-      '<td class="mono center">' + (R.minToHM(row.breakReturn) || '—') + '</td>' +
-      '<td class="mono center">' + (R.minToHM(row.clockOut) || '—') + '</td>' +
-      '<td class="mono center"><b>' + esc(fmtHrsFromTimes(row)) + '</b></td>' +
-      '<td class="center"><button class="rowaction" data-idx="' + idx + '" data-act="ignore">Ignorer</button></td>';
+    html += '<div class="emp-times-inline">';
+    html += '<div class="cell"><span class="l">Entrée</span><span class="v">' + escapeCell(row.clockIn) + '</span></div>';
+    html += '<div class="cell"><span class="l">Pause</span><span class="v">' + escapeCell(row.breakStart) + '</span></div>';
+    html += '<div class="cell"><span class="l">Retour</span><span class="v">' + escapeCell(row.breakReturn) + '</span></div>';
+    html += '<div class="cell"><span class="l">Sortie</span><span class="v">' + escapeCell(row.clockOut) + '</span></div>';
+    html += '</div>';
 
-    const picker = tr.querySelector('.picker');
+    html += '<div class="emp-row-actions">';
+    html += '<button data-idx="' + idx + '" data-act="ignore">Ignorer</button>';
+    html += '</div>';
+
+    div.innerHTML = html;
+
+    const picker = div.querySelector('.emp-match-select');
     if(picker){
       picker.addEventListener('change', function(e){
         currentImport.rows[idx].chosenBadge = e.target.value || null;
@@ -692,7 +689,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         render();
       });
     }
-    const ignoreBtn = tr.querySelector('.rowaction');
+    const ignoreBtn = div.querySelector('[data-act="ignore"]');
     if(ignoreBtn){
       ignoreBtn.addEventListener('click', function(){
         currentImport.rows.splice(idx, 1);
@@ -700,36 +697,29 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         render();
       });
     }
-    return tr;
+    return div;
   }
 
-  function fmtHrsFromTimes(row){
-    const calc = R.computeShift({
-      clockIn: row.clockIn, breakStart: row.breakStart,
-      breakReturn: row.breakReturn, clockOut: row.clockOut
-    });
-    return R.fmtHrs(calc.totalMinutes || 0);
+  function escapeCell(min){
+    const v = R.minToHM(min);
+    return v ? esc(v) : '—';
   }
 
   function saveCurrentImport(){
     if(!currentImport) return Promise.resolve();
     const payload = Object.assign({}, currentImport);
     delete payload._id;
-    return CSM.refs.dailyImport('current').set(payload).catch(function(err){
-      console.warn('saveCurrentImport:', err);
-    });
+    return CSM.refs.dailyImport('current').set(payload).catch(function(err){ console.warn(err); });
   }
 
   function wireActions(){
     $('btnClearPreview').addEventListener('click', function(){
       if(!currentImport) return;
-      if(!confirm('Effacer le tableau d\'aperçu ?\n\nLes pointages déjà enregistrés dans la base ne seront pas supprimés.')) return;
+      if(!confirm('Effacer le tableau d\'aperçu ?\n\nLes pointages déjà enregistrés ne seront pas supprimés.')) return;
       CSM.refs.dailyImport('current').delete().then(function(){
         currentImport = null;
         render();
-      }).catch(function(err){
-        alert('Erreur : ' + err.message);
-      });
+      }).catch(function(err){ alert('Erreur : ' + err.message); });
     });
     $('btnSaveAll').addEventListener('click', saveAll);
   }
@@ -752,28 +742,21 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
     const btn = $('btnSaveAll');
     btn.disabled = true;
-    const originalText = btn.textContent;
-    btn.textContent = 'Enregistrement…';
-    $('loadingOverlay').classList.add('show');
+    $('busyOverlay').classList.add('show');
 
     let saved = 0, created = 0, failed = 0;
     const errors = [];
-
-    // Force all shifts to today so they appear on the dashboard immediately
     const dateIso = R.todayKey();
 
     for(const row of rows){
       const badge = String(currentImportChosenBadge(row));
       if(!badge){ failed++; errors.push(row.namePdf + ': badge manquant'); continue; }
-
       let staff = staffByBadge[badge];
 
       if(!staff && effectiveLevel(row) === 'new'){
         try{
           const newStaff = {
-            badge: badge,
-            name: row.namePdf || 'Employé',
-            active: true,
+            badge: badge, name: row.namePdf || 'Employé', active: true,
             source: 'daily-import',
             createdAt: new Date().toISOString(),
             photo: null
@@ -782,9 +765,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
           staff = newStaff;
           staffByBadge[badge] = newStaff;
           staffList.push(newStaff);
-          staffList.sort(function(a,b){
-            return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
-          });
+          staffList.sort(function(a,b){ return String(a.name || '').localeCompare(String(b.name || ''), 'fr'); });
           created++;
         }catch(err){
           failed++;
@@ -793,11 +774,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         }
       }
 
-      if(!staff){
-        failed++;
-        errors.push(badge + ': employé introuvable et non créable');
-        continue;
-      }
+      if(!staff){ failed++; errors.push(badge + ': introuvable'); continue; }
 
       const shiftData = {
         clockIn: row.clockIn, breakStart: row.breakStart,
@@ -813,13 +790,9 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
           .limit(1).get();
 
         const payload = {
-          badge: badge,
-          name: staff.name || row.namePdf || '',
-          date: dateIso,
-          clockIn: row.clockIn,
-          breakStart: row.breakStart,
-          breakReturn: row.breakReturn,
-          clockOut: row.clockOut,
+          badge: badge, name: staff.name || row.namePdf || '', date: dateIso,
+          clockIn: row.clockIn, breakStart: row.breakStart,
+          breakReturn: row.breakReturn, clockOut: row.clockOut,
           totalMinutes: calc.totalMinutes || 0,
           status: status,
           source: 'daily-import',
@@ -842,14 +815,13 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     }
 
     btn.disabled = false;
-    btn.textContent = originalText;
-    $('loadingOverlay').classList.remove('show');
+    $('busyOverlay').classList.remove('show');
 
     if(failed === 0){
       currentImport.savedAt = new Date().toISOString();
       currentImport.savedCount = saved;
       await saveCurrentImport();
-      showToast('✓ ' + saved + ' pointage(s) enregistré(s)' + (created ? ' · ' + created + ' employé(s) créé(s)' : ''));
+      showToast(saved + ' pointage(s) enregistré(s)' + (created ? ' · ' + created + ' employé(s) créé(s)' : ''));
       await loadStaff();
       render();
     } else {
@@ -882,19 +854,24 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     el.appendChild(d);
     el.scrollTop = el.scrollHeight;
   }
-  function clearLog(){
-    const el = $('importLog');
-    el.innerHTML = '';
-    el.classList.remove('show');
-  }
+  function clearLog(){ const el = $('importLog'); el.innerHTML = ''; el.classList.remove('show'); }
+
+  document.querySelectorAll('.nav-item').forEach(function(item){
+    item.addEventListener('click', function(){
+      const page = item.dataset.page;
+      if(page === 'daily-import') return;
+      if(page === 'dashboard') return window.location.href = '../index.html';
+      if(page === 'planning')  return window.location.href = 'planing.html';
+      if(page === 'staff')     return window.location.href = 'staff.html';
+      if(page === 'requests')  return window.location.href = 'requests.html';
+    });
+  });
 
   function esc(s){
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
-  function escAttr(s){ return esc(s); }
-
 })();
 </script>
 </body>
