@@ -10,18 +10,27 @@
  *   FIREBASE_SERVICE_ACCOUNT  Full JSON of a Firebase service account key (one line)
  *   NTFY_TOPIC                Your private ntfy topic name
  *   RESTAURANT_ID             (optional) defaults to "ketia"
+ *
+ * Alert rules:
+ *   1. Segment 4h50 without break   -> crit (repeat every 3 min)
+ *   2. Segment 4h30 without break   -> warn (once)
+ *   3. Break longer than 35 min     -> break-warn (once)
+ *   4. Total shift >= 9h50          -> day-limit (repeat every 1 min until clock-out)
  */
 
 const admin = require('firebase-admin');
 
-const SEGMENT_MIN      = 4 * 60 + 50;
-const BREAK_MIN        = 30;
-const WARN_MIN         = 4 * 60 + 30;
-const CRIT_MIN         = 4 * 60 + 50;
-const FULL_NOBREAK_MIN = 10 * 60 + 10;
+const SEGMENT_MIN      = 4 * 60 + 50;   // 4h50 continuous
+const BREAK_MIN        = 30;            // mandatory break length
+const WARN_MIN         = 4 * 60 + 30;   // 4h30 warning
+const CRIT_MIN         = 4 * 60 + 50;   // 4h50 hard limit
+const FULL_NOBREAK_MIN = 10 * 60 + 10;  // if no break taken at all
 
-const REPEAT_MIN = 3;
-const TIMEZONE = 'Africa/Casablanca';
+const BREAK_ALERT_MIN  = 35;            // NEW: notify at 35 min of break
+const DAY_LIMIT_MIN    = 9 * 60 + 50;   // NEW: 9h50 total shift
+const DAY_LIMIT_REPEAT_MIN = 1;         // NEW: repeat every 1 min
+const REPEAT_MIN       = 3;             // existing crit repeat
+const TIMEZONE         = 'Africa/Casablanca';
 
 if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
   console.error('Missing FIREBASE_SERVICE_ACCOUNT env var.');
@@ -57,8 +66,20 @@ function todayKey() {
   return y + '-' + m + '-' + d;
 }
 
+function fmtHrs(min) {
+  if (min === null || min === undefined) return '—';
+  const h = Math.floor(min / 60);
+  const m = Math.round(min % 60);
+  return h + 'h' + String(m).padStart(2, '0');
+}
+
 function computeShift(shift, t) {
-  const out = { status: 'ok', contMinutes: 0, elapsedBreakMinutes: 0 };
+  const out = {
+    status: 'ok',
+    contMinutes: 0,
+    totalMinutes: 0,
+    elapsedBreakMinutes: 0
+  };
   const ci = shift.clockIn;
   if (ci === null || ci === undefined) {
     out.status = 'nodata';
@@ -67,6 +88,24 @@ function computeShift(shift, t) {
   const hasReturn     = shift.breakReturn !== null && shift.breakReturn !== undefined;
   const hasBreakStart = shift.breakStart !== null && shift.breakStart !== undefined;
   const hasClockOut   = shift.clockOut    !== null && shift.clockOut    !== undefined;
+
+  // Always compute total for the day
+  let pre = 0, post = 0;
+  if (hasBreakStart) {
+    const pEnd = hasReturn ? shift.breakReturn : shift.breakStart;
+    let d = pEnd - ci; if (d < 0) d += 1440;
+    pre = d;
+  } else {
+    const end = hasClockOut ? shift.clockOut : t;
+    let d = end - ci; if (d < 0) d += 1440;
+    pre = d;
+  }
+  if (hasReturn) {
+    const end = hasClockOut ? shift.clockOut : t;
+    let d = end - shift.breakReturn; if (d < 0) d += 1440;
+    post = d;
+  }
+  out.totalMinutes = pre + post;
 
   if (hasClockOut) { out.status = 'done'; return out; }
 
@@ -92,12 +131,21 @@ function computeShift(shift, t) {
 function buildMessage(shift, level, kind) {
   const name = shift.name || 'Employé';
   const badgeLabel = shift.badge || '—';
-  const urgent = level === 'crit';
+  const urgent = level === 'crit' || kind === 'day-limit';
 
   let body;
-  if (level === 'warn') body = 'Approche des 4h50 sans pause (4h30 atteintes).';
-  else if (kind === 'brk') body = 'Pause dépassée (plus de 30 min).';
-  else body = 'Limite de 4h50 atteinte — pause immédiate requise.';
+  if (kind === 'day-limit') {
+    body = 'A travaillé ' + fmtHrs(computeShift(shift, nowMinutes()).totalMinutes) +
+           ' au total aujourd\'hui — n\'a pas pointé sa sortie.';
+  } else if (kind === 'break-35') {
+    body = 'Pause en cours depuis plus de 35 min. Retour non pointé.';
+  } else if (level === 'warn') {
+    body = 'Approche des 4h50 sans pause (4h30 atteintes).';
+  } else if (kind === 'brk') {
+    body = 'Pause dépassée (plus de 30 min).';
+  } else {
+    body = 'Limite de 4h50 atteinte — pause immédiate requise.';
+  }
 
   return {
     title: name + ' — Badge ' + badgeLabel,
@@ -153,41 +201,76 @@ async function main() {
   const stateRef = db.collection('pushAlertState').doc(RESTAURANT_ID);
   const stateDoc = await stateRef.get();
   const notifiedState = (stateDoc.exists && stateDoc.data().state) || {};
-  const seenBadges = new Set();
+  const seenKeys = new Set();
 
   const toSend = [];
 
   shifts.forEach(shift => {
     const calc = computeShift(shift, t);
-    let kind = null, level = null;
+    const badge = String(shift.badge || shift._id || Math.random());
 
+    // ---- Rule 1 & 2: segment over 4h50 / 4h30 ----
+    let segLevel = null, segKind = null;
     if (calc.status === 'crit' || calc.status === 'breakover') {
-      kind = calc.status === 'breakover' ? 'brk' : 'crit';
-      level = 'crit';
+      segKind = calc.status === 'breakover' ? 'brk' : 'crit';
+      segLevel = 'crit';
     } else if (calc.status === 'warn') {
-      kind = 'warn';
-      level = 'warn';
-    } else {
-      return;
+      segKind = 'warn';
+      segLevel = 'warn';
     }
 
-    const badgeKey = String(shift.badge || shift._id || Math.random());
-    seenBadges.add(badgeKey);
-
-    const prev = notifiedState[badgeKey];
-    const prevLevel = (prev && typeof prev === 'object') ? prev.level : prev;
-    const prevAt = (prev && typeof prev === 'object') ? (prev.at || 0) : 0;
-    const repeatDue = level === 'crit' && REPEAT_MIN > 0
+    if (segLevel) {
+      const key = badge + '_seg';
+      seenKeys.add(key);
+      const prev = notifiedState[key];
+      const prevLevel = (prev && typeof prev === 'object') ? prev.level : prev;
+      const prevAt = (prev && typeof prev === 'object') ? (prev.at || 0) : 0;
+      const repeatDue = segLevel === 'crit' && REPEAT_MIN > 0
                      && (Date.now() - prevAt) >= REPEAT_MIN * 60000;
 
-    if (prevLevel !== level || repeatDue) {
-      toSend.push({ badgeKey, prev, msg: buildMessage(shift, level, kind) });
-      notifiedState[badgeKey] = { level, at: Date.now() };
+      if (prevLevel !== segLevel || repeatDue) {
+        toSend.push({ key, prev, msg: buildMessage(shift, segLevel, segKind) });
+        notifiedState[key] = { level: segLevel, at: Date.now() };
+      }
+    }
+
+    // ---- Rule 3: break longer than 35 min (once) ----
+    const hasBreakStart = shift.breakStart !== null && shift.breakStart !== undefined;
+    const hasReturn     = shift.breakReturn !== null && shift.breakReturn !== undefined;
+    if (hasBreakStart && !hasReturn) {
+      let elapsedBreak = t - shift.breakStart;
+      if (elapsedBreak < 0) elapsedBreak += 1440;
+      if (elapsedBreak >= BREAK_ALERT_MIN) {
+        const key = badge + '_break35';
+        seenKeys.add(key);
+        if (!notifiedState[key]) {
+          toSend.push({ key, prev: undefined, msg: buildMessage(shift, 'crit', 'break-35') });
+          notifiedState[key] = { level: 'break-35', at: Date.now() };
+        }
+      }
+    }
+
+    // ---- Rule 4: total shift >= 9h50 (repeat every minute until clock-out) ----
+    if (calc.totalMinutes >= DAY_LIMIT_MIN) {
+      const key = badge + '_daylimit';
+      seenKeys.add(key);
+      const prev = notifiedState[key];
+      const prevAt = (prev && typeof prev === 'object') ? (prev.at || 0) : 0;
+      const repeatDue = (Date.now() - prevAt) >= DAY_LIMIT_REPEAT_MIN * 60000;
+      if (!prev || repeatDue) {
+        toSend.push({ key, prev, msg: buildMessage(shift, 'crit', 'day-limit') });
+        notifiedState[key] = { level: 'day-limit', at: Date.now() };
+      }
     }
   });
 
-  Object.keys(notifiedState).forEach(b => {
-    if (!seenBadges.has(b)) delete notifiedState[b];
+  // Clean up state for employees no longer open today
+  Object.keys(notifiedState).forEach(k => {
+    const badgePart = k.split('_')[0];
+    // Only remove if the badge's open shift is gone
+    if (!shifts.some(s => String(s.badge) === badgePart)) {
+      delete notifiedState[k];
+    }
   });
 
   console.log(toSend.length + ' new alert(s) to send this run.');
@@ -200,8 +283,8 @@ async function main() {
     } catch (err) {
       failures++;
       console.error('ntfy send failed:', err.message);
-      if (item.prev === undefined) delete notifiedState[item.badgeKey];
-      else notifiedState[item.badgeKey] = item.prev;
+      if (item.prev === undefined) delete notifiedState[item.key];
+      else notifiedState[item.key] = item.prev;
     }
   }
 
