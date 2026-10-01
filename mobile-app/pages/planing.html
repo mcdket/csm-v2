@@ -1,0 +1,554 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0D5B6E">
+<title>Planning â€” CSM Manager</title>
+<link rel="icon" type="image/webp" href="../200.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<style>
+:root{
+  --teal:#0D5B6E;--teal-dark:#094A5A;--teal-light:#E8F0F2;
+  --gray-bg:#F2F4F5;--gray-border:#CDD3D6;--gray-muted:#5A6A70;
+  --text:#1A2A30;--red:#C0392B;--green:#4C9A5D;--amber:#D68F00;
+  --gold:#C9A227;--blue-edit:#E6F0F7;--blue-edit-border:#8FC0D9;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Space Grotesk',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  font-size:15px;color:var(--text);background:var(--gray-bg);
+  min-height:100vh;padding-bottom:calc(72px + env(safe-area-inset-bottom, 0px));
+  overflow-x:hidden;
+}
+.topbar{background:var(--teal);color:#FFFFFF;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;padding-top:calc(14px + env(safe-area-inset-top, 0px));}
+.topbar h1{margin:0;font-size:17px;font-weight:600;flex:1;}
+.topbar .icon-btn{background:none;border:none;color:#FFFFFF;padding:8px;cursor:pointer;display:flex;align-items:center;}
+.topbar .icon-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:2;fill:none;}
+
+.page-head{padding:20px 18px 12px;}
+.page-head .title{font-size:22px;font-weight:600;color:var(--text);margin:0 0 2px;}
+.page-head .date{font-size:13px;color:var(--gray-muted);font-family:'IBM Plex Mono',monospace;}
+
+.info-banner{margin:0 18px 16px;padding:12px 14px;background:#E8F0F2;border:1px solid var(--blue-edit-border);color:var(--teal);font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;line-height:1.45;}
+.info-banner svg{width:16px;height:16px;flex:none;stroke:currentColor;stroke-width:2;fill:none;}
+
+.upload-btn{
+  margin:0 18px 16px;width:calc(100% - 36px);padding:14px;
+  background:var(--teal);color:#FFFFFF;border:none;font-family:inherit;
+  font-size:15px;font-weight:600;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;gap:8px;min-height:50px;
+}
+.upload-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.2;fill:none;}
+.upload-btn:active{background:var(--teal-dark);}
+.upload-btn[disabled]{opacity:0.5;cursor:not-allowed;}
+
+.day-tabs{display:flex;gap:6px;padding:0 18px 16px;overflow-x:auto;scrollbar-width:none;}
+.day-tabs::-webkit-scrollbar{display:none;}
+.day-tab{flex:0 0 auto;min-width:64px;background:#FFFFFF;border:1px solid var(--gray-border);color:var(--gray-muted);padding:10px 8px;text-align:center;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;gap:2px;align-items:center;transition:all .15s;touch-action:manipulation;}
+.day-tab:active{transform:scale(0.96);}
+.day-tab small{font-size:11px;font-weight:500;color:var(--gray-muted);}
+.day-tab.today{border-bottom:3px solid var(--teal);padding-bottom:8px;}
+.day-tab.active{background:var(--teal);color:#FFFFFF;border-color:var(--teal);}
+.day-tab.active small{color:rgba(255,255,255,0.85);}
+
+.day-sum{margin:0 18px 12px;padding:10px 14px;background:#FFFFFF;border:1px solid var(--gray-border);font-size:13px;color:var(--gray-muted);}
+.day-sum strong{color:var(--text);font-weight:600;}
+
+.section-title{font-size:11.5px;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:0.06em;margin:0 18px 8px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--gray-border);}
+
+.shifts{padding:0 18px 16px;display:flex;flex-direction:column;gap:8px;}
+.shift-card{background:#FFFFFF;border:1px solid var(--gray-border);border-left:4px solid var(--gray-border);padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.shift-card.arrived{border-left-color:var(--green);}
+.shift-card.late{border-left-color:var(--red);background:#FFF8F6;}
+.shift-card.soon{border-left-color:var(--amber);background:#FFFCF5;}
+
+.shift-time{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;color:var(--teal);min-width:56px;flex-shrink:0;}
+.shift-info{flex:1;min-width:0;}
+.shift-name{font-size:14.5px;font-weight:600;color:var(--text);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.shift-meta{font-size:12px;color:var(--gray-muted);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.shift-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 9px;border-radius:2px;white-space:nowrap;flex-shrink:0;}
+.shift-status.ok{background:#E0F1E4;color:#2F7D46;}
+.shift-status.warn{background:#FBF0D2;color:#8A5A00;}
+.shift-status.crit{background:#F7DAD5;color:#A32B1B;}
+.shift-status.brk{background:#E6F0F7;color:#0D5B6E;}
+.shift-status.muted{background:#E8ECEE;color:var(--gray-muted);}
+
+.empty{padding:50px 24px;text-align:center;color:var(--gray-muted);background:#FFFFFF;border:1px dashed var(--gray-border);margin:0 18px;font-size:14px;}
+.empty svg{width:44px;height:44px;margin:0 auto 12px;stroke:var(--gray-border);stroke-width:1.5;fill:none;}
+.empty b{display:block;color:var(--text);font-size:15px;font-weight:600;margin-bottom:6px;}
+
+.bottomnav{position:fixed;bottom:0;left:0;right:0;background:#FFFFFF;border-top:1px solid var(--gray-border);display:grid;grid-template-columns:repeat(5, 1fr);padding-bottom:env(safe-area-inset-bottom, 0px);z-index:30;box-shadow:0 -2px 8px rgba(0,0,0,0.04);}
+.nav-item{background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px 10px;color:var(--gray-muted);font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer;touch-action:manipulation;min-height:64px;position:relative;}
+.nav-item:active{background:var(--gray-bg);}
+.nav-item.active{color:var(--teal);}
+.nav-item svg{width:24px;height:24px;stroke:currentColor;stroke-width:2;fill:none;}
+.nav-item.active svg{stroke-width:2.4;}
+.nav-item .badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--red);color:#FFFFFF;font-size:9.5px;font-weight:700;min-width:16px;height:16px;padding:0 4px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:2px solid #FFFFFF;}
+.nav-item .badge.hidden{display:none;}
+
+#loadingOverlay{position:fixed;inset:0;background:#0D5B6E;color:#fff;display:flex;align-items:center;justify-content:center;z-index:100;font-size:14px;letter-spacing:0.05em;}
+#loadingOverlay.hidden{display:none;}
+#importLog{margin:0 18px 16px;font-size:12px;max-height:120px;overflow-y:auto;border:1px solid var(--gray-border);background:#FFFFFF;padding:8px 12px;display:none;font-family:'IBM Plex Mono',monospace;}
+#importLog.show{display:block;}
+#importLog div{padding:2px 0;}
+#importLog .ok{color:var(--green);}
+#importLog .warn{color:var(--amber);}
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay">Chargementâ€¦</div>
+
+<div class="topbar">
+  <h1>Planning hebdomadaire</h1>
+  <button class="icon-btn" id="refreshBtn" aria-label="Actualiser">
+    <svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+  </button>
+</div>
+
+<div class="page-head">
+  <h1 class="title">Planning</h1>
+  <div class="date" id="weekRange">â€”</div>
+</div>
+
+<div class="info-banner">
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+  <span id="infoText">Chargementâ€¦</span>
+</div>
+
+<button class="upload-btn" id="uploadBtn">
+  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+  Importer un planning PDF
+</button>
+<input type="file" id="fileInput" accept="application/pdf" style="display:none;">
+<div id="importLog"></div>
+
+<div class="day-tabs" id="dayTabs"></div>
+
+<div class="day-sum" id="daySummary">â€”</div>
+
+<div id="shiftsContainer"></div>
+
+<div class="empty" id="emptyState" style="display:none;">
+  <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+  <b>Aucun quart prÃ©vu</b>
+  Personne n'est planifiÃ© pour ce jour.
+</div>
+
+<div class="bottomnav">
+  <button class="nav-item" data-page="dashboard">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span>Pointages</span>
+  </button>
+  <button class="nav-item active" data-page="planning">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+    <span>Planning</span>
+  </button>
+  <button class="nav-item" data-page="staff">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1"/></svg>
+    <span>EmployÃ©s</span>
+  </button>
+  <button class="nav-item" data-page="requests">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
+    <span>Demandes</span>
+    <span class="badge hidden" id="requestsBadge">0</span>
+  </button>
+  <button class="nav-item" data-page="daily-import">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    <span>Import</span>
+  </button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="../shared/firebase.js"></script>
+<script src="../shared/rules-helpers.js"></script>
+<script>
+(function(){
+  'use strict';
+  const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
+
+  if(window['pdfjsLib']){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const DAY_NAMES = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+  const DAY_SHORT = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const MONTHS = ['janvier','fÃ©vrier','mars','avril','mai','juin','juillet','aoÃ»t','septembre','octobre','novembre','dÃ©cembre'];
+  const SCHED_DAYS = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+
+  let schedule = null;
+  let todayShifts = [];
+  let selDay = null;
+  let unsubSchedule = null;
+  let unsubShifts = null;
+  let started = false;
+
+  CSM.authReady.then(function(){
+    auth.onAuthStateChanged(function(user){
+      if(!user){ window.location.replace('login.html'); return; }
+      if(started) return;
+      started = true;
+      db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+        if(!doc.exists){ auth.signOut(); return; }
+        CSM.ready.then(startLive);
+      }).catch(function(){ CSM.ready.then(startLive); });
+    });
+  });
+
+  function startLive(){
+    $('loadingOverlay').classList.add('hidden');
+    unsubSchedule = CSM.refs.schedules()
+      .orderBy('importedAt', 'desc').limit(1)
+      .onSnapshot(function(snap){
+        const prevStart = schedule && schedule.start;
+        schedule = snap.empty ? null : Object.assign({ _id: snap.docs[0].id }, snap.docs[0].data());
+        if(!schedule || schedule.start !== prevStart) selDay = null;
+        render();
+      }, function(err){ console.error(err); });
+
+    const today = R.todayKey();
+    unsubShifts = CSM.refs.shifts().where('date', '==', today)
+      .onSnapshot(function(snap){
+        todayShifts = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+        render();
+      }, function(err){ console.error(err); });
+  }
+
+  function nowMinutes(){
+    const d = new Date();
+    return d.getHours()*60 + d.getMinutes();
+  }
+
+  function todayIdx(){
+    if(!schedule) return -1;
+    const now = new Date();
+    const p = schedule.start.split('-').map(Number);
+    return Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(p[0], p[1]-1, p[2])) / 86400000);
+  }
+  function dayDate(i){
+    const p = schedule.start.split('-').map(Number);
+    return new Date(Date.UTC(p[0], p[1]-1, p[2] + i));
+  }
+  function fmtShort(iso){ return iso.slice(8,10) + '/' + iso.slice(5,7); }
+  function toMin(hhmm){ const a = String(hhmm).split(':').map(Number); return a[0]*60 + a[1]; }
+  function fmtDur(m){
+    if(m < 60) return m + ' min';
+    const h = Math.floor(m/60), r = m % 60;
+    return h + 'h' + (r ? String(r).padStart(2,'0') : '');
+  }
+
+  function arrivedFor(emp){
+    const key = 'd' + todayIdx() + '_' + emp.n;
+    if(schedule && schedule.dismissed && schedule.dismissed[key]) return true;
+    return todayShifts.some(function(e){
+      return e.clockIn !== null && e.clockIn !== undefined && R.sameName(emp.name, e.name);
+    });
+  }
+
+  function statusFor(emp, sh, isToday, nowMin){
+    if(arrivedFor(emp)) return { cls: 'ok', text: 'ArrivÃ©' };
+    if(!isToday) return { cls: 'muted', text: 'PrÃ©vu' };
+    if(sh.e && nowMin >= toMin(sh.e)) return { cls: 'muted', text: 'Non pointÃ©' };
+    const dt = toMin(sh.s) - nowMin;
+    if(dt > 60) return { cls: 'muted', text: 'Ã€ venir' };
+    if(dt > 0)  return { cls: 'brk', text: 'Dans ' + fmtDur(dt) };
+    if(dt > -5) return { cls: 'warn', text: 'Maintenant' };
+    if(dt >= -120) return { cls: 'crit', text: 'En retard' };
+    return { cls: 'crit', text: 'Non pointÃ©' };
+  }
+
+  function render(){
+    const tabs = $('dayTabs');
+    tabs.innerHTML = '';
+
+    if(!schedule){
+      $('weekRange').textContent = '';
+      $('infoText').textContent = 'Aucun planning chargÃ©. Importez le PDF ci-dessus.';
+      $('daySummary').innerHTML = '';
+      $('shiftsContainer').innerHTML = '';
+      $('emptyState').style.display = 'block';
+      return;
+    }
+
+    $('infoText').textContent = 'Planning du ' + fmtShort(schedule.start) + ' au ' + fmtShort(schedule.end) + '.';
+    $('weekRange').textContent = fmtShort(schedule.start) + ' â†’ ' + fmtShort(schedule.end);
+
+    const ti = todayIdx();
+    if(selDay === null) selDay = (ti >= 0 && ti <= 6) ? ti : 0;
+
+    for(let i = 0; i < 7; i++){
+      const d = dayDate(i);
+      const btn = document.createElement('button');
+      btn.className = 'day-tab';
+      if(i === ti) btn.classList.add('today');
+      if(i === selDay) btn.classList.add('active');
+      btn.innerHTML = DAY_SHORT[i] + '<small>' + String(d.getUTCDate()).padStart(2,'0') + '</small>';
+      btn.addEventListener('click', (function(idx){ return function(){ selDay = idx; render(); }; })(i));
+      tabs.appendChild(btn);
+    }
+
+    const isToday = selDay === ti;
+    const nowMin = nowMinutes();
+    const rows = [];
+    (schedule.employees || []).forEach(function(emp){
+      const sh = emp.d && emp.d[selDay];
+      if(sh) rows.push({ emp, sh });
+    });
+    rows.sort(function(a,b){ return toMin(a.sh.s) - toMin(b.sh.s) || a.emp.name.localeCompare(b.emp.name); });
+
+    const d = dayDate(selDay);
+    let arrived = 0;
+    if(isToday) rows.forEach(function(r){ if(arrivedFor(r.emp)) arrived++; });
+    $('daySummary').innerHTML = '<strong>' + DAY_NAMES[selDay] + ' ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + '</strong> â€” ' +
+      rows.length + (rows.length > 1 ? ' employÃ©s prÃ©vus' : ' employÃ© prÃ©vu') +
+      (isToday && rows.length ? ', dont ' + arrived + ' dÃ©jÃ  arrivÃ©s' : '');
+
+    const container = $('shiftsContainer');
+    const empty = $('emptyState');
+    container.innerHTML = '';
+
+    if(rows.length === 0){
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    const groups = [
+      { name: 'Matin', from: 0, to: 12*60 },
+      { name: 'AprÃ¨s-midi', from: 12*60, to: 18*60 },
+      { name: 'Soir', from: 18*60, to: 24*60 }
+    ];
+
+    groups.forEach(function(group){
+      const inGroup = rows.filter(function(r){
+        const t = toMin(r.sh.s);
+        return t >= group.from && t < group.to;
+      });
+      if(inGroup.length === 0) return;
+
+      const title = document.createElement('div');
+      title.className = 'section-title';
+      title.textContent = group.name + ' (' + inGroup.length + ')';
+      container.appendChild(title);
+
+      const list = document.createElement('div');
+      list.className = 'shifts';
+
+      inGroup.forEach(function(r){
+        const card = document.createElement('div');
+        const st = statusFor(r.emp, r.sh, isToday, nowMin);
+        card.className = 'shift-card';
+        if(st.cls === 'ok') card.classList.add('arrived');
+        if(st.cls === 'crit') card.classList.add('late');
+        if(st.cls === 'warn' || st.cls === 'brk') card.classList.add('soon');
+
+        const duration = r.sh.e ? toMin(r.sh.e) - toMin(r.sh.s) : 0;
+        let meta = r.sh.s + (r.sh.e ? ' â†’ ' + r.sh.e : '');
+        if(duration > 0) meta += ' Â· ' + fmtDur(duration);
+
+        card.innerHTML =
+          '<div class="shift-time">' + escapeHtml(r.sh.s) + '</div>' +
+          '<div class="shift-info">' +
+            '<div class="shift-name">' + escapeHtml(r.emp.name) + '</div>' +
+            '<div class="shift-meta">' + escapeHtml(meta) + '</div>' +
+          '</div>' +
+          '<span class="shift-status ' + st.cls + '">' + escapeHtml(st.text) + '</span>';
+        list.appendChild(card);
+      });
+
+      container.appendChild(list);
+    });
+  }
+
+  // ============================================================
+  // PDF import â€” ported from desktop
+  // ============================================================
+  async function extractItems(arrayBuffer){
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pages = [];
+    for(let p=1; p<=pdf.numPages; p++){
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      pages.push(content.items.filter(function(i){ return typeof i.str === 'string'; })
+        .map(function(i){ return { str: i.str, x: i.transform[4], y: -i.transform[5], w: i.width }; }));
+    }
+    return pages;
+  }
+
+  function parseSchedule(pages){
+    let start = null, end = null, prevCols = null, prevNameX = null;
+    const employees = [];
+    const dmy = function(s){ const m = /(\d{2})\/(\d{2})\/(\d{4})/.exec(s); return m ? m[3]+'-'+m[2]+'-'+m[1] : null; };
+
+    pages.forEach(function(page){
+      const toks = [];
+      page.forEach(function(it){
+        const s = it.str;
+        if(!s || !s.trim()) return;
+        const re = /\S+/g; let m;
+        while((m = re.exec(s))){
+          const x = it.x + it.w * (m.index / s.length);
+          const w = it.w * (m[0].length / s.length);
+          toks.push({ t: m[0], x, w, c: x + w/2, y: it.y });
+        }
+      });
+      if(!toks.length) return;
+      if(!start){
+        const text = toks.slice().sort(function(a,b){ return (Math.round(a.y)-Math.round(b.y)) || (a.x-b.x); })
+          .map(function(t){ return t.t; }).join(' ');
+        const m = /from\s+(\d{2}\/\d{2}\/\d{4})\s+to\s+(\d{2}\/\d{2}\/\d{4})/i.exec(text);
+        if(m){ start = dmy(m[1]); end = dmy(m[2]); }
+      }
+      const hdr = {};
+      toks.forEach(function(t){
+        const k = t.t.toLowerCase();
+        const di = SCHED_DAYS.indexOf(k);
+        if(di >= 0 && !hdr[di]) hdr[di] = t;
+      });
+      let cols = null, hdrY = null, nameX = prevNameX;
+      if(Object.keys(hdr).length === 7){
+        cols = SCHED_DAYS.map(function(_,i){ return hdr[i].x; });
+        hdrY = hdr[0].y;
+        const nt = toks.find(function(t){ return t.t === 'Name' && Math.abs(t.y - hdrY) < 4; });
+        if(nt) nameX = nt.x;
+        prevCols = cols; prevNameX = nameX;
+      } else if(prevCols){ cols = prevCols; hdrY = -1e9; }
+      if(!cols || nameX == null) return;
+      const colW = (cols[6] - cols[0]) / 6;
+
+      const body = toks.filter(function(t){ return t.y > hdrY + 3; });
+      const anchors = body.filter(function(t){ return /^\d{1,3}$/.test(t.t) && t.c < nameX - 2; })
+        .sort(function(a,b){ return a.y - b.y; });
+      if(!anchors.length) return;
+      const rows = anchors.map(function(a){ return { n: +a.t, y: a.y, lines: {}, cells: [[],[],[],[],[],[],[]] }; });
+
+      body.forEach(function(t){
+        if(anchors.indexOf(t) >= 0) return;
+        let bi = 0, bd = 1e9;
+        rows.forEach(function(r, i){ const d = Math.abs(r.y - t.y); if(d < bd){ bd = d; bi = i; } });
+        if(bd > 22) return;
+        const r = rows[bi];
+        if(/^\d{1,2}:\d{2}\*?$/.test(t.t)){
+          let ci = Math.floor((t.c - cols[0] + colW*0.1) / colW);
+          if(ci < 0 || ci > 6) return;
+          r.cells[ci].push(t);
+        } else if(t.x >= nameX - 3 && t.x < cols[0] - 3){
+          const key = Math.round(t.y / 3);
+          (r.lines[key] = r.lines[key] || []).push(t);
+        }
+      });
+
+      rows.forEach(function(r){
+        const lineKeys = Object.keys(r.lines).map(Number).sort(function(a,b){ return a-b; });
+        const lines = lineKeys.map(function(k){
+          return r.lines[k].sort(function(a,b){ return a.x-b.x; }).map(function(t){ return t.t; });
+        }).filter(function(words){ return words[0] !== '*' && words[0] !== 'Blank'; });
+        let name = '';
+        lines.forEach(function(words){
+          const prevWords = name ? name.split(' ') : [];
+          const last = prevWords[prevWords.length-1] || '';
+          if(name && words.length === 1 && words[0].length === 1 && last.length >= 6){ name += words[0]; }
+          else { name += (name ? ' ' : '') + words.join(' '); }
+        });
+        name = name.replace(/\s+/g,' ').trim();
+        if(!name) return;
+        const d = {};
+        r.cells.forEach(function(cellToks, ci){
+          const ts = cellToks.sort(function(a,b){ return a.x-b.x; });
+          if(ts.length >= 2) d[ci] = { s: ts[0].t.replace('*',''), e: ts[1].t.replace('*',''), o: /\*/.test(ts[1].t) ? 1 : 0 };
+          else if(ts.length === 1) d[ci] = { s: ts[0].t.replace('*',''), e: '', o: 0 };
+        });
+        employees.push({ n: r.n, name, d });
+      });
+    });
+
+    if(!start || !end) throw new Error("Dates du planning introuvables.");
+    return { start, end, employees };
+  }
+
+  $('uploadBtn').addEventListener('click', function(){ $('fileInput').click(); });
+  $('fileInput').addEventListener('change', function(e){
+    if(e.target.files[0]) handleFile(e.target.files[0]);
+    $('fileInput').value = '';
+  });
+
+  async function handleFile(file){
+    clearLog();
+    log('Lecture de "' + file.name + '"â€¦');
+    $('uploadBtn').disabled = true;
+    try{
+      if(!window['pdfjsLib']) throw new Error('pdf.js non chargÃ©.');
+      const parsed = parseSchedule(await extractItems(await file.arrayBuffer()));
+      const v = validate(parsed);
+      if(v.people === 0) throw new Error('Aucun horaire trouvÃ©.');
+      if(v.single > 0) throw new Error('Lecture incertaine (' + v.single + ' horaire(s) incomplet(s)).');
+      const payload = {
+        start: parsed.start, end: parsed.end,
+        employees: parsed.employees.filter(function(e){ return Object.keys(e.d).length > 0; }),
+        dismissed: {},
+        importedAt: new Date().toISOString(),
+        importedBy: auth.currentUser ? auth.currentUser.uid : null
+      };
+      await CSM.refs.schedules().add(payload);
+      log('Planning enregistrÃ© : ' + v.people + ' employÃ©s, ' + v.shifts + ' horaires.', 'ok');
+    }catch(err){
+      log('Erreur : ' + err.message, 'warn');
+      alert('Import impossible : ' + err.message);
+    }finally{
+      $('uploadBtn').disabled = false;
+    }
+  }
+
+  function validate(sc){
+    let shifts = 0, single = 0, people = 0;
+    sc.employees.forEach(function(e){
+      const days = Object.keys(e.d);
+      if(days.length) people++;
+      days.forEach(function(k){ shifts++; if(!e.d[k].e) single++; });
+    });
+    return { shifts, single, people };
+  }
+
+  function log(msg, cls){
+    const el = $('importLog');
+    el.classList.add('show');
+    const d = document.createElement('div');
+    if(cls) d.className = cls;
+    d.textContent = msg;
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
+  }
+  function clearLog(){ const el = $('importLog'); el.innerHTML = ''; el.classList.remove('show'); }
+
+  $('refreshBtn').addEventListener('click', function(){ render(); });
+
+  document.querySelectorAll('.nav-item').forEach(function(item){
+    item.addEventListener('click', function(){
+      const page = item.dataset.page;
+      if(page === 'planning') return;
+      if(page === 'dashboard') return window.location.href = '../index.html';
+      if(page === 'staff')     return window.location.href = 'staff.html';
+      if(page === 'requests')  return window.location.href = 'requests.html';
+      if(page === 'daily-import')      return window.location.href = 'daily-import.html';
+    });
+  });
+
+  function escapeHtml(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+})();
+</script>
+</body>
+</html>

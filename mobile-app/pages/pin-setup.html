@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0D5B6E">
+<title>Code PIN — CSM Manager</title>
+<link rel="icon" type="image/webp" href="../200.webp">
+<style>
+:root{
+  --teal:#0D5B6E;
+  --teal-dark:#094A5A;
+  --teal-light:#E8F0F2;
+  --gray-bg:#F2F4F5;
+  --gray-border:#CDD3D6;
+  --gray-muted:#5A6A70;
+  --text:#1A2A30;
+  --red:#C0392B;
+  --green:#4C9A5D;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  font-size:15px;
+  color:var(--text);
+  background:#F2F4F5;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  padding:24px 20px;
+}
+
+.topbar{
+  background:#0D5B6E;
+  color:#FFFFFF;
+  padding:14px 18px;
+  margin:-24px -20px 0;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:15px;
+  font-weight:600;
+}
+.topbar .back{
+  background:none;
+  border:none;
+  color:#FFFFFF;
+  padding:8px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:4px;
+  margin-left:-8px;
+}
+.topbar .back:active{background:rgba(255,255,255,0.15);}
+.topbar .back svg{width:22px;height:22px;stroke:#FFFFFF;stroke-width:2.4;fill:none;}
+.topbar .step{
+  margin-left:auto;
+  font-size:11px;
+  font-weight:500;
+  opacity:0.8;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+}
+
+.container{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding-top:32px;
+  max-width:420px;
+  margin:0 auto;
+  width:100%;
+}
+
+.icon-badge{
+  width:72px;
+  height:72px;
+  border-radius:50%;
+  background:#0D5B6E;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:20px;
+}
+.icon-badge svg{width:34px;height:34px;stroke:#FFFFFF;stroke-width:2;fill:none;}
+
+h1{
+  margin:0 0 8px;
+  font-size:22px;
+  font-weight:600;
+  color:#1A2A30;
+  text-align:center;
+}
+.subtitle{
+  margin:0 0 32px;
+  font-size:14px;
+  color:#5A6A70;
+  text-align:center;
+  line-height:1.5;
+  max-width:320px;
+}
+
+/* PIN dots display */
+.pin-display{
+  display:flex;
+  gap:16px;
+  margin-bottom:32px;
+  justify-content:center;
+}
+.pin-dot{
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  border:2px solid #CDD3D6;
+  background:#FFFFFF;
+  transition:all .15s;
+}
+.pin-dot.filled{
+  background:#0D5B6E;
+  border-color:#0D5B6E;
+  transform:scale(1.1);
+}
+.pin-display.error .pin-dot{
+  border-color:#C0392B;
+  animation:shake 0.4s;
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-6px);}
+  75%{transform:translateX(6px);}
+}
+
+/* Keypad */
+.keypad{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:12px;
+  width:100%;
+  max-width:320px;
+  margin-bottom:20px;
+}
+.key{
+  background:#FFFFFF;
+  border:1px solid #CDD3D6;
+  color:#1A2A30;
+  font-size:26px;
+  font-weight:500;
+  font-family:'Segoe UI',sans-serif;
+  padding:20px 0;
+  border-radius:0;
+  cursor:pointer;
+  transition:background .1s, transform .08s;
+  min-height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+  touch-action:manipulation;
+}
+.key:active{
+  background:#E8F0F2;
+  transform:scale(0.95);
+}
+.key.tool{
+  font-size:16px;
+  font-weight:600;
+  background:transparent;
+  color:#5A6A70;
+}
+.key.tool:active{background:#E8F0F2;}
+.key.tool svg{width:24px;height:24px;stroke:#5A6A70;stroke-width:2;fill:none;}
+
+.error-msg{
+  min-height:22px;
+  font-size:14px;
+  color:#C0392B;
+  text-align:center;
+  font-weight:500;
+  padding:0 10px;
+}
+
+.success-msg{
+  display:none;
+  text-align:center;
+  padding:12px;
+  background:#E0F1E4;
+  color:#2F7D46;
+  font-weight:500;
+  margin-top:16px;
+  border:1px solid #4C9A5D;
+}
+.success-msg.show{display:block;}
+
+.footer{
+  margin-top:auto;
+  padding-top:24px;
+  text-align:center;
+  font-size:11.5px;
+  color:#5A6A70;
+  line-height:1.5;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="back" id="backBtn" aria-label="Retour">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </button>
+  <span id="topbarTitle">Code PIN</span>
+  <span class="step" id="stepLabel">Étape 1 sur 2</span>
+</div>
+
+<div class="container">
+
+  <div class="icon-badge">
+    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+  </div>
+
+  <h1 id="title">Choisissez un code PIN</h1>
+  <p class="subtitle" id="subtitle">
+    Ce code protégera votre accès à l'application. Vous en aurez besoin à chaque ouverture.
+  </p>
+
+  <div class="pin-display" id="pinDisplay">
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+  </div>
+
+  <div class="keypad" id="keypad">
+    <button class="key" data-key="1">1</button>
+    <button class="key" data-key="2">2</button>
+    <button class="key" data-key="3">3</button>
+    <button class="key" data-key="4">4</button>
+    <button class="key" data-key="5">5</button>
+    <button class="key" data-key="6">6</button>
+    <button class="key" data-key="7">7</button>
+    <button class="key" data-key="8">8</button>
+    <button class="key" data-key="9">9</button>
+    <button class="key tool" data-key="clear">Effacer</button>
+    <button class="key" data-key="0">0</button>
+    <button class="key tool" data-key="back" aria-label="Supprimer">
+      <svg viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2zM18 9l-6 6M12 9l6 6"/></svg>
+    </button>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+  <div class="success-msg" id="successMsg"></div>
+
+</div>
+
+<div class="footer">
+  Contract Social Manager · Agadir Ketia
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const PIN_LENGTH = 6;
+
+  let buffer = '';
+  let step = 1;                 // 1 = choose PIN, 2 = confirm PIN
+  let firstPin = null;
+
+  function paintDots(){
+    const dots = $('pinDisplay').querySelectorAll('.pin-dot');
+    dots.forEach(function(d, i){
+      d.classList.toggle('filled', i < buffer.length);
+    });
+  }
+
+  function setError(msg){
+    $('errorMsg').textContent = msg || '';
+    if(msg){
+      $('pinDisplay').classList.add('error');
+      setTimeout(function(){ $('pinDisplay').classList.remove('error'); }, 450);
+    }
+  }
+
+  function updateHeader(){
+    $('stepLabel').textContent = 'Étape ' + step + ' sur 2';
+    if(step === 1){
+      $('title').textContent = 'Choisissez un code PIN';
+      $('subtitle').textContent = 'Ce code protégera votre accès à l\'application. Vous en aurez besoin à chaque ouverture.';
+    } else {
+      $('title').textContent = 'Confirmez votre PIN';
+      $('subtitle').textContent = 'Entrez le même code à nouveau pour confirmer.';
+    }
+  }
+
+  function handleKey(k){
+    if(k === 'clear'){
+      buffer = '';
+      paintDots();
+      setError('');
+      return;
+    }
+    if(k === 'back'){
+      buffer = buffer.slice(0, -1);
+      paintDots();
+      setError('');
+      return;
+    }
+    if(!/^\d$/.test(k)) return;
+
+    if(buffer.length >= PIN_LENGTH) return;
+    buffer += k;
+    paintDots();
+    setError('');
+
+    if(buffer.length === PIN_LENGTH){
+      setTimeout(submitPin, 150);
+    }
+  }
+
+  function submitPin(){
+    if(step === 1){
+      firstPin = buffer;
+      buffer = '';
+      paintDots();
+      step = 2;
+      updateHeader();
+      return;
+    }
+
+    // step 2 — confirmation
+    if(buffer !== firstPin){
+      setError('Les deux codes ne correspondent pas.');
+      buffer = '';
+      paintDots();
+      return;
+    }
+
+    // Success
+    const successEl = $('successMsg');
+    successEl.textContent = 'PIN enregistré avec succès.';
+    successEl.classList.add('show');
+
+    try{
+      localStorage.setItem('csm_mobile_pin_set', '1');
+      // Note: in the real app we'll hash and store the PIN properly.
+      // For the preview, just remember that setup was completed.
+    }catch(e){}
+  }
+
+  $('keypad').addEventListener('click', function(e){
+    const btn = e.target.closest('.key');
+    if(!btn) return;
+    handleKey(btn.dataset.key);
+  });
+
+  // Physical keyboard support (for desktop preview)
+  document.addEventListener('keydown', function(e){
+    if(/^\d$/.test(e.key)) handleKey(e.key);
+    else if(e.key === 'Backspace') handleKey('back');
+    else if(e.key === 'Escape') handleKey('clear');
+  });
+
+  $('backBtn').addEventListener('click', function(){
+    if(step === 2){
+      step = 1;
+      firstPin = null;
+      buffer = '';
+      paintDots();
+      setError('');
+      updateHeader();
+      $('successMsg').classList.remove('show');
+      return;
+    }
+    // If on step 1, we can't go anywhere yet — just clear
+    buffer = '';
+    paintDots();
+    setError('');
+  });
+
+  updateHeader();
+  paintDots();
+
+})();
+</script>
+</body>
+</html>

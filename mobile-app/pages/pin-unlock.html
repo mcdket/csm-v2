@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0D5B6E">
+<title>Déverrouillage — CSM Manager</title>
+<link rel="icon" type="image/webp" href="../200.webp">
+<style>
+:root{
+  --teal:#0D5B6E;
+  --teal-dark:#094A5A;
+  --teal-light:#E8F0F2;
+  --gray-bg:#F2F4F5;
+  --gray-border:#CDD3D6;
+  --gray-muted:#5A6A70;
+  --text:#1A2A30;
+  --red:#C0392B;
+  --green:#4C9A5D;
+  --gold:#C9A227;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  font-size:15px;
+  color:var(--text);
+  background:#F2F4F5;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  padding:0;
+}
+
+/* Header - teal with user info */
+.header{
+  background:linear-gradient(180deg, #0D5B6E 0%, #094A5A 100%);
+  color:#FFFFFF;
+  padding:32px 20px 26px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  border-bottom:5px solid var(--gold);
+}
+.header .greeting{
+  font-size:13px;
+  color:rgba(255,255,255,0.75);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  font-weight:600;
+  margin:0 0 6px;
+}
+.header .name{
+  font-size:20px;
+  font-weight:600;
+  margin:0 0 4px;
+}
+.header .badge{
+  font-size:13px;
+  color:rgba(255,255,255,0.75);
+  font-family:'Consolas',monospace;
+}
+
+.container{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:32px 20px;
+  max-width:420px;
+  margin:0 auto;
+  width:100%;
+}
+
+.prompt{
+  font-size:15px;
+  color:var(--gray-muted);
+  margin:0 0 24px;
+  text-align:center;
+  font-weight:500;
+}
+
+/* PIN dots display */
+.pin-display{
+  display:flex;
+  gap:14px;
+  margin-bottom:28px;
+  justify-content:center;
+  padding:0 8px;
+}
+.pin-dot{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  border:2px solid var(--gray-border);
+  background:#FFFFFF;
+  transition:all .15s;
+}
+.pin-dot.filled{
+  background:var(--teal);
+  border-color:var(--teal);
+  transform:scale(1.15);
+}
+.pin-display.error .pin-dot{
+  border-color:var(--red);
+  animation:shake 0.4s;
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-8px);}
+  75%{transform:translateX(8px);}
+}
+
+/* Attempts warning */
+.attempts{
+  min-height:20px;
+  font-size:13px;
+  color:var(--red);
+  font-weight:600;
+  margin-bottom:12px;
+  text-align:center;
+}
+.attempts.info{
+  color:var(--gray-muted);
+  font-weight:500;
+}
+
+/* Keypad */
+.keypad{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:12px;
+  width:100%;
+  max-width:320px;
+  margin-bottom:20px;
+}
+.key{
+  background:#FFFFFF;
+  border:1px solid var(--gray-border);
+  color:var(--text);
+  font-size:26px;
+  font-weight:500;
+  font-family:'Segoe UI',sans-serif;
+  padding:20px 0;
+  border-radius:0;
+  cursor:pointer;
+  transition:background .1s, transform .08s;
+  min-height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+  touch-action:manipulation;
+}
+.key:active{
+  background:var(--teal-light);
+  transform:scale(0.95);
+}
+.key.tool{
+  font-size:16px;
+  font-weight:600;
+  background:transparent;
+  color:var(--gray-muted);
+}
+.key.tool:active{background:var(--teal-light);}
+.key.tool svg{width:24px;height:24px;stroke:var(--gray-muted);stroke-width:2;fill:none;}
+
+/* Reset link */
+.reset-row{
+  margin-top:auto;
+  padding-top:24px;
+  width:100%;
+  text-align:center;
+}
+.reset-link{
+  background:none;
+  border:none;
+  color:var(--gray-muted);
+  font-size:14px;
+  font-family:inherit;
+  text-decoration:underline;
+  cursor:pointer;
+  padding:12px;
+  font-weight:500;
+}
+.reset-link:hover{color:var(--teal);}
+.reset-link:active{color:var(--teal-dark);}
+
+.footer{
+  text-align:center;
+  font-size:11.5px;
+  color:var(--gray-muted);
+  padding:16px 20px 24px;
+  opacity:0.7;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <p class="greeting">Bonjour</p>
+  <h1 class="name" id="userName">Fayssal Aiss</h1>
+  <div class="badge" id="userRole">Responsable</div>
+</div>
+
+<div class="container">
+
+  <p class="prompt">Entrez votre code PIN</p>
+
+  <div class="pin-display" id="pinDisplay">
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+  </div>
+
+  <div class="attempts" id="attemptsMsg"></div>
+
+  <div class="keypad" id="keypad">
+    <button class="key" data-key="1">1</button>
+    <button class="key" data-key="2">2</button>
+    <button class="key" data-key="3">3</button>
+    <button class="key" data-key="4">4</button>
+    <button class="key" data-key="5">5</button>
+    <button class="key" data-key="6">6</button>
+    <button class="key" data-key="7">7</button>
+    <button class="key" data-key="8">8</button>
+    <button class="key" data-key="9">9</button>
+    <button class="key tool" data-key="clear">Effacer</button>
+    <button class="key" data-key="0">0</button>
+    <button class="key tool" data-key="back" aria-label="Supprimer">
+      <svg viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2zM18 9l-6 6M12 9l6 6"/></svg>
+    </button>
+  </div>
+
+  <div class="reset-row">
+    <button class="reset-link" id="resetPin">PIN oublié ?</button>
+  </div>
+
+</div>
+
+<div class="footer">
+  Contract Social Manager · Version mobile 1.0.0
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = function(id){ return document.getElementById(id); };
+  const PIN_LENGTH = 6;
+  const STORED_PIN = '123456';   // For preview only — real app will hash this
+  const MAX_ATTEMPTS = 5;
+
+  let buffer = '';
+  let attempts = 0;
+
+  function paintDots(){
+    const dots = $('pinDisplay').querySelectorAll('.pin-dot');
+    dots.forEach(function(d, i){
+      d.classList.toggle('filled', i < buffer.length);
+    });
+  }
+
+  function setMessage(msg, isInfo){
+    const el = $('attemptsMsg');
+    el.textContent = msg || '';
+    el.classList.toggle('info', !!isInfo);
+    if(msg && !isInfo){
+      $('pinDisplay').classList.add('error');
+      setTimeout(function(){ $('pinDisplay').classList.remove('error'); }, 450);
+    }
+  }
+
+  function handleKey(k){
+    if(k === 'clear'){
+      buffer = '';
+      paintDots();
+      setMessage('');
+      return;
+    }
+    if(k === 'back'){
+      buffer = buffer.slice(0, -1);
+      paintDots();
+      return;
+    }
+    if(!/^\d$/.test(k)) return;
+
+    if(buffer.length >= PIN_LENGTH) return;
+    buffer += k;
+    paintDots();
+    setMessage('');
+
+    if(buffer.length === PIN_LENGTH){
+      setTimeout(submitPin, 200);
+    }
+  }
+
+  function submitPin(){
+    if(buffer === STORED_PIN){
+      setMessage('Déverrouillage...', true);
+      setTimeout(function(){
+        // In the real app, we'd navigate to the dashboard.
+        // For preview, just show a success state.
+        setMessage('Accès autorisé. Redirection vers le tableau de bord...', true);
+        $('pinDisplay').style.opacity = '0.4';
+        const kp = $('keypad');
+        if(kp) kp.style.pointerEvents = 'none';
+      }, 400);
+      return;
+    }
+
+    attempts++;
+    const remaining = MAX_ATTEMPTS - attempts;
+
+    if(remaining <= 0){
+      setMessage('Trop de tentatives. L\'application se ferme.');
+      $('keypad').style.pointerEvents = 'none';
+      setTimeout(function(){
+        // In the real app we'd close the app
+        // For preview, just reset after 3 seconds
+        attempts = 0;
+        buffer = '';
+        paintDots();
+        setMessage('');
+        $('keypad').style.pointerEvents = 'auto';
+      }, 3000);
+      return;
+    }
+
+    buffer = '';
+    paintDots();
+    setMessage('Code incorrect. ' + remaining + ' tentative(s) restante(s).');
+  }
+
+  $('keypad').addEventListener('click', function(e){
+    const btn = e.target.closest('.key');
+    if(!btn) return;
+    handleKey(btn.dataset.key);
+  });
+
+  // Physical keyboard support
+  document.addEventListener('keydown', function(e){
+    if(/^\d$/.test(e.key)) handleKey(e.key);
+    else if(e.key === 'Backspace') handleKey('back');
+    else if(e.key === 'Escape') handleKey('clear');
+  });
+
+  $('resetPin').addEventListener('click', function(){
+    const ok = confirm(
+      'PIN oublié ?\n\n' +
+      'Vous serez redirigé vers la page de connexion. ' +
+      'Vous devrez vous reconnecter avec votre email et mot de passe, ' +
+      'puis choisir un nouveau PIN.'
+    );
+    if(!ok) return;
+    setMessage('Redirection vers la connexion...', true);
+    // In real app: window.location.replace('login.html');
+  });
+
+  paintDots();
+
+})();
+</script>
+</body>
+</html>
