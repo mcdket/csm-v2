@@ -193,7 +193,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
 </div>
 
-<!-- MODAL: Edit shift -->
 <div class="modalbg" id="editBg">
   <div class="modalbox">
     <h3 id="editTitle">Modifier l'horaire</h3>
@@ -213,7 +212,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   </div>
 </div>
 
-<!-- MODAL: Status -->
 <div class="modalbg" id="statBg">
   <div class="modalbox">
     <h3 id="statTitle">Marquer</h3>
@@ -231,7 +229,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   </div>
 </div>
 
-<!-- MODAL: Replacement name -->
 <div class="modalbg" id="replBg">
   <div class="modalbox">
     <h3>Remplacé par…</h3>
@@ -253,7 +250,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   </div>
 </div>
 
-<!-- MODAL: Add employee -->
 <div class="modalbg" id="addBg">
   <div class="modalbox">
     <h3>Ajouter un employé</h3>
@@ -292,7 +288,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   const $ = function(id){ return document.getElementById(id); };
   const R = window.CSMRules;
 
-  // ---------- Theme ----------
   (function(){
     const K = 'csct_manager_theme';
     function apply(){
@@ -533,7 +528,8 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     const isToday = selDay === ti;
     const nowMin = nowMinutes();
     const rows = [];
-    (schedule.employees || []).forEach(function(emp){
+    const empList = Array.isArray(schedule.employees) ? schedule.employees : [];
+    empList.forEach(function(emp){
       const sh = emp.d && emp.d[selDay];
       if(sh) rows.push({ emp: emp, sh: sh });
     });
@@ -672,9 +668,11 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
   function dismissExpected(key){
     if(!schedule || !schedule._id) return;
-    CSM.refs.schedules().doc(schedule._id).update({
-      ['dismissed.' + key]: true
-    }).catch(function(err){ console.error('Dismiss:', err); });
+    const current = Array.isArray(schedule.employees) ? schedule.employees : [];
+    const newDismissed = Object.assign({}, schedule.dismissed || {});
+    newDismissed[key] = true;
+    CSM.refs.schedules().doc(schedule._id).update({ dismissed: newDismissed })
+      .catch(function(err){ console.error('Dismiss:', err); });
   }
 
   // ============================================================
@@ -702,17 +700,17 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     const newName  = $('editName').value.trim();
     const newStart = $('editStart').value.trim();
     const newEnd   = $('editEnd').value.trim();
-    const dayKey = 'employees.' + editing.empIndex + '.d.' + editing.dayIndex;
-    const updates = {};
-    if(newName && newName !== editing.emp.name){
-      updates[dayKey + '.ov'] = newName;
-    } else {
-      updates[dayKey + '.ov'] = firebase.firestore.FieldValue.delete();
-    }
-    updates[dayKey + '.s'] = newStart;
-    updates[dayKey + '.e'] = newEnd;
+    const current = (schedule.employees || []).slice();
+    const emp = Object.assign({}, current[editing.empIndex]);
+    emp.d = Object.assign({}, emp.d);
+    const sh = Object.assign({}, emp.d[editing.dayIndex] || {});
+    if(newName && newName !== emp.name){ sh.ov = newName; } else { delete sh.ov; }
+    sh.s = newStart;
+    sh.e = newEnd;
+    emp.d[editing.dayIndex] = sh;
+    current[editing.empIndex] = emp;
     try{
-      await CSM.refs.schedules().doc(schedule._id).update(updates);
+      await CSM.refs.schedules().doc(schedule._id).update({ employees: current });
       closeEdit();
     }catch(err){ alert('Erreur : ' + err.message); }
   });
@@ -732,8 +730,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       const stat = b.dataset.stat;
       if(!statTarget) return;
       if(stat === 'replaced'){
-        replTarget = statTarget;      // save BEFORE clearing
-        closeStat();
+        replTarget = statTarget;
+        statTarget = null;
+        $('statBg').classList.remove('show');
         openReplModal();
         return;
       }
@@ -742,7 +741,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   });
 
   function openReplModal(){
-    // replTarget is set by the caller
     $('replSub').textContent = replTarget.emp.name + ' — ' + DAY_NAMES[replTarget.dayIndex] + ' ' +
       dayDate(replTarget.dayIndex).getUTCDate() + ' ' + MONTHS[dayDate(replTarget.dayIndex).getUTCMonth()];
     $('replName').value = '';
@@ -760,9 +758,8 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     const name = $('replName').value.trim();
     if(!name){ alert('Entrez le nom du remplaçant.'); return; }
     const t = replTarget;
-    // push back into statTarget flow
-    statTarget = t;
     replTarget = null;
+    statTarget = t;
     applyStatus('replaced', name);
     closeRepl();
   });
@@ -770,18 +767,21 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   async function applyStatus(stat, replName){
     if(!statTarget) return;
     const { empIndex, dayIndex } = statTarget;
-    const base = 'employees.' + empIndex + '.d.' + dayIndex;
-    const updates = {};
+    const current = (schedule.employees || []).slice();
+    const emp = Object.assign({}, current[empIndex]);
+    emp.d = Object.assign({}, emp.d);
+    const sh = Object.assign({}, emp.d[dayIndex] || {});
     if(!stat){
-      updates[base + '.st'] = firebase.firestore.FieldValue.delete();
-      updates[base + '.rn'] = firebase.firestore.FieldValue.delete();
+      delete sh.st; delete sh.rn;
     } else {
-      updates[base + '.st'] = stat;
-      if(stat === 'replaced') updates[base + '.rn'] = replName;
-      else updates[base + '.rn'] = firebase.firestore.FieldValue.delete();
+      sh.st = stat;
+      if(stat === 'replaced') sh.rn = replName;
+      else delete sh.rn;
     }
+    emp.d[dayIndex] = sh;
+    current[empIndex] = emp;
     try{
-      await CSM.refs.schedules().doc(schedule._id).update(updates);
+      await CSM.refs.schedules().doc(schedule._id).update({ employees: current });
       closeStat();
     }catch(err){ alert('Erreur : ' + err.message); }
   }
@@ -809,22 +809,21 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     if(!name){ alert('Entrez le nom de l\'employé.'); return; }
     if(!s || !e){ alert('Entrez les heures de début et de fin.'); return; }
 
-    const existing = (schedule.employees || []).find(function(x){
-      return R.sameName(x.name, name);
-    });
+    const current = (schedule.employees || []).slice();
+    const existing = current.find(function(x){ return R.sameName(x.name, name); });
     try{
       if(existing){
-        const idx = schedule.employees.indexOf(existing);
-        const updates = {};
-        updates['employees.' + idx + '.d.' + selDay] = { s: s, e: e, o: 0 };
-        await CSM.refs.schedules().doc(schedule._id).update(updates);
+        const idx = current.indexOf(existing);
+        const emp = Object.assign({}, existing);
+        emp.d = Object.assign({}, emp.d);
+        emp.d[selDay] = { s: s, e: e, o: 0 };
+        current[idx] = emp;
       } else {
-        const current = (schedule.employees || []).slice();
         const newEmp = { n: nextEmployeeNumber(), name: name, d: {} };
         newEmp.d[selDay] = { s: s, e: e, o: 0 };
         current.push(newEmp);
-        await CSM.refs.schedules().doc(schedule._id).update({ employees: current });
       }
+      await CSM.refs.schedules().doc(schedule._id).update({ employees: current });
       $('addBg').classList.remove('show');
     }catch(err){ alert('Erreur : ' + err.message); }
   });
@@ -865,7 +864,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   function escAttr(s){ return esc(s); }
 
   // ============================================================
-  // PDF import (unchanged)
+  // PDF import
   // ============================================================
   async function extractItems(arrayBuffer){
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
