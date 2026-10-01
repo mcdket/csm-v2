@@ -223,7 +223,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       <button type="button" data-stat="sick"><span class="dot dot-sick"></span>Maladie</button>
       <button type="button" data-stat="cancelled"><span class="dot dot-cancel"></span>Annulé</button>
       <button type="button" data-stat="replaced"><span class="dot dot-replace"></span>Remplacé par…</button>
-      <button type="button" data-stat="clear"><span class="dot dot-clear"></span>Rétablir (normal)</button>
+      <button type="button" data-stat="clear"><span class="dot dot-clear"></span>Remettre normal</button>
     </div>
     <div class="actions">
       <button class="btn" id="statCancel" type="button">Annuler</button>
@@ -366,7 +366,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         $('restaurantBadge').style.display = 'inline-block';
         loadStaff();
         startListeners();
-        wireModals();
         setInterval(function(){ renderExpected(); renderWeek(); }, 15000);
       });
     }).catch(function(err){
@@ -452,7 +451,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     (schedule.employees || []).forEach(function(emp){
       const sh = emp.d && emp.d[ti];
       if(!sh) return;
-      if(sh.st) return;   // skip non-normal statuses
+      if(sh.st) return;
       const dt = toMin(sh.s) - nowMin;
       if(dt > EXPECT_LEAD_MIN || dt < -EXPECT_LATE_MIN) return;
       if(arrivedFor(emp)) return;
@@ -622,7 +621,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
           tdSt.appendChild(sp);
           tr.appendChild(tdSt);
         }
-        // Actions
         const tdA = document.createElement('td');
         tdA.className = 'act';
         const bEdit = document.createElement('button');
@@ -682,7 +680,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   // ============================================================
   // Modals
   // ============================================================
-  let editing = null;   // { empIndex, dayIndex, emp, sh }
+  let editing = null;
   let statTarget = null;
   let replTarget = null;
 
@@ -704,8 +702,8 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     const newName  = $('editName').value.trim();
     const newStart = $('editStart').value.trim();
     const newEnd   = $('editEnd').value.trim();
-    const updates = {};
     const dayKey = 'employees.' + editing.empIndex + '.d.' + editing.dayIndex;
+    const updates = {};
     if(newName && newName !== editing.emp.name){
       updates[dayKey + '.ov'] = newName;
     } else {
@@ -734,6 +732,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       const stat = b.dataset.stat;
       if(!statTarget) return;
       if(stat === 'replaced'){
+        replTarget = statTarget;      // save BEFORE clearing
         closeStat();
         openReplModal();
         return;
@@ -743,8 +742,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   });
 
   function openReplModal(){
-    replTarget = statTarget;   // carried from status modal
-    $('replSub').textContent = replTarget.emp.name + ' — ' + DAY_NAMES[replTarget.dayIndex] + ' ' + dayDate(replTarget.dayIndex).getUTCDate() + ' ' + MONTHS[dayDate(replTarget.dayIndex).getUTCMonth()];
+    // replTarget is set by the caller
+    $('replSub').textContent = replTarget.emp.name + ' — ' + DAY_NAMES[replTarget.dayIndex] + ' ' +
+      dayDate(replTarget.dayIndex).getUTCDate() + ' ' + MONTHS[dayDate(replTarget.dayIndex).getUTCMonth()];
     $('replName').value = '';
     $('replSelect').value = '';
     $('replBg').classList.add('show');
@@ -759,8 +759,10 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     if(!replTarget) return;
     const name = $('replName').value.trim();
     if(!name){ alert('Entrez le nom du remplaçant.'); return; }
-    const t = replTarget; replTarget = null;
+    const t = replTarget;
+    // push back into statTarget flow
     statTarget = t;
+    replTarget = null;
     applyStatus('replaced', name);
     closeRepl();
   });
@@ -807,31 +809,22 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     if(!name){ alert('Entrez le nom de l\'employé.'); return; }
     if(!s || !e){ alert('Entrez les heures de début et de fin.'); return; }
 
-    // Try to find an existing employee with this name
-    let existing = (schedule.employees || []).find(function(x){
+    const existing = (schedule.employees || []).find(function(x){
       return R.sameName(x.name, name);
     });
-    let updates = {};
-    if(existing){
-      // Just add the day to this employee
-      const idx = schedule.employees.indexOf(existing);
-      updates['employees.' + idx + '.d.' + selDay] = { s: s, e: e, o: 0 };
-    } else {
-      // New employee — build the d map with only this day
-      const newEmp = { n: nextEmployeeNumber(), name: name, d: {} };
-      newEmp.d[selDay] = { s: s, e: e, o: 0 };
-      // We can't use dot-path for array push with Firestore if it's a nested object.
-      // Instead, read the current employees array, append, and set.
-      const current = (schedule.employees || []).slice();
-      current.push(newEmp);
-      try{
-        await CSM.refs.schedules().doc(schedule._id).update({ employees: current });
-        $('addBg').classList.remove('show');
-      }catch(err){ alert('Erreur : ' + err.message); }
-      return;
-    }
     try{
-      await CSM.refs.schedules().doc(schedule._id).update(updates);
+      if(existing){
+        const idx = schedule.employees.indexOf(existing);
+        const updates = {};
+        updates['employees.' + idx + '.d.' + selDay] = { s: s, e: e, o: 0 };
+        await CSM.refs.schedules().doc(schedule._id).update(updates);
+      } else {
+        const current = (schedule.employees || []).slice();
+        const newEmp = { n: nextEmployeeNumber(), name: name, d: {} };
+        newEmp.d[selDay] = { s: s, e: e, o: 0 };
+        current.push(newEmp);
+        await CSM.refs.schedules().doc(schedule._id).update({ employees: current });
+      }
       $('addBg').classList.remove('show');
     }catch(err){ alert('Erreur : ' + err.message); }
   });
@@ -841,8 +834,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     (schedule.employees || []).forEach(function(x){ if(x.n > max) max = x.n; });
     return max + 1;
   }
-
-  function wireModals(){ /* nothing extra */ }
 
   // ============================================================
   // Helpers
