@@ -1,37 +1,38 @@
 /**
  * shared/rules-helpers.js
  * -----------------------
- * Pure helpers shared by every page:
- *   - shift computation (the 4h50 / 30 min rules)
- *   - fuzzy name matching (used to reconcile planning PDF ↔ employee names)
- *   - time / date formatting
- *   - date-key helpers
+ * Pure helpers shared by every page. No Firebase, easy to test.
  *
- * No Firebase here — pure functions only, easy to test.
+ * Exposes on window.CSMRules:
+ *   shiftState(shift, todayIso?)    -- compute state of one shift
+ *   sameName(a, b)                   -- fuzzy name match
+ *   nameTokens(name)                 -- name → normalized tokens
+ *   nowMinutes()                     -- current time as minutes since midnight
+ *   minToHM(min)                     -- 725 → "12:05"
+ *   hmToMin("12:05")                 -- "12:05" → 725
+ *   fmtHrs(min)                      -- 725 → "12h05"
+ *   todayKey()                       -- "2025-10-15"
+ *   monthKey()                       -- "2025-10"
+ *   weekKeys()                       -- 7 ISO dates, Monday → Sunday
  *
- * Exposes on window:
- *   CSMRules.computeShift(shift, todayIso?)
- *   CSMRules.sameName(a, b)
- *   CSMRules.nowMinutes()
- *   CSMRules.minToHM(min)
- *   CSMRules.fmtHrs(min)
- *   CSMRules.todayKey()
- *   CSMRules.monthKey()
- *   CSMRules.weekKeys()
- *   CSMRules.SEGMENT_MIN, BREAK_MIN, WARN_MIN, CRIT_MIN, FULL_NOBREAK_MIN
+ * Constants (Moroccan labour rules):
+ *   SEGMENT_MIN      = 290   (4h50 continuous work max)
+ *   BREAK_MIN        = 30    (mandatory break)
+ *   WARN_MIN         = 270   (4h30 warning threshold)
+ *   CRIT_MIN         = 290   (4h50 hard limit)
+ *   FULL_NOBREAK_MIN = 610   (10h10 with no break)
  */
 (function(){
   'use strict';
 
   // ============================================================
-  // Rule constants — DO NOT change without updating
-  // push-alerts/check-alerts.js as well (it has its own copy).
+  // Rule constants — mirrored in push-alerts/check-alerts.js
   // ============================================================
   const SEGMENT_MIN      = 4 * 60 + 50;   // 4h50 continuous segment max
   const BREAK_MIN        = 30;            // 30 min mandatory break
-  const WARN_MIN         = 4 * 60 + 30;   // yellow threshold
-  const CRIT_MIN         = 4 * 60 + 50;   // red threshold (the hard limit)
-  const FULL_NOBREAK_MIN = 10 * 60 + 10;  // if no break taken at all
+  const WARN_MIN         = 4 * 60 + 30;   // 4h30 warn threshold
+  const CRIT_MIN         = 4 * 60 + 50;   // 4h50 hard limit
+  const FULL_NOBREAK_MIN = 10 * 60 + 10;  // 10h10 with no break at all
 
   // ============================================================
   // Time helpers
@@ -76,7 +77,7 @@
   // Returns the 7 ISO dates (YYYY-MM-DD) of the current week, Monday → Sunday.
   function weekKeys(){
     const d = new Date();
-    const dow = (d.getDay() + 6) % 7; // 0 = Monday
+    const dow = (d.getDay() + 6) % 7;
     const monday = new Date(d);
     monday.setDate(d.getDate() - dow);
     const out = [];
@@ -91,114 +92,117 @@
   }
 
   // ============================================================
-  // Shift computation
+  // Shift state
   // ============================================================
   /**
-   * Takes a shift document's fields and returns the live state.
+   * Compute the live state of a shift.
    *
-   * @param {object} shift  { clockIn, breakStart, breakReturn, clockOut, date? }
-   *                        All time values are minutes-since-midnight or null.
-   * @param {string} todayIso  Optional. 'YYYY-MM-DD'. Defaults to today.
+   * @param {object} shift       { clockIn, breakStart, breakReturn, clockOut, date? }
+   *                             All times are minutes-since-midnight or null.
+   * @param {string} todayIso    Optional 'YYYY-MM-DD'. Defaults to today.
+   *
    * @returns {object} {
-   *   suggBreak, suggReturn, suggEnd,
-   *   contMinutes,        // continuous minutes since last break started/ended
-   *   totalMinutes,       // total worked minutes today (breaks excluded)
-   *   elapsedBreakMinutes,
-   *   status,             // 'ok' | 'warn' | 'crit' | 'break' | 'breakover' | 'done' | 'nodata'
-   *   statusLabel         // human-readable French label
+   *   clockIn, breakStart, breakReturn, clockOut,  // pass-through of the input times
+   *   workedMinutes,          // total worked minutes today (breaks excluded)
+   *   continuousMinutes,      // minutes since last break-return (or since clock-in)
+   *   elapsedBreakMinutes,    // minutes spent on the current break (0 if not on break)
+   *   status,                 // see below
+   *   statusLabel             // French label ready to display
    * }
+   *
+   * Status values:
+   *   'notpunched'  -- no clockIn yet
+   *   'ok'          -- working, under 4h30 continuous
+   *   'warn'        -- between 4h30 and 4h50
+   *   'crit'        -- over 4h50, break overdue
+   *   'break'       -- on break, under 30 min
+   *   'breakover'   -- on break, over 30 min
+   *   'done'        -- clocked out, or stale shift from a previous day
+   *   'stale'       -- alias for done-with-warning (previous day, never clocked out)
    */
-  function computeShift(shift, todayIso){
+  function shiftState(shift, todayIso){
     if(!todayIso) todayIso = todayKey();
 
     const out = {
-      suggBreak: null,
-      suggReturn: null,
-      suggEnd: null,
-      contMinutes: 0,
-      totalMinutes: 0,
+      clockIn:     null,
+      breakStart:  null,
+      breakReturn: null,
+      clockOut:    null,
+      workedMinutes:       0,
+      continuousMinutes:   0,
       elapsedBreakMinutes: 0,
-      status: 'nodata',
-      statusLabel: 'Pas encore pointé'
+      status:       'notpunched',
+      statusLabel:  'Pas encore pointé'
     };
+
     if(!shift) return out;
 
     const ci = shift.clockIn;
     if(ci === null || ci === undefined) return out;
 
-    const hasReturn     = shift.breakReturn !== null && shift.breakReturn !== undefined;
-    const hasBreakStart = shift.breakStart !== null && shift.breakStart !== undefined;
-    const hasClockOut   = shift.clockOut    !== null && shift.clockOut    !== undefined;
+    out.clockIn     = ci;
+    out.breakStart  = (shift.breakStart  !== undefined) ? shift.breakStart  : null;
+    out.breakReturn = (shift.breakReturn !== undefined) ? shift.breakReturn : null;
+    out.clockOut    = (shift.clockOut    !== undefined) ? shift.clockOut    : null;
 
-    // Suggested break = after 4h50 of continuous work from clock-in
-    out.suggBreak  = ci + SEGMENT_MIN;
-    out.suggReturn = out.suggBreak + BREAK_MIN;
-    out.suggEnd    = hasReturn ? shift.breakReturn + SEGMENT_MIN : ci + FULL_NOBREAK_MIN;
+    const hasBreakStart = out.breakStart  !== null;
+    const hasReturn     = out.breakReturn !== null;
+    const hasClockOut   = out.clockOut    !== null;
 
-    // If break already started but not returned, base suggested return on
-    // the actual break start (30 min after they left).
-    if(hasBreakStart && !hasReturn){
-      out.suggReturn = shift.breakStart + BREAK_MIN;
+    // A shift belongs to a past day and was never clocked out.
+    const shiftDate   = shift.date || todayIso;
+    const isStale     = !hasClockOut && shiftDate !== todayIso;
+
+    // Effective "end of counting" time:
+    // - if clocked out: that's the end
+    // - if stale: last known punch (breakReturn > breakStart > clockIn)
+    // - otherwise: now
+    let endMin;
+    if(hasClockOut){
+      endMin = out.clockOut;
+    } else if(isStale){
+      endMin = hasReturn ? out.breakReturn : (hasBreakStart ? out.breakStart : ci);
+    } else {
+      endMin = nowMinutes();
     }
 
-    // Determine whether this shift is still running today, or was left open
-    // on a previous day (forgotten clock-out).
-    const shiftDate = shift.date || todayIso;
-    const isStaleShift = !hasClockOut && shiftDate !== todayIso;
-
-    // "Effective end" for stale shifts = the last known punch.
-    // For running shifts, use the current time.
-    let endMin = nowMinutes();
-    if(isStaleShift){
-      if(hasReturn)          endMin = shift.breakReturn;
-      else if(hasBreakStart) endMin = shift.breakStart;
-      else                   endMin = ci;
-    }
-
+    // --- Worked minutes (breaks excluded) ---
     let pre = 0, post = 0;
 
-    // --- Pre-break worked time ---
-    // If a break has started, pre-break time = clockIn → breakStart.
-    // If no break yet, pre-break time = clockIn → (now / clockOut / endMin).
     if(hasBreakStart){
-      let d = shift.breakStart - ci; if(d < 0) d += 1440;
+      let d = out.breakStart - ci; if(d < 0) d += 1440;
       pre = d;
     } else {
-      const end = hasClockOut ? shift.clockOut : endMin;
-      let d = end - ci; if(d < 0) d += 1440;
+      let d = endMin - ci; if(d < 0) d += 1440;
       pre = d;
     }
 
-    // --- Post-break worked time ---
-    // If returned from break, post = breakReturn → (now / clockOut / endMin).
     if(hasReturn){
-      const end = hasClockOut ? shift.clockOut : endMin;
-      let d = end - shift.breakReturn; if(d < 0) d += 1440;
+      let d = endMin - out.breakReturn; if(d < 0) d += 1440;
       post = d;
     }
 
-    out.totalMinutes = pre + post;
+    out.workedMinutes = pre + post;
 
-    // Stale shift: employee forgot to clock out on a previous day.
-    if(isStaleShift){
+    // --- Stale shift: done, but flagged ---
+    if(isStale){
       out.status = 'done';
       out.statusLabel = 'Sortie non pointée';
-      out.contMinutes = 0;
       return out;
     }
 
-    // --- Status ---
+    // --- Clocked out ---
     if(hasClockOut){
       out.status = 'done';
       out.statusLabel = 'Journée terminée';
-      out.contMinutes = 0;
       return out;
     }
 
+    // --- On break ---
     if(hasBreakStart && !hasReturn){
-      let elapsed = endMin - shift.breakStart; if(elapsed < 0) elapsed += 1440;
+      let elapsed = endMin - out.breakStart; if(elapsed < 0) elapsed += 1440;
       out.elapsedBreakMinutes = elapsed;
-      out.contMinutes = pre;
+      out.continuousMinutes = pre;
       if(elapsed >= BREAK_MIN){
         out.status = 'breakover';
         out.statusLabel = 'Pause dépassée (' + elapsed + 'm)';
@@ -209,9 +213,10 @@
       return out;
     }
 
-    let cont = hasReturn ? (endMin - shift.breakReturn) : (endMin - ci);
+    // --- Working (with or without a completed break) ---
+    let cont = hasReturn ? (endMin - out.breakReturn) : (endMin - ci);
     if(cont < 0) cont += 1440;
-    out.contMinutes = cont;
+    out.continuousMinutes = cont;
 
     if(cont >= CRIT_MIN){
       out.status = 'crit';
@@ -223,13 +228,13 @@
       out.status = 'ok';
       out.statusLabel = hasReturn ? 'En poste (post-pause)' : 'En poste';
     }
+
     return out;
   }
 
   // ============================================================
   // Fuzzy name matching
   // ============================================================
-  // Normalise: lowercase, strip accents, keep [a-z0-9 ], split on spaces.
   function nameTokens(n){
     return String(n || '')
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -239,9 +244,10 @@
   }
 
   // True if the two names plausibly refer to the same person.
-  // Handles: "Karim Benali" ↔ "BENALI K.", "Karim B." ↔ "Karim Benali",
-  //          "Nourreddine El Idrissi" ↔ "NOUREDDINE EL IDRISSI"
-  // Rejects: two completely different names, single-letter-only matches.
+  //   "Karim Benali" ↔ "BENALI K."
+  //   "Karim B." ↔ "Karim Benali"
+  //   "Nourreddine El Idrissi" ↔ "NOUREDDINE EL IDRISSI"
+  // Rejects two completely different names, and single-letter-only matches.
   function sameName(a, b){
     const A = nameTokens(a), B = nameTokens(b);
     if(!A.length || !B.length) return false;
@@ -274,7 +280,7 @@
     monthKey: monthKey,
     weekKeys: weekKeys,
 
-    computeShift: computeShift,
+    shiftState: shiftState,
     sameName: sameName,
     nameTokens: nameTokens
   };
