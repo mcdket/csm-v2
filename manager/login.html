@@ -104,22 +104,21 @@
   }
 
   // If a manager is already signed in, go straight to the dashboard.
-  // Wait for authReady first so we don't miss a persisted session.
+  // We wait for authReady first so we don't miss a persisted session.
   CSM.authReady.then(function(){
     auth.onAuthStateChanged(function(user){
-      if(!user) return;
-      db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
-        if(doc.exists){
-          window.location.replace('index.html');
-        } else {
-          auth.signOut().then(function(){
+      if(user){
+        db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
+          if(doc.exists){
+            window.location.replace('index.html');
+          } else {
+            auth.signOut();
             setMessage("Ce compte n'est pas autorisé à accéder au portail responsable.");
-          });
-        }
-      }).catch(function(){
-        // Network blip — send them through anyway and let index.html handle it
-        window.location.replace('index.html');
-      });
+          }
+        }).catch(function(){
+          window.location.replace('index.html');
+        });
+      }
     });
   });
 
@@ -128,16 +127,11 @@
     const email = $('loginEmail').value.trim();
     const pass  = $('loginPass').value;
     const btn   = $('loginBtn');
-
-    if(!email || !pass){
-      setMessage('Entrez votre email et votre mot de passe.');
-      return;
-    }
-
     setMessage('');
     btn.disabled = true;
-    btn.textContent = 'Connexion…';
 
+    // Wait for auth persistence to be applied before signing in.
+    // Otherwise the session is lost on the next navigation.
     CSM.authReady
       .then(function(){
         return auth.signInWithEmailAndPassword(email, pass);
@@ -160,9 +154,8 @@
         } else {
           setMessage(errorText(err));
         }
-        btn.disabled = false;
-        btn.textContent = 'Se connecter';
-      });
+      })
+      .then(function(){ btn.disabled = false; });
   });
 
   $('loginReset').addEventListener('click', function(){
