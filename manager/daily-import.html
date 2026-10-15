@@ -536,17 +536,15 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     return buildRowsFromBlocks(blocks, date, store, location);
   }
 
-  function buildRowsFromBlocks(blocks, date, store, location){
+    function buildRowsFromBlocks(blocks, date, store, location){
     const rows = [];
 
     blocks.forEach(function(b){
       const name = cleanPdfName(b.nameParts.join(' '));
       if(!name) return;
 
-      // IN column: G's sorted by time ascending
-      const ins = b.inPunches.slice().sort(function(a, bb){
-        return (a.h * 60 + a.min) - (bb.h * 60 + bb.min);
-      });
+      // IN column: keep PDF order (top to bottom = chronological)
+      const ins = b.inPunches.slice();
 
       // OUT column: one P (break start) and possibly one G (clock out)
       let breakStartPunch = null;
@@ -561,17 +559,19 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
       if(ins[0]) clockIn     = ins[0].h * 60 + ins[0].min;
       if(ins[1]) breakReturn = ins[1].h * 60 + ins[1].min;
+      if(ins[2]) breakReturn = ins[1].h * 60 + ins[1].min; // ignore extras; only first return used
       if(breakStartPunch) breakStart = breakStartPunch.h * 60 + breakStartPunch.min;
 
       if(outFromOut){
         clockOut = outFromOut.h * 60 + outFromOut.min;
-      } else if(ins.length >= 3 && breakStart !== null){
-        clockOut = ins[ins.length - 1].h * 60 + ins[ins.length - 1].min;
       }
 
       // Cross-midnight corrections
-      if(breakStart !== null && breakReturn !== null && breakReturn < breakStart){
+      if(breakReturn !== null && clockIn !== null && breakReturn < clockIn){
         breakReturn += 24 * 60;
+      }
+      if(breakStart !== null && clockIn !== null && breakStart < clockIn && breakReturn !== null && breakReturn >= 24 * 60){
+        breakStart += 24 * 60;
       }
       if(clockOut !== null && clockIn !== null && clockOut < clockIn){
         clockOut += 24 * 60;
