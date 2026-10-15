@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
 .app{max-width:1100px;margin:0 auto;padding:20px 20px 60px;}
+
 .header{
   display:flex;align-items:flex-start;justify-content:space-between;
   gap:20px;flex-wrap:wrap;
@@ -26,7 +27,10 @@
 .brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
 .brand .restaurant-badge{color:#2A1F00;font-size:12px;font-weight:700;background:var(--brand-yellow);padding:4px 10px;}
 .controls{display:flex;gap:8px;flex-wrap:wrap;}
+
 .plansub{margin:0 0 18px;font-size:13px;color:var(--text-muted);}
+
+/* ---------- Expected list ---------- */
 .expected{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px;margin-bottom:20px;}
 .expected-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
 .expected-count{min-width:22px;height:22px;padding:0 7px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
@@ -44,10 +48,12 @@
 .exp-item.late .exp-status{color:var(--status-crit-fg);font-weight:600;}
 .exp-btn{padding:7px 11px;font-size:12px;}
 .exp-empty{grid-column:1 / -1;font-size:13px;color:var(--text-muted);padding:4px 0;}
+
+/* ---------- Import zone ---------- */
 .import{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px;margin-bottom:20px;}
 .import-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
 .import-title{font-size:13px;font-weight:600;color:var(--text-muted);}
-.dropzone{border:1.5px dashed var(--line);padding:26px 16px;text-align:center;color:var(--text-muted);font-size:13px;transition:border-color .15s ease, background .15s ease;}
+.dropzone{border:1.5px dashed var(--line);padding:26px 16px;text-align:center;color:var(--text-muted);font-size:13px;transition:border-color .15s ease, background .15s ease;cursor:pointer;}
 .dropzone.drag{border-color:var(--accent);background:var(--status-break-bg);}
 .dropzone b{color:var(--text);font-weight:600;}
 .dropzone .sub{font-size:12px;margin-top:4px;}
@@ -56,11 +62,13 @@
 .importlog div{padding:2px 0;}
 .importlog .ok{color:var(--status-ok-fg);}
 .importlog .warn{color:var(--status-warn-fg);}
+
+/* ---------- Week view ---------- */
 .week{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px;}
 .week-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
 .week h2{margin:0;font-size:15px;font-weight:700;}
 .daytabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;}
-.daytab{flex:1 0 auto;min-width:66px;border:1px solid var(--line);background:var(--panel-raised);color:var(--text);padding:8px 10px;text-align:center;font-weight:600;font-size:13px;line-height:1.3;}
+.daytab{flex:1 0 auto;min-width:66px;border:1px solid var(--line);background:var(--panel-raised);color:var(--text);padding:8px 10px;text-align:center;font-weight:600;font-size:13px;line-height:1.3;cursor:pointer;font-family:inherit;}
 .daytab small{display:block;font-weight:500;color:var(--text-muted);font-size:12px;}
 .daytab.today{border-bottom:3px solid var(--accent);}
 .daytab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#FFF;}
@@ -97,6 +105,8 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 .addrow .btn{padding:7px 12px;font-size:12.5px;}
 .empty-plan{text-align:center;padding:50px 20px;color:var(--text-muted);font-size:14px;}
 .empty-plan b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
+
+/* ---------- Modals ---------- */
 .modalbg{position:fixed;inset:0;background:rgba(10,15,20,0.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;}
 .modalbg.show{display:flex;}
 .modalbox{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);max-width:420px;width:100%;padding:20px;}
@@ -104,7 +114,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 .modalbox .sub{font-size:12.5px;color:var(--text-muted);margin-bottom:16px;}
 .modalbox .field{margin-bottom:12px;}
 .modalbox .field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;}
-.modalbox .field input,.modalbox .field select{width:100%;padding:9px 10px;border:1px solid var(--line);background:var(--panel-raised);color:var(--text);font-family:inherit;font-size:14px;outline:none;}
+.modalbox .field input,.modalbox .field select{width:100%;padding:9px 10px;border:1px solid var(--line);background:var(--panel-raised);color:var(--text);font-family:inherit;font-size:14px;outline:none;box-sizing:border-box;}
 .modalbox .field input:focus,.modalbox .field select:focus{border-color:var(--accent);}
 .modalbox .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .modalbox .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft);}
@@ -118,6 +128,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 .dot-cancel{background:#C0392B;}
 .dot-replace{background:#7A4DAB;}
 .dot-clear{background:#4C9A5D;}
+
 @media print{
   @page{margin:14mm;}
   body{background:#fff;color:#000;}
@@ -153,7 +164,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       <a class="btn" href="index.html">← Tableau de bord</a>
       <a class="btn" href="staff.html">Employés</a>
       <a class="btn" href="requests.html">Demandes</a>
-      <button class="btn" id="btnPrint">Imprimer ce jour</button>
       <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
       <button class="btn" id="btnLogout">Déconnexion</button>
     </div>
@@ -193,6 +203,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
 </div>
 
+<!-- Edit shift -->
 <div class="modalbg" id="editBg">
   <div class="modalbox">
     <h3 id="editTitle">Modifier l'horaire</h3>
@@ -212,6 +223,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   </div>
 </div>
 
+<!-- Status marker -->
 <div class="modalbg" id="statBg">
   <div class="modalbox">
     <h3 id="statTitle">Marquer</h3>
@@ -229,6 +241,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   </div>
 </div>
 
+<!-- Replacement name -->
 <div class="modalbg" id="replBg">
   <div class="modalbox">
     <h3>Remplacé par…</h3>
@@ -250,6 +263,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   </div>
 </div>
 
+<!-- Add employee -->
 <div class="modalbg" id="addBg">
   <div class="modalbox">
     <h3>Ajouter un employé</h3>
@@ -288,6 +302,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   const $ = function(id){ return document.getElementById(id); };
   const R = window.CSMRules;
 
+  // ---------- Theme ----------
   (function(){
     const K = 'csct_manager_theme';
     function apply(){
@@ -324,23 +339,21 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   const EXPECT_LATE_MIN  = 120;
   const EXPECT_GRACE_MIN = 5;
 
+  // ---------- State ----------
   let schedule = null;
-  let employees = [];
-  let unsubSchedule = null;
-  let unsubShifts = null;
-  let selDay = null;
+  let employees = [];       // today's shifts (from CSM.refs.shifts)
+  let staffList = [];       // active staff (for the dropdowns)
+  let selDay = null;        // 0..6
   let importNote = '';
-  let timeOffsetMs = 0;
-  let staffList = [];
 
-  try{
-    const v = parseInt(localStorage.getItem('csct_time_offset') || '0', 10);
-    if(isFinite(v)) timeOffsetMs = v;
-  }catch(e){}
+  function nowMinutes(){
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  }
 
-  function appNow(){ return new Date(Date.now() + timeOffsetMs); }
-  function nowMinutes(){ const d = appNow(); return d.getHours()*60 + d.getMinutes(); }
-
+  // ============================================================
+  // Auth gate
+  // ============================================================
   let started = false;
   auth.onAuthStateChanged(function(user){
     if(!user){ window.location.replace('login.html'); return; }
@@ -354,9 +367,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       }
       return Promise.race([
         CSM.ready,
-        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
+        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Délai dépassé')); }, 8000); })
       ]).then(function(){
-        document.querySelector('.app').style.display = 'block';
+        $('app').style.display = 'block';
         $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
         $('restaurantBadge').style.display = 'inline-block';
         loadStaff();
@@ -371,6 +384,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
   $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
 
+  // ============================================================
+  // Data
+  // ============================================================
   function loadStaff(){
     CSM.refs.staffColl().get().then(function(snap){
       staffList = snap.docs
@@ -386,7 +402,8 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   }
 
   function startListeners(){
-    unsubSchedule = CSM.refs.schedules()
+    // Latest schedule doc
+    CSM.refs.schedules()
       .orderBy('importedAt', 'desc').limit(1)
       .onSnapshot(function(snap){
         const prevStart = schedule && schedule.start;
@@ -395,8 +412,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         renderAll();
       }, function(err){ console.error('Schedule listener:', err); });
 
+    // Today's shifts (to know who has arrived)
     const today = R.todayKey();
-    unsubShifts = CSM.refs.shifts().where('date', '==', today)
+    CSM.refs.shifts().where('date', '==', today)
       .onSnapshot(function(snap){
         employees = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
         renderAll();
@@ -407,13 +425,12 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     renderPlanSub();
     renderExpected();
     renderWeek();
-    updateAddRow();
-  }
-
-  function updateAddRow(){
     $('addRowWrap').style.display = schedule ? 'block' : 'none';
   }
 
+  // ============================================================
+  // Subheader
+  // ============================================================
   function renderPlanSub(){
     const sub = $('planSub');
     if(!schedule){
@@ -427,10 +444,15 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     sub.textContent = t;
   }
 
+  // ============================================================
+  // Expected soon
+  // ============================================================
   function renderExpected(){
-    const list = $('expectedList'), count = $('expectedCount');
+    const list = $('expectedList');
+    const count = $('expectedCount');
     list.innerHTML = '';
     count.textContent = '';
+
     if(!schedule){
       list.innerHTML = '<div class="exp-empty">Importez le planning pour voir les employés attendus.</div>';
       return;
@@ -446,7 +468,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     (schedule.employees || []).forEach(function(emp){
       const sh = emp.d && emp.d[ti];
       if(!sh) return;
-      if(sh.st) return;
+      if(sh.st) return;   // skip if marked absent/sick/etc.
       const dt = toMin(sh.s) - nowMin;
       if(dt > EXPECT_LEAD_MIN || dt < -EXPECT_LATE_MIN) return;
       if(arrivedFor(emp)) return;
@@ -463,6 +485,11 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       const state = it.dt > 15 ? 'up' : (it.dt > -EXPECT_GRACE_MIN ? 'soon' : 'late');
       const row = document.createElement('div');
       row.className = 'exp-item ' + state;
+
+      const timeEl = document.createElement('div');
+      timeEl.className = 'exp-time';
+      timeEl.textContent = it.sh.s;
+
       const mid = document.createElement('div');
       mid.className = 'exp-mid';
       const nameEl = document.createElement('div');
@@ -476,15 +503,14 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         ? ('dans ' + fmtDur(it.dt))
         : (state === 'late' ? ('en retard de ' + fmtDur(-it.dt)) : 'à pointer maintenant');
       mid.appendChild(statusEl);
+
       const b = document.createElement('button');
       b.className = 'btn exp-btn';
       b.type = 'button';
       b.textContent = 'Arrivé';
       b.title = 'Retirer de la liste';
       b.addEventListener('click', function(){ dismissExpected(it.key); });
-      const timeEl = document.createElement('div');
-      timeEl.className = 'exp-time';
-      timeEl.textContent = it.sh.s;
+
       row.appendChild(timeEl);
       row.appendChild(mid);
       row.appendChild(b);
@@ -492,14 +518,19 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     });
   }
 
+  // ============================================================
+  // Week table
+  // ============================================================
   function renderWeek(){
-    const tabs = $('dayTabs'), list = $('dayList'), sum = $('daySum');
+    const tabs = $('dayTabs');
+    const list = $('dayList');
+    const sum = $('daySum');
     list.innerHTML = '';
+
     if(!schedule){
       tabs.innerHTML = ''; tabs._sig = null;
       sum.textContent = 'Aucun planning chargé.';
       $('weekRange').textContent = '';
-      $('btnPrint').disabled = true;
       list.innerHTML = '<div class="empty-plan"><b>Aucun planning</b>Importez le PDF hebdomadaire ci-dessus pour commencer.</div>';
       return;
     }
@@ -508,11 +539,12 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     const ti = todayIdx();
     if(selDay === null) selDay = (ti >= 0 && ti <= 6) ? ti : 0;
 
+    // Day tabs (only rebuild when the selection or week changes)
     const sig = schedule.start + '|' + selDay + '|' + ti;
     if(tabs._sig !== sig){
       tabs._sig = sig;
       tabs.innerHTML = '';
-      for(let i=0; i<7; i++){
+      for(let i = 0; i < 7; i++){
         const d = dayDate(i);
         const b = document.createElement('button');
         b.className = 'daytab' + (i === ti ? ' today' : '');
@@ -520,15 +552,18 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         b.setAttribute('role','tab');
         b.setAttribute('aria-selected', String(i === selDay));
         b.innerHTML = DAY_SHORT[i] + '<small>' + d.getUTCDate() + '</small>';
-        b.addEventListener('click', function(){ selDay = i; renderWeek(); });
+        b.addEventListener('click', (function(idx){
+          return function(){ selDay = idx; renderWeek(); };
+        })(i));
         tabs.appendChild(b);
       }
     }
 
     const isToday = selDay === ti;
     const nowMin = nowMinutes();
-    const rows = [];
     const empList = Array.isArray(schedule.employees) ? schedule.employees : [];
+
+    const rows = [];
     empList.forEach(function(emp){
       const sh = emp.d && emp.d[selDay];
       if(sh) rows.push({ emp: emp, sh: sh });
@@ -549,8 +584,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       ' : ' + rows.length + (rows.length > 1 ? ' employés prévus' : ' employé prévu') +
       (isToday && rows.length ? ', dont ' + arrived + (arrived > 1 ? ' déjà arrivés' : ' déjà arrivé') : '')
     ));
-
-    $('btnPrint').disabled = !rows.length;
 
     if(!rows.length){
       list.innerHTML = '<div class="empty-plan">Personne n\'est prévu ce jour-là.</div>';
@@ -589,18 +622,20 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       gr.forEach(function(r){
         const tr = document.createElement('tr');
         if(r.sh.st) tr.classList.add('st-' + r.sh.st);
+
         const tdS = document.createElement('td');
         tdS.className = 't';
         tdS.textContent = r.sh.s;
         tr.appendChild(tdS);
+
         const tdE = document.createElement('td');
         tdE.className = 'end';
         tdE.textContent = r.sh.e || '—';
         tr.appendChild(tdE);
+
         const tdN = document.createElement('td');
         tdN.className = 'nm';
-        const displayName = r.sh.ov || r.emp.name;
-        tdN.textContent = displayName;
+        tdN.textContent = r.sh.ov || r.emp.name;
         if(r.sh.st === 'replaced' && r.sh.rn){
           const arrow = document.createElement('span');
           arrow.className = 'repl-arrow';
@@ -608,6 +643,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
           tdN.appendChild(arrow);
         }
         tr.appendChild(tdN);
+
         if(isToday){
           const st = statusFor(r.emp, r.sh, nowMin);
           const tdSt = document.createElement('td');
@@ -617,6 +653,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
           tdSt.appendChild(sp);
           tr.appendChild(tdSt);
         }
+
         const tdA = document.createElement('td');
         tdA.className = 'act';
         const bEdit = document.createElement('button');
@@ -642,6 +679,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     list.appendChild(table);
   }
 
+  // ============================================================
+  // Row status helpers
+  // ============================================================
   function arrivedFor(emp){
     const key = 'd' + todayIdx() + '_' + emp.n;
     if(schedule.dismissed && schedule.dismissed[key]) return true;
@@ -652,15 +692,15 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   }
 
   function statusFor(emp, sh, nowMin){
-    if(sh.st === 'absent')    return { cls: 'mut', text: 'Absent' };
+    if(sh.st === 'absent')    return { cls: 'mut',  text: 'Absent' };
     if(sh.st === 'sick')      return { cls: 'warn', text: 'Maladie' };
     if(sh.st === 'cancelled') return { cls: 'crit', text: 'Annulé' };
-    if(sh.st === 'replaced')  return { cls: 'brk', text: 'Remplacé' };
-    if(arrivedFor(emp))       return { cls: 'ok', text: 'Arrivé' };
+    if(sh.st === 'replaced')  return { cls: 'brk',  text: 'Remplacé' };
+    if(arrivedFor(emp))       return { cls: 'ok',   text: 'Arrivé' };
     if(sh.e && nowMin >= toMin(sh.e)) return { cls: '', text: 'Non pointé' };
     const dt = toMin(sh.s) - nowMin;
-    if(dt > EXPECT_LEAD_MIN) return { cls: '', text: 'À venir' };
-    if(dt > 0)               return { cls: 'brk', text: 'Dans ' + fmtDur(dt) };
+    if(dt > EXPECT_LEAD_MIN) return { cls: '',     text: 'À venir' };
+    if(dt > 0)               return { cls: 'brk',  text: 'Dans ' + fmtDur(dt) };
     if(dt > -EXPECT_GRACE_MIN) return { cls: 'warn', text: 'Maintenant' };
     if(dt >= -EXPECT_LATE_MIN) return { cls: 'crit', text: 'En retard de ' + fmtDur(-dt) };
     return { cls: 'crit', text: 'Non pointé' };
@@ -668,7 +708,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
   function dismissExpected(key){
     if(!schedule || !schedule._id) return;
-    const current = Array.isArray(schedule.employees) ? schedule.employees : [];
     const newDismissed = Object.assign({}, schedule.dismissed || {});
     newDismissed[key] = true;
     CSM.refs.schedules().doc(schedule._id).update({ dismissed: newDismissed })
@@ -676,16 +715,15 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   }
 
   // ============================================================
-  // Modals
+  // Edit modal
   // ============================================================
   let editing = null;
-  let statTarget = null;
-  let replTarget = null;
 
   function openEditModal(r){
     const empIndex = schedule.employees.indexOf(r.emp);
     editing = { empIndex: empIndex, dayIndex: selDay, emp: r.emp, sh: r.sh };
-    $('editSub').textContent = r.emp.name + ' — ' + DAY_NAMES[selDay] + ' ' + dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
+    $('editSub').textContent = r.emp.name + ' — ' + DAY_NAMES[selDay] + ' ' +
+      dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
     $('editName').value  = r.sh.ov || r.emp.name;
     $('editStart').value = r.sh.s || '';
     $('editEnd').value   = r.sh.e || '';
@@ -700,25 +738,37 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     const newName  = $('editName').value.trim();
     const newStart = $('editStart').value.trim();
     const newEnd   = $('editEnd').value.trim();
+
     const current = (schedule.employees || []).slice();
     const emp = Object.assign({}, current[editing.empIndex]);
     emp.d = Object.assign({}, emp.d);
     const sh = Object.assign({}, emp.d[editing.dayIndex] || {});
-    if(newName && newName !== emp.name){ sh.ov = newName; } else { delete sh.ov; }
+
+    if(newName && newName !== emp.name) sh.ov = newName;
+    else delete sh.ov;
     sh.s = newStart;
     sh.e = newEnd;
+
     emp.d[editing.dayIndex] = sh;
     current[editing.empIndex] = emp;
+
     try{
       await CSM.refs.schedules().doc(schedule._id).update({ employees: current });
       closeEdit();
     }catch(err){ alert('Erreur : ' + err.message); }
   });
 
+  // ============================================================
+  // Status modal
+  // ============================================================
+  let statTarget = null;
+  let replTarget = null;
+
   function openStatusModal(r){
     const empIndex = schedule.employees.indexOf(r.emp);
     statTarget = { empIndex: empIndex, dayIndex: selDay, emp: r.emp, sh: r.sh };
-    $('statSub').textContent = r.emp.name + ' — ' + DAY_NAMES[selDay] + ' ' + dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
+    $('statSub').textContent = r.emp.name + ' — ' + DAY_NAMES[selDay] + ' ' +
+      dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
     $('statBg').classList.add('show');
   }
   function closeStat(){ $('statBg').classList.remove('show'); statTarget = null; }
@@ -740,6 +790,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     });
   });
 
+  // ============================================================
+  // Replacement modal
+  // ============================================================
   function openReplModal(){
     $('replSub').textContent = replTarget.emp.name + ' — ' + DAY_NAMES[replTarget.dayIndex] + ' ' +
       dayDate(replTarget.dayIndex).getUTCDate() + ' ' + MONTHS[dayDate(replTarget.dayIndex).getUTCMonth()];
@@ -771,8 +824,10 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     const emp = Object.assign({}, current[empIndex]);
     emp.d = Object.assign({}, emp.d);
     const sh = Object.assign({}, emp.d[dayIndex] || {});
+
     if(!stat){
-      delete sh.st; delete sh.rn;
+      delete sh.st;
+      delete sh.rn;
     } else {
       sh.st = stat;
       if(stat === 'replaced') sh.rn = replName;
@@ -780,16 +835,20 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     }
     emp.d[dayIndex] = sh;
     current[empIndex] = emp;
+
     try{
       await CSM.refs.schedules().doc(schedule._id).update({ employees: current });
       closeStat();
     }catch(err){ alert('Erreur : ' + err.message); }
   }
 
-  // ---- Add employee to a day ----
+  // ============================================================
+  // Add employee modal
+  // ============================================================
   $('btnAddEmp').addEventListener('click', function(){
     if(!schedule) return;
-    $('addSub').textContent = 'Ajouter à ' + DAY_NAMES[selDay] + ' ' + dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
+    $('addSub').textContent = 'Ajouter à ' + DAY_NAMES[selDay] + ' ' +
+      dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
     $('addName').value = '';
     $('addSelect').value = '';
     $('addStart').value = '09:00';
@@ -845,7 +904,8 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   }
   function startParts(){ return schedule.start.split('-').map(Number); }
   function todayIdx(){
-    const now = appNow(), p = startParts();
+    const now = new Date();
+    const p = startParts();
     return Math.round(
       (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
        Date.UTC(p[0], p[1]-1, p[2])) / 86400000
@@ -997,6 +1057,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     return { start: start, end: end, employees: employees };
   }
 
+  // ============================================================
+  // Drop / upload
+  // ============================================================
   $('dropzone').addEventListener('click', function(){ $('fileInput').click(); });
   $('fileInput').addEventListener('change', function(e){
     if(e.target.files[0]) handleFile(e.target.files[0]);
@@ -1072,8 +1135,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     el.innerHTML = '';
     el.classList.remove('show');
   }
-
-  $('btnPrint').addEventListener('click', function(){ window.print(); });
 
 })();
 </script>
