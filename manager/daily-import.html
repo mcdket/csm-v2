@@ -159,8 +159,8 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     à un employé existant, et affiche un aperçu. <b>Les employés qui ne sont pas encore
     enregistrés seront automatiquement créés</b> avec leur badge et leur nom quand vous cliquez
     sur « Enregistrer ». Un pointage existant pour la même date sera automatiquement remplacé.
-    Les pointages sont enregistrés à la <b>date du jour</b> pour apparaître immédiatement sur
-    le tableau de bord.
+    Les pointages sont enregistrés à la <b>date détectée dans le PDF</b> pour apparaître
+    immédiatement sur le tableau de bord du bon jour.
   </div>
 
   <div class="import" id="importZone">
@@ -393,7 +393,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     }
   }
 
-    // ============================================================
+  // ============================================================
   // PDF extraction — keep x, y positions
   // ============================================================
   async function extractPdfItems(arrayBuffer){
@@ -412,6 +412,9 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     return pages;
   }
 
+  // ============================================================
+  // Column positions measured from the PDF header row
+  // ============================================================
   const COL = {
     BNO:    { min: 30,  max: 55  },
     EMPLNO: { min: 60,  max: 95  },
@@ -536,7 +539,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     return buildRowsFromBlocks(blocks, date, store, location);
   }
 
-    function buildRowsFromBlocks(blocks, date, store, location){
+  function buildRowsFromBlocks(blocks, date, store, location){
     const rows = [];
 
     blocks.forEach(function(b){
@@ -559,7 +562,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
       if(ins[0]) clockIn     = ins[0].h * 60 + ins[0].min;
       if(ins[1]) breakReturn = ins[1].h * 60 + ins[1].min;
-      if(ins[2]) breakReturn = ins[1].h * 60 + ins[1].min; // ignore extras; only first return used
       if(breakStartPunch) breakStart = breakStartPunch.h * 60 + breakStartPunch.min;
 
       if(outFromOut){
@@ -760,7 +762,8 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   function fmtHrsFromTimes(row){
     const calc = R.computeShift({
       clockIn: row.clockIn, breakStart: row.breakStart,
-      breakReturn: row.breakReturn, clockOut: row.clockOut
+      breakReturn: row.breakReturn, clockOut: row.clockOut,
+      date: R.todayKey()
     });
     return R.fmtHrs(calc.totalMinutes || 0);
   }
@@ -812,7 +815,13 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
     let saved = 0, created = 0, failed = 0;
     const errors = [];
-    const dateIso = R.todayKey();
+
+    // Prefer the date printed in the PDF (DD/MM/YYYY). Fallback: today.
+    let dateIso = R.todayKey();
+    if(currentImport && currentImport.date){
+      const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(currentImport.date);
+      if(m) dateIso = m[3] + '-' + m[2] + '-' + m[1];
+    }
 
     for(const row of rows){
       const badge = String(currentImportChosenBadge(row));
@@ -853,9 +862,10 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
       const shiftData = {
         clockIn: row.clockIn, breakStart: row.breakStart,
-        breakReturn: row.breakReturn, clockOut: row.clockOut
+        breakReturn: row.breakReturn, clockOut: row.clockOut,
+        date: dateIso
       };
-      const calc = R.computeShift(shiftData);
+      const calc = R.computeShift(shiftData, dateIso);
       const status = (row.clockOut !== null && row.clockOut !== undefined) ? 'closed' : 'open';
 
       try{
