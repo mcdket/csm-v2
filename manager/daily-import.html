@@ -393,7 +393,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     }
   }
 
-  // ============================================================
+    // ============================================================
   // PDF extraction — keep x, y positions
   // ============================================================
   async function extractPdfItems(arrayBuffer){
@@ -412,9 +412,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     return pages;
   }
 
-  // ============================================================
-  // Column positions measured from the PDF header row
-  // ============================================================
   const COL = {
     BNO:    { min: 30,  max: 55  },
     EMPLNO: { min: 60,  max: 95  },
@@ -437,9 +434,12 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
   function parseTimeTag(str){
     if(!str) return null;
-    const m = /^(\d{1,2}):(\d{2})/.exec(str);
+    const m = /^(\d{1,2}):(\d{2})([GPKMSAC])?$/i.exec(str);
     if(!m) return null;
-    return (parseInt(m[1], 10) * 60) + parseInt(m[2], 10);
+    const h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const tag = m[3] ? m[3].toUpperCase() : null;
+    return { h: h, min: min, tag: tag };
   }
 
   function cleanPdfName(s){
@@ -450,7 +450,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   }
 
   function parseDailyReport(pages){
-    // Header meta from page 1
+    // ---- Header meta from page 1 ----
     let date = null, store = null, location = null;
     if(pages[0]){
       const p1 = pages[0];
@@ -470,10 +470,10 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       if(locItem) location = locItem.str.trim();
     }
 
-    // Group items per employee block.
-    // A new block starts whenever a number appears in the BNO column.
+    // ---- Parse employee blocks ----
     const blocks = [];
     const HEADER_WORDS = { 'Bno':1,'No':1,'Empl-':1,'Employee':1,'Date':1,'In':1,'Out':1,'Break':1,'Hrs':1,'Sum':1,'SUM':1 };
+    let current = null;
 
     pages.forEach(function(pageItems){
       const headerItem = pageItems.find(function(i){
@@ -489,49 +489,111 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
           return a.x - b.x;
         });
 
-      let current = null;
       items.forEach(function(it){
         const col = colOf(it.x);
+
         if(col === 'BNO' && /^\d+$/.test(it.str)){
           if(current) blocks.push(current);
-          current = { bno: it.str, emplNo: null, nameParts: [], date: null, inTime: null, outTime: null, breakTime: null };
-        } else if(!current){
+          current = {
+            bno: it.str,
+            emplNo: null,
+            nameParts: [],
+            date: null,
+            inPunches: [],
+            outPunches: []
+          };
           return;
-        } else {
-          if(col === 'EMPLNO' && /^\d+$/.test(it.str)){
-            current.emplNo = (current.emplNo || '') + it.str;
-          } else if(col === 'NAME'){
-            current.nameParts.push(it.str);
-          } else if(col === 'DATE' && !current.date){
-            current.date = it.str;
-          } else if(col === 'IN' && !current.inTime){
-            current.inTime = it.str;
-          } else if(col === 'OUT' && !current.outTime){
-            current.outTime = it.str;
-          } else if(col === 'BREAK' && !current.breakTime){
-            current.breakTime = it.str;
-          }
+        }
+
+        if(!current) return;
+
+        if(col === 'EMPLNO' && /^\d+$/.test(it.str)){
+          current.emplNo = (current.emplNo || '') + it.str;
+          return;
+        }
+        if(col === 'NAME'){
+          current.nameParts.push(it.str);
+          return;
+        }
+        if(col === 'DATE' && !current.date && /\d{2}\/\d{2}\/\d{4}/.test(it.str)){
+          current.date = it.str;
+          return;
+        }
+        if(col === 'IN'){
+          const t = parseTimeTag(it.str);
+          if(t) current.inPunches.push(t);
+          return;
+        }
+        if(col === 'OUT'){
+          const t = parseTimeTag(it.str);
+          if(t) current.outPunches.push(t);
+          return;
         }
       });
-      if(current) blocks.push(current);
     });
+    if(current) blocks.push(current);
 
-    const rows = blocks.map(function(b){
+    return buildRowsFromBlocks(blocks, date, store, location);
+  }
+
+  function buildRowsFromBlocks(blocks, date, store, location){
+    const rows = [];
+
+    blocks.forEach(function(b){
       const name = cleanPdfName(b.nameParts.join(' '));
-      return {
+      if(!name) return;
+
+      // IN column: G's sorted by time ascending
+      const ins = b.inPunches.slice().sort(function(a, bb){
+        return (a.h * 60 + a.min) - (bb.h * 60 + bb.min);
+      });
+
+      // OUT column: one P (break start) and possibly one G (clock out)
+      let breakStartPunch = null;
+      let outFromOut = null;
+      b.outPunches.forEach(function(p){
+        if(p.tag === 'P' && !breakStartPunch) breakStartPunch = p;
+        if(p.tag === 'G' && !outFromOut)       outFromOut = p;
+      });
+
+      let clockIn = null, breakReturn = null, clockOut = null;
+      let breakStart = null;
+
+      if(ins[0]) clockIn     = ins[0].h * 60 + ins[0].min;
+      if(ins[1]) breakReturn = ins[1].h * 60 + ins[1].min;
+      if(breakStartPunch) breakStart = breakStartPunch.h * 60 + breakStartPunch.min;
+
+      if(outFromOut){
+        clockOut = outFromOut.h * 60 + outFromOut.min;
+      } else if(ins.length >= 3 && breakStart !== null){
+        clockOut = ins[ins.length - 1].h * 60 + ins[ins.length - 1].min;
+      }
+
+      // Cross-midnight corrections
+      if(breakStart !== null && breakReturn !== null && breakReturn < breakStart){
+        breakReturn += 24 * 60;
+      }
+      if(clockOut !== null && clockIn !== null && clockOut < clockIn){
+        clockOut += 24 * 60;
+      }
+      if(clockOut !== null && breakReturn !== null && clockOut < breakReturn){
+        clockOut += 24 * 60;
+      }
+
+      rows.push({
         rawNum: b.bno,
         emplNo: b.emplNo,
         namePdf: name,
         date: b.date,
-        clockIn: parseTimeTag(b.inTime),
-        breakStart: parseTimeTag(b.breakTime),
-        breakReturn: null,
-        clockOut: parseTimeTag(b.outTime),
+        clockIn: clockIn,
+        breakStart: breakStart,
+        breakReturn: breakReturn,
+        clockOut: clockOut,
         match: null,
         chosenBadge: null,
         isNew: false
-      };
-    }).filter(function(r){ return r.namePdf; });
+      });
+    });
 
     return { date: date, store: store, location: location, rows: rows };
   }
