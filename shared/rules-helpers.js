@@ -10,7 +10,7 @@
  * No Firebase here — pure functions only, easy to test.
  *
  * Exposes on window:
- *   CSMRules.computeShift(shift)
+ *   CSMRules.computeShift(shift, todayIso?)
  *   CSMRules.sameName(a, b)
  *   CSMRules.nowMinutes()
  *   CSMRules.minToHM(min)
@@ -96,8 +96,9 @@
   /**
    * Takes a shift document's fields and returns the live state.
    *
-   * @param {object} shift  { clockIn, breakStart, breakReturn, clockOut }
-   *                        All values are minutes-since-midnight or null.
+   * @param {object} shift  { clockIn, breakStart, breakReturn, clockOut, date? }
+   *                        All time values are minutes-since-midnight or null.
+   * @param {string} todayIso  Optional. 'YYYY-MM-DD'. Defaults to today.
    * @returns {object} {
    *   suggBreak, suggReturn, suggEnd,
    *   contMinutes,        // continuous minutes since last break started/ended
@@ -107,7 +108,9 @@
    *   statusLabel         // human-readable French label
    * }
    */
-  function computeShift(shift){
+  function computeShift(shift, todayIso){
+    if(!todayIso) todayIso = todayKey();
+
     const out = {
       suggBreak: null,
       suggReturn: null,
@@ -138,30 +141,51 @@
       out.suggReturn = shift.breakStart + BREAK_MIN;
     }
 
-    const t = nowMinutes();
+    // Determine whether this shift is still running today, or was left open
+    // on a previous day (forgotten clock-out).
+    const shiftDate = shift.date || todayIso;
+    const isStaleShift = !hasClockOut && shiftDate !== todayIso;
+
+    // "Effective end" for stale shifts = the last known punch.
+    // For running shifts, use the current time.
+    let endMin = nowMinutes();
+    if(isStaleShift){
+      if(hasReturn)          endMin = shift.breakReturn;
+      else if(hasBreakStart) endMin = shift.breakStart;
+      else                   endMin = ci;
+    }
+
     let pre = 0, post = 0;
 
     // --- Pre-break worked time ---
     // If a break has started, pre-break time = clockIn → breakStart.
-    // If no break yet, pre-break time = clockIn → (now or clockOut).
+    // If no break yet, pre-break time = clockIn → (now / clockOut / endMin).
     if(hasBreakStart){
       let d = shift.breakStart - ci; if(d < 0) d += 1440;
       pre = d;
     } else {
-      const end = hasClockOut ? shift.clockOut : t;
+      const end = hasClockOut ? shift.clockOut : endMin;
       let d = end - ci; if(d < 0) d += 1440;
       pre = d;
     }
 
     // --- Post-break worked time ---
-    // If returned from break, post = breakReturn → (now or clockOut).
+    // If returned from break, post = breakReturn → (now / clockOut / endMin).
     if(hasReturn){
-      const end = hasClockOut ? shift.clockOut : t;
+      const end = hasClockOut ? shift.clockOut : endMin;
       let d = end - shift.breakReturn; if(d < 0) d += 1440;
       post = d;
     }
 
     out.totalMinutes = pre + post;
+
+    // Stale shift: employee forgot to clock out on a previous day.
+    if(isStaleShift){
+      out.status = 'done';
+      out.statusLabel = 'Sortie non pointée';
+      out.contMinutes = 0;
+      return out;
+    }
 
     // --- Status ---
     if(hasClockOut){
@@ -172,7 +196,7 @@
     }
 
     if(hasBreakStart && !hasReturn){
-      let elapsed = t - shift.breakStart; if(elapsed < 0) elapsed += 1440;
+      let elapsed = endMin - shift.breakStart; if(elapsed < 0) elapsed += 1440;
       out.elapsedBreakMinutes = elapsed;
       out.contMinutes = pre;
       if(elapsed >= BREAK_MIN){
@@ -185,7 +209,7 @@
       return out;
     }
 
-    let cont = hasReturn ? (t - shift.breakReturn) : (t - ci);
+    let cont = hasReturn ? (endMin - shift.breakReturn) : (endMin - ci);
     if(cont < 0) cont += 1440;
     out.contMinutes = cont;
 
