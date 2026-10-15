@@ -21,46 +21,29 @@
   background:var(--panel-raised);
   border-bottom:3px solid var(--accent);
   box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
-  padding:16px 20px;
-  margin-bottom:18px;
+  padding:16px 20px;margin-bottom:18px;
 }
 .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.brand .arch{
-  width:34px;height:34px;object-fit:cover;border-radius:50%;
-  border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);
-}
+.brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
 .brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
-.brand .restaurant-badge{
-  color:#2A1F00;font-size:12px;font-weight:700;
-  background:var(--brand-yellow);padding:4px 10px;
-}
+.brand .restaurant-badge{color:#2A1F00;font-size:12px;font-weight:700;background:var(--brand-yellow);padding:4px 10px;}
 .controls{display:flex;gap:8px;flex-wrap:wrap;}
 
-.toolbar{
-  display:flex;justify-content:space-between;align-items:center;
-  gap:12px;flex-wrap:wrap;margin-bottom:14px;
-}
-.search-box{
-  display:flex;align-items:center;background:var(--panel-raised);
-  border:1px solid var(--line);padding:6px 12px;flex:1;max-width:340px;
-}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.search-box{display:flex;align-items:center;background:var(--panel-raised);border:1px solid var(--line);padding:6px 12px;flex:1;max-width:340px;}
 .search-box svg{width:14px;height:14px;color:var(--text-muted);margin-right:6px;flex:none;}
-.search-box input{border:none;background:transparent;color:var(--text);font-size:13px;width:100%;outline:none;}
+.search-box input{border:none;background:transparent;color:var(--text);font-size:13px;width:100%;outline:none;font-family:inherit;}
 
-.stafflist{
-  display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
-  gap:12px;
-}
+.filters{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-btn{border:1px solid var(--line);background:var(--panel);color:var(--text-muted);padding:6px 12px;font-size:12px;font-weight:600;transition:all .15s ease;cursor:pointer;font-family:inherit;}
+.filter-btn:hover{border-color:var(--accent);color:var(--text);}
+.filter-btn.active{background:var(--accent);color:#FFF;border-color:var(--accent);}
+
+.stafflist{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;}
 .staffcard{
-  background:var(--panel-raised);
-  border:1px solid var(--line);
-  border-left:4px solid var(--accent);
-  box-shadow:var(--shadow);
-  padding:14px 16px;
-  display:flex;
-  align-items:center;
-  gap:14px;
+  background:var(--panel-raised);border:1px solid var(--line);
+  border-left:4px solid var(--accent);box-shadow:var(--shadow);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
   transition:transform .1s ease;
 }
 .staffcard:hover{transform:translateY(-1px);}
@@ -78,35 +61,25 @@
 .staffcard .actions button{
   background:transparent;border:1px solid var(--line);
   color:var(--text-muted);padding:5px 10px;
-  font-size:11px;font-weight:600;cursor:pointer;
+  font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;
 }
 .staffcard .actions button:hover{border-color:var(--accent);color:var(--accent);}
 .staffcard .actions button.danger:hover{border-color:var(--status-crit-line);color:var(--status-crit-fg);}
 
-.empty{
-  text-align:center;padding:60px 20px;color:var(--text-muted);
-  background:var(--panel);border:1px dashed var(--line);font-size:14px;
-}
+.empty{text-align:center;padding:60px 20px;color:var(--text-muted);background:var(--panel);border:1px dashed var(--line);font-size:14px;}
 .empty b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
+.hidden{display:none !important;}
 
-.modalbg{
-  position:fixed;inset:0;background:rgba(10,12,10,0.5);
-  display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
-}
+.modalbg{position:fixed;inset:0;background:rgba(10,12,10,0.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
 .modalbg.show{display:flex;}
-.modal{
-  background:var(--panel-raised);border:1px solid var(--line);
-  width:100%;max-width:440px;padding:22px;box-shadow:var(--shadow);
-}
+.modal{background:var(--panel-raised);border:1px solid var(--line);width:100%;max-width:440px;padding:22px;box-shadow:var(--shadow);}
 .modal h3{margin:0 0 6px;font-size:17px;}
 .modal .sub{font-size:12.5px;color:var(--text-muted);margin-bottom:16px;line-height:1.45;}
 .field{margin-bottom:14px;}
 .field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;}
-.field input{
-  width:100%;padding:10px 12px;border:1.5px solid var(--line);
-  background:var(--panel);color:var(--text);font-size:14px;
-}
+.field input{width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--panel);color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;}
 .field input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.field input:disabled{background:var(--panel-raised);color:var(--text-muted);}
 .field .hint{font-size:11px;color:var(--text-muted);margin-top:5px;}
 .modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
 
@@ -116,6 +89,8 @@
   .controls .btn{flex:1;justify-content:center;}
   .toolbar{flex-direction:column;align-items:stretch;}
   .search-box{max-width:none;}
+  .filters{justify-content:stretch;}
+  .filters .filter-btn{flex:1;}
 }
 </style>
 </head>
@@ -133,7 +108,7 @@
       <a class="btn" href="index.html">← Tableau de bord</a>
       <a class="btn" href="planning.html">Planning</a>
       <a class="btn" href="requests.html">Demandes</a>
-      <button class="btn btn-primary" id="btnAdd">+ Ajouter un employé</button>
+      <button class="btn btn-primary" id="btnAdd">+ Ajouter</button>
       <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
       <button class="btn" id="btnLogout">Déconnexion</button>
     </div>
@@ -144,16 +119,17 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
       <input type="text" id="searchInput" placeholder="Rechercher par nom ou badge…">
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="filter-btn btn" data-show="active" id="btnShowActive">Actifs uniquement</button>
-      <button class="filter-btn btn" data-show="all" id="btnShowAll">Tous</button>
+    <div class="filters">
+      <button class="filter-btn active" data-show="active">Actifs</button>
+      <button class="filter-btn" data-show="all">Tous</button>
+      <button class="filter-btn" data-show="inactive">Désactivés</button>
     </div>
   </div>
 
   <div class="stafflist" id="staffList"></div>
   <div class="empty hidden" id="emptyState">
     <b>Aucun employé pour le moment</b>
-    Cliquez sur « Ajouter un employé » pour créer le premier profil.
+    Cliquez sur « Ajouter » pour créer le premier profil.
   </div>
 
 </div>
@@ -172,7 +148,7 @@
     <div class="field">
       <label>Nom & Prénom</label>
       <input type="text" id="fName" placeholder="Karim Benali" autocomplete="off">
-      <div class="hint">Doit correspondre au nom utilisé dans le planning PDF.</div>
+      <div class="hint">Doit correspondre au nom utilisé dans le planning et le rapport de pointage.</div>
     </div>
 
     <div class="modalactions">
@@ -217,12 +193,16 @@
     }
   })();
 
+  // ---------- State ----------
   let staff = [];
   let unsubscribeStaff = null;
   let currentQuery = '';
-  let currentShow = 'active';
+  let currentShow = 'active';  // 'active' | 'all' | 'inactive'
   let editingBadge = null;
 
+  // ============================================================
+  // Auth gate
+  // ============================================================
   let started = false;
   auth.onAuthStateChanged(function(user){
     if(!user){ window.location.replace('login.html'); return; }
@@ -236,20 +216,12 @@
       }
       return Promise.race([
         CSM.ready,
-        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
+        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Délai dépassé')); }, 8000); })
       ]).then(function(){
-        document.querySelector('.app').style.display = 'block';
+        $('app').style.display = 'block';
         $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
         $('restaurantBadge').style.display = 'inline-block';
         startLiveStaff();
-        document.querySelectorAll('.filter-btn').forEach(function(b){
-          b.addEventListener('click', function(){
-            currentShow = b.dataset.show;
-            updateFilterButtons();
-            render();
-          });
-        });
-        updateFilterButtons();
       });
     }).catch(function(err){
       console.error('Auth gating:', err);
@@ -259,14 +231,9 @@
 
   $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
 
-  function updateFilterButtons(){
-    document.querySelectorAll('.filter-btn').forEach(function(b){
-      const isActive = b.dataset.show === currentShow;
-      b.classList.toggle('btn-primary', isActive);
-      b.classList.toggle('btn', !isActive);
-    });
-  }
-
+  // ============================================================
+  // Live staff
+  // ============================================================
   function startLiveStaff(){
     unsubscribeStaff = CSM.refs.staffColl()
       .onSnapshot(function(snap){
@@ -280,6 +247,9 @@
       });
   }
 
+  // ============================================================
+  // Render
+  // ============================================================
   function render(){
     const list = $('staffList');
     const empty = $('emptyState');
@@ -289,6 +259,8 @@
 
     if(currentShow === 'active'){
       filtered = filtered.filter(function(s){ return s.active !== false; });
+    } else if(currentShow === 'inactive'){
+      filtered = filtered.filter(function(s){ return s.active === false; });
     }
 
     if(currentQuery.trim()){
@@ -299,6 +271,7 @@
       });
     }
 
+    // Sort by name (FR)
     filtered.sort(function(a,b){
       return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
     });
@@ -306,11 +279,13 @@
     if(filtered.length === 0){
       empty.classList.remove('hidden');
       if(currentQuery.trim()){
-        empty.innerHTML = '<b>Aucun résultat</b>Aucun employé ne correspond à « ' + escapeHtml(currentQuery) + ' ».';
+        empty.innerHTML = '<b>Aucun résultat</b>Aucun employé ne correspond à « ' + esc(currentQuery) + ' ».';
+      } else if(currentShow === 'inactive'){
+        empty.innerHTML = '<b>Aucun employé désactivé</b>Tous les employés sont actifs.';
       } else if(currentShow === 'active'){
-        empty.innerHTML = '<b>Aucun employé actif</b>Cliquez sur « Tous » pour voir aussi les employés désactivés, ou ajoutez-en un nouveau.';
+        empty.innerHTML = '<b>Aucun employé actif</b>Cliquez sur « Tous » pour voir aussi les employés désactivés.';
       } else {
-        empty.innerHTML = '<b>Aucun employé pour le moment</b>Cliquez sur « Ajouter un employé » pour créer le premier profil.';
+        empty.innerHTML = '<b>Aucun employé pour le moment</b>Cliquez sur « Ajouter » pour créer le premier profil.';
       }
       return;
     }
@@ -321,19 +296,20 @@
       card.className = 'staffcard' + (s.active === false ? ' inactive' : '');
       const initial = ((s.name || '?').trim().charAt(0) || '?').toUpperCase();
       const avatarHtml = s.photo
-        ? '<img class="avatar" src="' + escapeAttr(s.photo) + '" alt="">'
-        : '<div class="avatar-fallback">' + escapeHtml(initial) + '</div>';
+        ? '<img class="avatar" src="' + escAttr(s.photo) + '" alt="">'
+        : '<div class="avatar-fallback">' + esc(initial) + '</div>';
+
       card.innerHTML =
         avatarHtml +
         '<div class="info">' +
-          '<div class="name">' + (escapeHtml(s.name) || '<span style="color:var(--text-muted)">Sans nom</span>') + '</div>' +
-          '<div class="badge">Badge ' + escapeHtml(String(s.badge || '—')) +
+          '<div class="name">' + (esc(s.name) || '<span style="color:var(--text-muted)">Sans nom</span>') + '</div>' +
+          '<div class="badge">Badge ' + esc(String(s.badge || '—')) +
             (s.active === false ? ' · <span style="color:var(--status-crit-fg)">désactivé</span>' : '') +
           '</div>' +
         '</div>' +
         '<div class="actions">' +
-          '<button data-act="edit"   data-badge="' + escapeAttr(String(s.badge)) + '">Modifier</button>' +
-          '<button data-act="toggle" data-badge="' + escapeAttr(String(s.badge)) + '" class="' + (s.active === false ? '' : 'danger') + '">' +
+          '<button data-act="edit" data-badge="' + escAttr(String(s.badge)) + '">Modifier</button>' +
+          '<button data-act="toggle" data-badge="' + escAttr(String(s.badge)) + '" class="' + (s.active === false ? '' : 'danger') + '">' +
             (s.active === false ? 'Réactiver' : 'Désactiver') +
           '</button>' +
         '</div>';
@@ -344,12 +320,15 @@
       b.addEventListener('click', function(){
         const act = b.dataset.act;
         const badge = b.dataset.badge;
-        if(act === 'edit')   openEditModal(badge);
+        if(act === 'edit')        openEditModal(badge);
         else if(act === 'toggle') toggleActive(badge);
       });
     });
   }
 
+  // ============================================================
+  // Modal
+  // ============================================================
   const modalBg = $('modalBg');
 
   function openAddModal(){
@@ -456,17 +435,33 @@
     });
   }
 
+  // ============================================================
+  // Search + filters
+  // ============================================================
   $('searchInput').addEventListener('input', function(e){
     currentQuery = e.target.value;
     render();
   });
 
-  function escapeHtml(s){
+  document.querySelectorAll('.filter-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      currentShow = b.dataset.show;
+      document.querySelectorAll('.filter-btn').forEach(function(x){
+        x.classList.toggle('active', x.dataset.show === currentShow);
+      });
+      render();
+    });
+  });
+
+  // ============================================================
+  // Helpers
+  // ============================================================
+  function esc(s){
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-  function escapeAttr(s){ return escapeHtml(s); }
+  function escAttr(s){ return esc(s); }
 
 })();
 </script>
