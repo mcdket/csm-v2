@@ -237,6 +237,41 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
 
+  // ============================================================
+  // Universal shift-state adapter (works with both old & new
+  // versions of shared/rules-helpers.js)
+  // ============================================================
+  function getShiftWorkedMinutes(shift, dateIso){
+    if(typeof R.shiftState === 'function'){
+      const s = R.shiftState(shift, dateIso);
+      return (s.workedMinutes !== undefined) ? s.workedMinutes : (s.totalMinutes || 0);
+    }
+    if(typeof R.computeShift === 'function'){
+      const c = R.computeShift(shift, dateIso);
+      return (c.workedMinutes !== undefined) ? c.workedMinutes : (c.totalMinutes || 0);
+    }
+    // Fallback: compute manually so the table still renders
+    const ci = shift.clockIn;
+    if(ci === null || ci === undefined) return 0;
+    const hasBrk = shift.breakStart !== null && shift.breakStart !== undefined;
+    const hasRet = shift.breakReturn !== null && shift.breakReturn !== undefined;
+    const hasOut = shift.clockOut !== null && shift.clockOut !== undefined;
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    let end;
+    if(hasOut) end = shift.clockOut;
+    else if(dateIso && shift.date && shift.date !== dateIso){
+      end = hasRet ? shift.breakReturn : (hasBrk ? shift.breakStart : ci);
+    } else {
+      end = nowMin;
+    }
+    let pre = 0, post = 0;
+    if(hasBrk){ let d = shift.breakStart - ci; if(d < 0) d += 1440; pre = d; }
+    else { let d = end - ci; if(d < 0) d += 1440; pre = d; }
+    if(hasRet){ let d = end - shift.breakReturn; if(d < 0) d += 1440; post = d; }
+    return pre + post;
+  }
+
   // ---------- Theme ----------
   (function(){
     const K = 'csct_manager_theme';
@@ -412,9 +447,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     return pages;
   }
 
-  // ============================================================
-  // Column positions measured from the PDF header row
-  // ============================================================
   const COL = {
     BNO:    { min: 30,  max: 55  },
     EMPLNO: { min: 60,  max: 95  },
@@ -453,7 +485,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   }
 
   function parseDailyReport(pages){
-    // ---- Header meta from page 1 ----
     let date = null, store = null, location = null;
     if(pages[0]){
       const p1 = pages[0];
@@ -473,7 +504,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       if(locItem) location = locItem.str.trim();
     }
 
-    // ---- Parse employee blocks ----
     const blocks = [];
     const HEADER_WORDS = { 'Bno':1,'No':1,'Empl-':1,'Employee':1,'Date':1,'In':1,'Out':1,'Break':1,'Hrs':1,'Sum':1,'SUM':1 };
     let current = null;
@@ -546,10 +576,8 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       const name = cleanPdfName(b.nameParts.join(' '));
       if(!name) return;
 
-      // IN column: keep PDF order (top to bottom = chronological)
       const ins = b.inPunches.slice();
 
-      // OUT column: one P (break start) and possibly one G (clock out)
       let breakStartPunch = null;
       let outFromOut = null;
       b.outPunches.forEach(function(p){
@@ -563,24 +591,12 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       if(ins[0]) clockIn     = ins[0].h * 60 + ins[0].min;
       if(ins[1]) breakReturn = ins[1].h * 60 + ins[1].min;
       if(breakStartPunch) breakStart = breakStartPunch.h * 60 + breakStartPunch.min;
+      if(outFromOut)      clockOut   = outFromOut.h * 60 + outFromOut.min;
 
-      if(outFromOut){
-        clockOut = outFromOut.h * 60 + outFromOut.min;
-      }
-
-      // Cross-midnight corrections
-      if(breakReturn !== null && clockIn !== null && breakReturn < clockIn){
-        breakReturn += 24 * 60;
-      }
-      if(breakStart !== null && clockIn !== null && breakStart < clockIn && breakReturn !== null && breakReturn >= 24 * 60){
-        breakStart += 24 * 60;
-      }
-      if(clockOut !== null && clockIn !== null && clockOut < clockIn){
-        clockOut += 24 * 60;
-      }
-      if(clockOut !== null && breakReturn !== null && clockOut < breakReturn){
-        clockOut += 24 * 60;
-      }
+      if(breakReturn !== null && clockIn !== null && breakReturn < clockIn) breakReturn += 24 * 60;
+      if(breakStart !== null && clockIn !== null && breakStart < clockIn && breakReturn !== null && breakReturn >= 24 * 60) breakStart += 24 * 60;
+      if(clockOut !== null && clockIn !== null && clockOut < clockIn) clockOut += 24 * 60;
+      if(clockOut !== null && breakReturn !== null && clockOut < breakReturn) clockOut += 24 * 60;
 
       rows.push({
         rawNum: b.bno,
@@ -615,7 +631,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   function resolveRow(row){
     const bno = String(row.rawNum || '').trim();
 
-    // 1. Exact badge match
     if(bno && staffByBadge[bno]){
       const staff = staffByBadge[bno];
       const nameOk = R.sameName(staff.name, row.namePdf);
@@ -627,7 +642,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       };
     }
 
-    // 2. Match by name
     const byName = staffList.find(function(s){ return R.sameName(s.name, row.namePdf); });
     if(byName){
       return {
@@ -638,13 +652,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       };
     }
 
-    // 3. New employee — use Bno as badge
-    return {
-      badge: bno,
-      staffName: null,
-      level: 'new',
-      reason: 'nouvel employé'
-    };
+    return { badge: bno, staffName: null, level: 'new', reason: 'nouvel employé' };
   }
 
   function effectiveLevel(row){
@@ -658,6 +666,9 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     return null;
   }
 
+  // ============================================================
+  // Render — with per-row try/catch so one bad row doesn't kill the whole table
+  // ============================================================
   function render(){
     if(!currentImport){
       $('previewWrap').style.display = 'none';
@@ -688,7 +699,22 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
     const body = $('previewBody');
     body.innerHTML = '';
-    rows.forEach(function(row, idx){ body.appendChild(buildRow(row, idx)); });
+    rows.forEach(function(row, idx){
+      try{
+        body.appendChild(buildRow(row, idx));
+      }catch(err){
+        console.error('buildRow failed for row', idx, row, err);
+        // Render a fallback row so the user sees SOMETHING
+        const tr = document.createElement('tr');
+        tr.className = 'flagged-crit';
+        tr.innerHTML =
+          '<td class="mono"><b>' + esc(row.rawNum || '—') + '</b></td>' +
+          '<td class="name">' + esc(row.namePdf || '—') + '</td>' +
+          '<td style="color:var(--status-crit-fg);font-size:11.5px;">Erreur d\'affichage : ' + esc(err.message) + '</td>' +
+          '<td colspan="6"></td>';
+        body.appendChild(tr);
+      }
+    });
 
     const saveBtn = $('btnSaveAll');
     saveBtn.disabled = rows.length === 0;
@@ -760,12 +786,13 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   }
 
   function fmtHrsFromTimes(row){
-    const calc = R.computeShift({
+    const dateIso = R.todayKey();
+    const minutes = getShiftWorkedMinutes({
       clockIn: row.clockIn, breakStart: row.breakStart,
       breakReturn: row.breakReturn, clockOut: row.clockOut,
-      date: R.todayKey()
-    });
-    return R.fmtHrs(calc.totalMinutes || 0);
+      date: dateIso
+    }, dateIso);
+    return R.fmtHrs(minutes || 0);
   }
 
   function saveCurrentImport(){
@@ -816,7 +843,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     let saved = 0, created = 0, failed = 0;
     const errors = [];
 
-    // Prefer the date printed in the PDF (DD/MM/YYYY). Fallback: today.
     let dateIso = R.todayKey();
     if(currentImport && currentImport.date){
       const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(currentImport.date);
@@ -865,7 +891,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         breakReturn: row.breakReturn, clockOut: row.clockOut,
         date: dateIso
       };
-      const calc = R.computeShift(shiftData, dateIso);
+      const workedMinutes = getShiftWorkedMinutes(shiftData, dateIso);
       const status = (row.clockOut !== null && row.clockOut !== undefined) ? 'closed' : 'open';
 
       try{
@@ -882,7 +908,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
           breakStart: row.breakStart,
           breakReturn: row.breakReturn,
           clockOut: row.clockOut,
-          totalMinutes: calc.totalMinutes || 0,
+          totalMinutes: workedMinutes,
           status: status,
           source: 'daily-import',
           importedAt: new Date().toISOString(),
