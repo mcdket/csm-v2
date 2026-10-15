@@ -10,10 +10,11 @@
 <meta name="theme-color" content="#C9701F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
 .app{max-width:1240px;margin:0 auto;padding:20px 20px 60px;}
+
 .header{
   display:flex;align-items:center;justify-content:space-between;
   gap:20px;flex-wrap:wrap;
@@ -34,11 +35,7 @@
 .import{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:18px;margin-bottom:20px;}
 .import-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
 .import-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
-.dropzone{
-  border:1.5px dashed var(--line);padding:36px 16px;text-align:center;
-  color:var(--text-muted);font-size:14px;
-  transition:border-color .15s ease, background .15s ease;cursor:pointer;
-}
+.dropzone{border:1.5px dashed var(--line);padding:36px 16px;text-align:center;color:var(--text-muted);font-size:14px;transition:border-color .15s ease, background .15s ease;cursor:pointer;}
 .dropzone:hover, .dropzone.drag{border-color:var(--accent);background:var(--status-break-bg);}
 .dropzone b{color:var(--text);font-weight:600;font-size:15px;}
 .dropzone .sub{font-size:12.5px;margin-top:6px;}
@@ -50,10 +47,7 @@
 .importlog .warn{color:var(--status-warn-fg);}
 .importlog .err{color:var(--status-crit-fg);}
 
-.summary{
-  background:var(--panel-raised);border:1px solid var(--line);box-shadow:var(--shadow);
-  padding:16px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:14px;
-}
+.summary{background:var(--panel-raised);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:14px;}
 .summary-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
 .summary-left{display:flex;flex-direction:column;gap:2px;}
 .summary-left .lbl{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-muted);text-transform:uppercase;}
@@ -76,12 +70,7 @@
 
 .tablewrap{border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);overflow-x:auto;margin-bottom:16px;}
 table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13px;}
-.preview thead th{
-  text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);
-  text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;
-  border-bottom:2px solid var(--line);white-space:nowrap;
-  background:var(--panel-raised);position:sticky;top:0;
-}
+.preview thead th{text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;border-bottom:2px solid var(--line);white-space:nowrap;background:var(--panel-raised);position:sticky;top:0;}
 .preview tbody td{padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle;}
 .preview tbody tr:hover{background:var(--panel-raised);}
 .preview tbody tr.flagged-ok   {border-left:4px solid var(--status-ok-line);}
@@ -98,23 +87,16 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 .match-pill.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);}
 .match-pill.new {background:rgba(240,185,74,0.30);color:#8A5A00;}
 
-.picker{padding:6px 8px;font-size:12.5px;background:var(--panel);color:var(--text);border:1px solid var(--line);max-width:220px;}
+.picker{padding:6px 8px;font-size:12.5px;background:var(--panel);color:var(--text);border:1px solid var(--line);max-width:220px;font-family:inherit;}
 .picker:focus{outline:2px solid var(--accent);}
 
-.rowaction{padding:6px 10px;font-size:11.5px;font-weight:700;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;}
+.rowaction{padding:6px 10px;font-size:11.5px;font-weight:700;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;font-family:inherit;}
 .rowaction:hover{border-color:var(--accent);color:var(--accent);}
 
 .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;background:var(--panel);border:1px dashed var(--line);}
 .empty-state b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
 
-.toast{
-  position:fixed;bottom:24px;left:50%;
-  transform:translateX(-50%) translateY(120%);
-  background:var(--status-ok-fg);color:#fff;
-  padding:14px 22px;font-size:14px;font-weight:700;
-  box-shadow:0 8px 24px rgba(0,0,0,0.35);
-  transition:transform .3s cubic-bezier(.2,.9,.3,1.2);z-index:200;
-}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--status-ok-fg);color:#fff;padding:14px 22px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,0.35);transition:transform .3s cubic-bezier(.2,.9,.3,1.2);z-index:200;}
 .toast.show{transform:translateX(-50%) translateY(0);}
 
 .loading-overlay{position:fixed;inset:0;background:rgba(20,24,29,0.6);display:none;align-items:center;justify-content:center;z-index:150;}
@@ -261,11 +243,15 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     }
   })();
 
+  // ---------- State ----------
   let staffList = [];
   let staffByBadge = {};
   let currentImport = null;
   let unsubImport = null;
 
+  // ============================================================
+  // Auth gate
+  // ============================================================
   let started = false;
   auth.onAuthStateChanged(function(user){
     if(!user){ window.location.replace('login.html'); return; }
@@ -279,16 +265,14 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       }
       return Promise.race([
         CSM.ready,
-        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
+        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Délai dépassé')); }, 8000); })
       ]).then(function(){
-        document.querySelector('.app').style.display = 'block';
+        $('app').style.display = 'block';
         $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
         $('restaurantBadge').style.display = 'inline-block';
         wireImport();
         wireActions();
-        loadStaff().then(function(){
-          subscribeCurrentImport();
-        });
+        loadStaff().then(subscribeCurrentImport);
       });
     }).catch(function(err){
       console.error('Auth gating:', err);
@@ -298,6 +282,9 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
   $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
 
+  // ============================================================
+  // Staff list
+  // ============================================================
   function loadStaff(){
     return CSM.refs.staffColl().get().then(function(snap){
       staffList = [];
@@ -311,11 +298,12 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       staffList.sort(function(a,b){
         return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
       });
-    }).catch(function(err){
-      console.warn('loadStaff:', err);
-    });
+    }).catch(function(err){ console.warn('loadStaff:', err); });
   }
 
+  // ============================================================
+  // Current import preview (Firestore listener)
+  // ============================================================
   function subscribeCurrentImport(){
     if(unsubImport) unsubImport();
     unsubImport = CSM.refs.dailyImport('current').onSnapshot(function(doc){
@@ -327,11 +315,12 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         currentImport = null;
         render();
       }
-    }, function(err){
-      console.warn('subscribeCurrentImport:', err);
-    });
+    }, function(err){ console.warn('subscribeCurrentImport:', err); });
   }
 
+  // ============================================================
+  // File input / drag-drop
+  // ============================================================
   function wireImport(){
     $('dropzone').addEventListener('click', function(){ $('fileInput').click(); });
     $('fileInput').addEventListener('change', function(e){
@@ -412,9 +401,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     return pages;
   }
 
-  // ============================================================
-  // Column positions measured from the PDF header row
-  // ============================================================
   const COL = {
     BNO:    { min: 30,  max: 55  },
     EMPLNO: { min: 60,  max: 95  },
@@ -439,10 +425,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     if(!str) return null;
     const m = /^(\d{1,2}):(\d{2})([GPKMSAC])?$/i.exec(str);
     if(!m) return null;
-    const h = parseInt(m[1], 10);
-    const min = parseInt(m[2], 10);
-    const tag = m[3] ? m[3].toUpperCase() : null;
-    return { h: h, min: min, tag: tag };
+    return { h: parseInt(m[1], 10), min: parseInt(m[2], 10), tag: m[3] ? m[3].toUpperCase() : null };
   }
 
   function cleanPdfName(s){
@@ -453,7 +436,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   }
 
   function parseDailyReport(pages){
-    // ---- Header meta from page 1 ----
     let date = null, store = null, location = null;
     if(pages[0]){
       const p1 = pages[0];
@@ -473,7 +455,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       if(locItem) location = locItem.str.trim();
     }
 
-    // ---- Parse employee blocks ----
     const blocks = [];
     const HEADER_WORDS = { 'Bno':1,'No':1,'Empl-':1,'Employee':1,'Date':1,'In':1,'Out':1,'Break':1,'Hrs':1,'Sum':1,'SUM':1 };
     let current = null;
@@ -497,27 +478,16 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
         if(col === 'BNO' && /^\d+$/.test(it.str)){
           if(current) blocks.push(current);
-          current = {
-            bno: it.str,
-            emplNo: null,
-            nameParts: [],
-            date: null,
-            inPunches: [],
-            outPunches: []
-          };
+          current = { bno: it.str, emplNo: null, nameParts: [], date: null, inPunches: [], outPunches: [] };
           return;
         }
-
         if(!current) return;
 
         if(col === 'EMPLNO' && /^\d+$/.test(it.str)){
           current.emplNo = (current.emplNo || '') + it.str;
           return;
         }
-        if(col === 'NAME'){
-          current.nameParts.push(it.str);
-          return;
-        }
+        if(col === 'NAME'){ current.nameParts.push(it.str); return; }
         if(col === 'DATE' && !current.date && /\d{2}\/\d{2}\/\d{4}/.test(it.str)){
           current.date = it.str;
           return;
@@ -557,30 +527,18 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         if(p.tag === 'G' && !outFromOut)       outFromOut = p;
       });
 
-      let clockIn = null, breakReturn = null, clockOut = null;
-      let breakStart = null;
+      let clockIn = null, breakReturn = null, clockOut = null, breakStart = null;
 
       if(ins[0]) clockIn     = ins[0].h * 60 + ins[0].min;
       if(ins[1]) breakReturn = ins[1].h * 60 + ins[1].min;
       if(breakStartPunch) breakStart = breakStartPunch.h * 60 + breakStartPunch.min;
-
-      if(outFromOut){
-        clockOut = outFromOut.h * 60 + outFromOut.min;
-      }
+      if(outFromOut)      clockOut   = outFromOut.h * 60 + outFromOut.min;
 
       // Cross-midnight corrections
-      if(breakReturn !== null && clockIn !== null && breakReturn < clockIn){
-        breakReturn += 24 * 60;
-      }
-      if(breakStart !== null && clockIn !== null && breakStart < clockIn && breakReturn !== null && breakReturn >= 24 * 60){
-        breakStart += 24 * 60;
-      }
-      if(clockOut !== null && clockIn !== null && clockOut < clockIn){
-        clockOut += 24 * 60;
-      }
-      if(clockOut !== null && breakReturn !== null && clockOut < breakReturn){
-        clockOut += 24 * 60;
-      }
+      if(breakReturn !== null && clockIn !== null && breakReturn < clockIn) breakReturn += 24 * 60;
+      if(breakStart !== null && clockIn !== null && breakStart < clockIn && breakReturn !== null && breakReturn >= 24 * 60) breakStart += 24 * 60;
+      if(clockOut !== null && clockIn !== null && clockOut < clockIn) clockOut += 24 * 60;
+      if(clockOut !== null && breakReturn !== null && clockOut < breakReturn) clockOut += 24 * 60;
 
       rows.push({
         rawNum: b.bno,
@@ -615,7 +573,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   function resolveRow(row){
     const bno = String(row.rawNum || '').trim();
 
-    // 1. Exact badge match
     if(bno && staffByBadge[bno]){
       const staff = staffByBadge[bno];
       const nameOk = R.sameName(staff.name, row.namePdf);
@@ -627,7 +584,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       };
     }
 
-    // 2. Match by name
     const byName = staffList.find(function(s){ return R.sameName(s.name, row.namePdf); });
     if(byName){
       return {
@@ -638,13 +594,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       };
     }
 
-    // 3. New employee — use Bno as badge
-    return {
-      badge: bno,
-      staffName: null,
-      level: 'new',
-      reason: 'nouvel employé'
-    };
+    return { badge: bno, staffName: null, level: 'new', reason: 'nouvel employé' };
   }
 
   function effectiveLevel(row){
@@ -658,6 +608,9 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     return null;
   }
 
+  // ============================================================
+  // Render
+  // ============================================================
   function render(){
     if(!currentImport){
       $('previewWrap').style.display = 'none';
@@ -760,12 +713,14 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   }
 
   function fmtHrsFromTimes(row){
-    const calc = R.computeShift({
-      clockIn: row.clockIn, breakStart: row.breakStart,
-      breakReturn: row.breakReturn, clockOut: row.clockOut,
+    const state = R.shiftState({
+      clockIn: row.clockIn,
+      breakStart: row.breakStart,
+      breakReturn: row.breakReturn,
+      clockOut: row.clockOut,
       date: R.todayKey()
-    });
-    return R.fmtHrs(calc.totalMinutes || 0);
+    }, R.todayKey());
+    return R.fmtHrs(state.workedMinutes || 0);
   }
 
   function saveCurrentImport(){
@@ -777,6 +732,9 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     });
   }
 
+  // ============================================================
+  // Actions
+  // ============================================================
   function wireActions(){
     $('btnClearPreview').addEventListener('click', function(){
       if(!currentImport) return;
@@ -784,9 +742,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       CSM.refs.dailyImport('current').delete().then(function(){
         currentImport = null;
         render();
-      }).catch(function(err){
-        alert('Erreur : ' + err.message);
-      });
+      }).catch(function(err){ alert('Erreur : ' + err.message); });
     });
     $('btnSaveAll').addEventListener('click', saveAll);
   }
@@ -865,7 +821,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         breakReturn: row.breakReturn, clockOut: row.clockOut,
         date: dateIso
       };
-      const calc = R.computeShift(shiftData, dateIso);
+      const state = R.shiftState(shiftData, dateIso);
       const status = (row.clockOut !== null && row.clockOut !== undefined) ? 'closed' : 'open';
 
       try{
@@ -882,7 +838,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
           breakStart: row.breakStart,
           breakReturn: row.breakReturn,
           clockOut: row.clockOut,
-          totalMinutes: calc.totalMinutes || 0,
+          totalMinutes: state.workedMinutes || 0,
           status: status,
           source: 'daily-import',
           importedAt: new Date().toISOString(),
@@ -926,6 +882,9 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     }
   }
 
+  // ============================================================
+  // Utils
+  // ============================================================
   let toastTimer = null;
   function showToast(msg){
     const t = $('toast');
