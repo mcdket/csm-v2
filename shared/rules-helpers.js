@@ -101,7 +101,7 @@
    * @returns {object} {
    *   suggBreak, suggReturn, suggEnd,
    *   contMinutes,        // continuous minutes since last break started/ended
-   *   totalMinutes,       // total worked minutes today
+   *   totalMinutes,       // total worked minutes today (breaks excluded)
    *   elapsedBreakMinutes,
    *   status,             // 'ok' | 'warn' | 'crit' | 'break' | 'breakover' | 'done' | 'nodata'
    *   statusLabel         // human-readable French label
@@ -127,16 +127,25 @@
     const hasBreakStart = shift.breakStart !== null && shift.breakStart !== undefined;
     const hasClockOut   = shift.clockOut    !== null && shift.clockOut    !== undefined;
 
+    // Suggested break = after 4h50 of continuous work from clock-in
     out.suggBreak  = ci + SEGMENT_MIN;
     out.suggReturn = out.suggBreak + BREAK_MIN;
     out.suggEnd    = hasReturn ? shift.breakReturn + SEGMENT_MIN : ci + FULL_NOBREAK_MIN;
 
+    // If break already started but not returned, base suggested return on
+    // the actual break start (30 min after they left).
+    if(hasBreakStart && !hasReturn){
+      out.suggReturn = shift.breakStart + BREAK_MIN;
+    }
+
     const t = nowMinutes();
     let pre = 0, post = 0;
 
+    // --- Pre-break worked time ---
+    // If a break has started, pre-break time = clockIn → breakStart.
+    // If no break yet, pre-break time = clockIn → (now or clockOut).
     if(hasBreakStart){
-      const pEnd = hasReturn ? shift.breakReturn : shift.breakStart;
-      let d = pEnd - ci; if(d < 0) d += 1440;
+      let d = shift.breakStart - ci; if(d < 0) d += 1440;
       pre = d;
     } else {
       const end = hasClockOut ? shift.clockOut : t;
@@ -144,6 +153,8 @@
       pre = d;
     }
 
+    // --- Post-break worked time ---
+    // If returned from break, post = breakReturn → (now or clockOut).
     if(hasReturn){
       const end = hasClockOut ? shift.clockOut : t;
       let d = end - shift.breakReturn; if(d < 0) d += 1440;
@@ -152,6 +163,7 @@
 
     out.totalMinutes = pre + post;
 
+    // --- Status ---
     if(hasClockOut){
       out.status = 'done';
       out.statusLabel = 'Journée terminée';
