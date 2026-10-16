@@ -27,6 +27,7 @@
 .brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
 .brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
 .brand .restaurant-badge{color:#2A1F00;font-size:12px;font-weight:700;background:var(--brand-yellow);padding:4px 10px;}
+.brand #dataDate{font-size:12px;color:var(--text-muted);margin-left:6px;}
 .headerside{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
 .controls{display:flex;gap:8px;flex-wrap:wrap;}
 .liveclock{display:flex;flex-direction:column;line-height:1;}
@@ -51,10 +52,11 @@
 .alertdot{width:8px;height:8px;background:currentColor;flex:none;}
 
 .tablewrap{border:1px solid var(--line);overflow-x:auto;background:var(--panel);box-shadow:var(--shadow);}
-table{width:100%;border-collapse:collapse;min-width:950px;}
+table{width:100%;border-collapse:collapse;min-width:1200px;}
 thead th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.03em;color:var(--text-muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel);position:sticky;top:0;}
 tbody td{padding:11px 12px;font-size:13px;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
 tbody td.mono{font-family:'IBM Plex Mono',monospace;}
+tbody td.sugg{color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 tbody td.name{font-weight:600;white-space:normal;}
 tbody tr{border-left:4px solid transparent;}
 tbody tr:hover{background:var(--panel-raised);}
@@ -102,6 +104,7 @@ tbody tr.st-done{opacity:0.55;}
 .time-row:first-child{border-top:none;}
 .time-row .t-label{font-size:12.5px;color:var(--text-muted);font-weight:600;flex-shrink:0;}
 .time-row .t-value{font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;}
+.time-row .t-value .sep{font-family:'Space Grotesk',sans-serif;color:var(--text-muted);font-size:11px;margin:0 5px;}
 .empcard-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--line);background:var(--panel);}
 .empcard-foot .action-group{flex:1 1 auto;}
 
@@ -127,6 +130,14 @@ tbody tr.st-done{opacity:0.55;}
 .modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;align-items:center;}
 .linkbtn{background:none;border:none;color:var(--status-crit-fg);font-family:inherit;font-size:13px;cursor:pointer;text-decoration:underline;padding:0;}
 
+/* time dialog (native <dialog>) */
+.timedlg{border:1px solid var(--line);background:var(--panel-raised);color:var(--text);padding:22px;max-width:380px;width:100%;box-shadow:var(--shadow);font-family:'Space Grotesk',sans-serif;}
+.timedlg::backdrop{background:rgba(10,12,10,0.5);}
+.timedlg h2{margin:0 0 6px;font-size:17px;color:var(--accent);}
+.timedlg p{margin:0 0 14px;font-size:12.5px;color:var(--text-muted);line-height:1.5;}
+.timedlg input[type="time"]{width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--panel);color:var(--text);font-size:16px;font-family:'IBM Plex Mono',monospace;box-sizing:border-box;margin-bottom:16px;}
+.timedlg .trow{display:flex;justify-content:flex-end;gap:8px;}
+
 .blocked{max-width:560px;margin:80px auto;padding:30px 26px;background:var(--panel-raised);border-top:6px solid var(--status-crit-line);box-shadow:var(--shadow);text-align:center;}
 .blocked h2{margin:0 0 8px;color:var(--status-crit-fg);}
 .blocked p{color:var(--text-muted);font-size:13.5px;line-height:1.55;}
@@ -149,7 +160,7 @@ tbody tr.st-done{opacity:0.55;}
       <img class="arch" src="../shared/200.webp" alt="McDonald's">
       <h1>Pointages</h1>
       <span class="restaurant-badge" id="restaurantBadge" style="display:none;"></span>
-      <span id="dataDate" style="font-size:12px;color:var(--text-muted);margin-left:6px;"></span>
+      <span id="dataDate"></span>
     </div>
     <div class="headerside">
       <div class="liveclock">
@@ -157,12 +168,16 @@ tbody tr.st-done{opacity:0.55;}
         <span id="clockNow">--:--:--</span>
       </div>
       <div class="controls">
+        <button class="btn" id="btnSetTime">Régler l'heure</button>
+        <button class="btn" id="btnAutoTime">Heure auto</button>
         <a class="btn" href="planning.html">Planning</a>
         <a class="btn" href="staff.html">Employés</a>
         <a class="btn" href="requests.html" id="requestsBtn">Demandes <span id="requestsCount" class="pill crit" style="padding:1px 7px;font-size:10.5px;display:none;"></span></a>
         <a class="btn" href="daily-import.html">Importer</a>
         <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
-        <button class="btn btn-primary" id="btnAdd">Ajouter</button>
+        <button class="btn" id="btnAdd">Ajouter</button>
+        <button class="btn btn-primary" id="btnPrint">Imprimer</button>
+        <button class="btn btn-danger" id="btnClearDay">Vider le tableau</button>
         <button class="btn" id="btnLogout">Déconnexion</button>
       </div>
     </div>
@@ -191,8 +206,11 @@ tbody tr.st-done{opacity:0.55;}
           <th>Badge</th>
           <th>Nom</th>
           <th>Entrée</th>
-          <th>Pause</th>
-          <th>Retour</th>
+          <th>Pause Sugg.</th>
+          <th>Pause Eff.</th>
+          <th>Retour Sugg.</th>
+          <th>Retour Eff.</th>
+          <th>Sortie Sugg.</th>
           <th>Sortie</th>
           <th>Heures Tot.</th>
           <th>Statut</th>
@@ -230,6 +248,18 @@ tbody tr.st-done{opacity:0.55;}
     <button class="btn" id="btnBlockedLogout">Se déconnecter</button>
   </p>
 </div>
+
+<dialog class="timedlg" id="timeDlg">
+  <form id="timeForm" method="dialog">
+    <h2>Régler l'heure du système</h2>
+    <p>L'heure choisie remplace celle de l'appareil et continue de défiler. Le réglage ne concerne que cet appareil.</p>
+    <input type="time" id="timeInput" required aria-label="Nouvelle heure">
+    <div class="trow">
+      <button type="button" class="btn" id="timeCancel">Annuler</button>
+      <button type="submit" class="btn btn-primary">Appliquer</button>
+    </div>
+  </form>
+</dialog>
 
 <div class="modalbg" id="modalBg">
   <div class="modal">
@@ -277,7 +307,6 @@ tbody tr.st-done{opacity:0.55;}
     }
     if(typeof R.computeShift === 'function'){
       const c = R.computeShift(shift, dateIso);
-      // Normalize to the new shape
       return {
         clockIn: shift.clockIn,
         breakStart: shift.breakStart,
@@ -290,13 +319,35 @@ tbody tr.st-done{opacity:0.55;}
         statusLabel: c.statusLabel
       };
     }
-    // Fallback
     return {
       clockIn: shift.clockIn, breakStart: shift.breakStart,
       breakReturn: shift.breakReturn, clockOut: shift.clockOut,
       workedMinutes: 0, continuousMinutes: 0, elapsedBreakMinutes: 0,
       status: 'ok', statusLabel: '—'
     };
+  }
+
+  // Suggested times (recomputed every render, never stored)
+  function suggestedTimes(shift){
+    const ci = shift.clockIn;
+    if(ci === null || ci === undefined) return { pause: null, retour: null, sortie: null };
+
+    const hasBreak = shift.breakStart !== null && shift.breakStart !== undefined;
+    const hasReturn = shift.breakReturn !== null && shift.breakReturn !== undefined;
+
+    const SEGMENT = 4 * 60 + 50;
+    const BREAK   = 30;
+    const NOBREAK = 10 * 60 + 10;
+
+    const pause = ci + SEGMENT;
+    const retour = (hasBreak && !hasReturn)
+      ? shift.breakStart + BREAK
+      : (pause + BREAK);
+    const sortie = hasReturn
+      ? shift.breakReturn + SEGMENT
+      : (ci + NOBREAK);
+
+    return { pause: pause, retour: retour, sortie: sortie };
   }
 
   // ---------- Theme ----------
@@ -323,6 +374,46 @@ tbody tr.st-done{opacity:0.55;}
     }
   })();
 
+  // ---------- Time offset ----------
+  let timeOffsetMs = 0;
+  const TIME_KEY = 'csct_time_offset';
+  try{ const v = parseInt(localStorage.getItem(TIME_KEY) || '0', 10); if(isFinite(v)) timeOffsetMs = v; }catch(e){}
+
+  function appNow(){ return new Date(Date.now() + timeOffsetMs); }
+  function nowMinutes(){ const d = appNow(); return d.getHours() * 60 + d.getMinutes(); }
+
+  function paintTimeMode(){
+    const manual = timeOffsetMs !== 0;
+    const box = document.querySelector('.liveclock');
+    if(box) box.classList.toggle('manual', manual);
+    $('btnSetTime').classList.toggle('btn-primary', manual);
+    $('btnAutoTime').classList.toggle('btn-primary', !manual);
+  }
+
+  $('btnSetTime').addEventListener('click', function(){
+    const d = appNow();
+    $('timeInput').value = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    $('timeDlg').showModal();
+  });
+  $('timeCancel').addEventListener('click', function(){ $('timeDlg').close(); });
+  $('timeForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const v = $('timeInput').value;
+    if(!v) return;
+    const p = v.split(':').map(Number);
+    const d = new Date();
+    d.setHours(p[0], p[1], 0, 0);
+    timeOffsetMs = d.getTime() - Date.now();
+    try{ localStorage.setItem(TIME_KEY, String(timeOffsetMs)); }catch(err){}
+    $('timeDlg').close();
+    paintTimeMode(); tickClock(); render();
+  });
+  $('btnAutoTime').addEventListener('click', function(){
+    timeOffsetMs = 0;
+    try{ localStorage.removeItem(TIME_KEY); }catch(err){}
+    paintTimeMode(); tickClock(); render();
+  });
+
   // ---------- State ----------
   let shifts = [];
   let currentFilter = 'action';
@@ -330,7 +421,7 @@ tbody tr.st-done{opacity:0.55;}
   let editingId = null;
   let unsubShifts = null;
   let unsubDaily = null;
-  let currentDataDate = null;   // ISO date of the current view
+  let currentDataDate = null;
 
   // ============================================================
   // Auth gate
@@ -357,8 +448,10 @@ tbody tr.st-done{opacity:0.55;}
         $('app').style.display = 'block';
         $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
         $('restaurantBadge').style.display = 'inline-block';
+        paintTimeMode();
         tickClock();
         setInterval(tickClock, 1000);
+        setInterval(function(){ if($('app').style.display !== 'none') render(); }, 15000);
         watchDailyImport();
         watchPendingRequests();
       });
@@ -378,7 +471,7 @@ tbody tr.st-done{opacity:0.55;}
   // Clock
   // ============================================================
   function tickClock(){
-    const d = new Date();
+    const d = appNow();
     $('clockNow').textContent =
       String(d.getHours()).padStart(2,'0') + ':' +
       String(d.getMinutes()).padStart(2,'0') + ':' +
@@ -386,10 +479,8 @@ tbody tr.st-done{opacity:0.55;}
   }
 
   // ============================================================
-  // Data listeners
+  // Data
   // ============================================================
-  // We watch dailyImport/current to know which date to query shifts for.
-  // Fallback = today (when no import exists).
   function watchDailyImport(){
     if(unsubDaily) unsubDaily();
     unsubDaily = CSM.refs.dailyImport('current').onSnapshot(function(doc){
@@ -405,7 +496,6 @@ tbody tr.st-done{opacity:0.55;}
       }
     }, function(err){
       console.warn('dailyImport listener:', err);
-      // If the import read fails, still default to today
       if(!currentDataDate){
         currentDataDate = R.todayKey();
         updateDateLabel();
@@ -430,10 +520,9 @@ tbody tr.st-done{opacity:0.55;}
     const el = $('dataDate');
     if(!el) return;
     if(!currentDataDate) { el.textContent = ''; return; }
-    const today = R.todayKey();
-    // Show the date always so the manager knows what they're looking at
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(currentDataDate);
     const pretty = m ? (m[3] + '/' + m[2] + '/' + m[1]) : currentDataDate;
+    const today = R.todayKey();
     el.textContent = (currentDataDate === today)
       ? '· ' + pretty + ' (aujourd\'hui)'
       : '· ' + pretty;
@@ -506,7 +595,7 @@ tbody tr.st-done{opacity:0.55;}
 
     const alerts = [];
     const processed = shifts.map(function(s){
-      return { shift: s, calc: getShiftState(s, currentDataDate) };
+      return { shift: s, calc: getShiftState(s, currentDataDate), sugg: suggestedTimes(s) };
     });
 
     const filtered = processed.filter(function(item){
@@ -547,7 +636,7 @@ tbody tr.st-done{opacity:0.55;}
       return rank(a.calc.status) - rank(b.calc.status) ||
              ((a.shift.clockIn ?? 999) - (b.shift.clockIn ?? 999));
     }).forEach(function(item){
-      const { shift, calc } = item;
+      const { shift, calc, sugg } = item;
       const meta = statusMeta(calc.status);
 
       if(calc.status === 'crit' || calc.status === 'breakover'){
@@ -565,8 +654,11 @@ tbody tr.st-done{opacity:0.55;}
         '<td class="mono">' + esc(shift.badge || '—') + '</td>' +
         '<td class="name">' + esc(shift.name || 'Sans nom') + '</td>' +
         '<td class="mono">' + (esc(R.minToHM(shift.clockIn))     || '—') + '</td>' +
+        '<td class="sugg">' + (esc(R.minToHM(sugg.pause))        || '—') + '</td>' +
         '<td class="mono">' + (esc(R.minToHM(shift.breakStart))  || '—') + '</td>' +
+        '<td class="sugg">' + (esc(R.minToHM(sugg.retour))       || '—') + '</td>' +
         '<td class="mono">' + (esc(R.minToHM(shift.breakReturn)) || '—') + '</td>' +
+        '<td class="sugg">' + (esc(R.minToHM(sugg.sortie))       || '—') + '</td>' +
         '<td class="mono">' + (esc(R.minToHM(shift.clockOut))    || '—') + '</td>' +
         '<td class="mono totalhrs">' + R.fmtHrs(calc.workedMinutes || 0) + '</td>' +
         '<td><span class="pill ' + meta.pill + '"><span class="pilldot"></span>' + esc(calc.statusLabel || '') + '</span></td>' +
@@ -586,10 +678,10 @@ tbody tr.st-done{opacity:0.55;}
           '<span class="pill ' + meta.pill + '"><span class="pilldot"></span>' + esc(calc.statusLabel || '') + '</span>' +
         '</div>' +
         '<div class="empcard-times">' +
-          '<div class="time-row"><span class="t-label">Entrée</span><span class="t-value">' + (esc(R.minToHM(shift.clockIn))     || '—') + '</span></div>' +
-          '<div class="time-row"><span class="t-label">Pause</span><span class="t-value">'  + (esc(R.minToHM(shift.breakStart))  || '—') + '</span></div>' +
-          '<div class="time-row"><span class="t-label">Retour</span><span class="t-value">' + (esc(R.minToHM(shift.breakReturn)) || '—') + '</span></div>' +
-          '<div class="time-row"><span class="t-label">Sortie</span><span class="t-value">' + (esc(R.minToHM(shift.clockOut))    || '—') + '</span></div>' +
+          '<div class="time-row"><span class="t-label">Entrée</span><span class="t-value">' + (esc(R.minToHM(shift.clockIn)) || '—') + '</span></div>' +
+          '<div class="time-row"><span class="t-label">Pause</span><span class="t-value">'  + (esc(R.minToHM(sugg.pause)) || '—') + '<span class="sep">prévue ·</span>' + (esc(R.minToHM(shift.breakStart)) || '—') + '</span></div>' +
+          '<div class="time-row"><span class="t-label">Retour</span><span class="t-value">' + (esc(R.minToHM(sugg.retour)) || '—') + '<span class="sep">prévu ·</span>' + (esc(R.minToHM(shift.breakReturn)) || '—') + '</span></div>' +
+          '<div class="time-row"><span class="t-label">Sortie</span><span class="t-value">' + (esc(R.minToHM(sugg.sortie)) || '—') + '<span class="sep">prévue ·</span>' + (esc(R.minToHM(shift.clockOut)) || '—') + '</span></div>' +
           '<div class="time-row"><span class="t-label">Total</span><span class="t-value totalhrs">' + R.fmtHrs(calc.workedMinutes || 0) + '</span></div>' +
         '</div>' +
         '<div class="empcard-foot">' +
@@ -645,7 +737,7 @@ tbody tr.st-done{opacity:0.55;}
   // Actions
   // ============================================================
   function doAction(shiftId, field){
-    const t = R.nowMinutes();
+    const t = nowMinutes();
     const patch = {};
     patch[field] = t;
 
@@ -758,6 +850,68 @@ tbody tr.st-done{opacity:0.55;}
   $('searchInput').addEventListener('input', function(e){
     searchQuery = e.target.value;
     render();
+  });
+
+  // ============================================================
+  // Print
+  // ============================================================
+  $('btnPrint').addEventListener('click', function(){ window.print(); });
+
+  // ============================================================
+  // Clear day
+  // ============================================================
+  $('btnClearDay').addEventListener('click', async function(){
+    if(shifts.length === 0){
+      alert('Le tableau est déjà vide.');
+      return;
+    }
+    const n = shifts.length;
+    const dateLabel = currentDataDate || R.todayKey();
+    const ok = confirm(
+      'Effacer tous les pointages de cette journée ?\n\n' +
+      n + ' pointage(s) seront supprimés pour ' + dateLabel + '.\n\n' +
+      'Les profils employés, plannings, demandes et corrections sont conservés.\n' +
+      'Cette action est irréversible.'
+    );
+    if(!ok) return;
+
+    const btn = $('btnClearDay');
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Suppression…';
+
+    let deleted = 0, failed = 0;
+    for(const s of shifts){
+      try{
+        await CSM.refs.shift(s.id).delete();
+        deleted++;
+      }catch(err){
+        failed++;
+        console.error('delete shift', s.id, err);
+      }
+    }
+
+    // Also clear the daily-import preview if it matches the current date
+    try{
+      const impSnap = await CSM.refs.dailyImport('current').get();
+      if(impSnap.exists){
+        const imp = impSnap.data();
+        const m = imp && imp.date ? /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(imp.date) : null;
+        const impIso = m ? (m[3] + '-' + m[2] + '-' + m[1]) : null;
+        if(impIso === dateLabel){
+          await CSM.refs.dailyImport('current').delete();
+        }
+      }
+    }catch(e){ console.warn('dailyImport cleanup:', e); }
+
+    btn.disabled = false;
+    btn.textContent = originalText;
+
+    if(failed === 0){
+      alert('✓ ' + deleted + ' pointage(s) supprimé(s).');
+    } else {
+      alert('Supprimés : ' + deleted + '\nÉchecs : ' + failed + '\n\nVérifiez la console pour les détails.');
+    }
   });
 
   // ============================================================
