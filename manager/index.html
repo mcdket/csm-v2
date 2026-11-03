@@ -44,7 +44,6 @@
 .filter-btn:hover{border-color:var(--accent);color:var(--text);}
 .filter-btn.active{background:var(--accent);color:#FFF;border-color:var(--accent);}
 
-/* Badge Count inside buttons */
 .badge-count{
   background:rgba(0,0,0,0.08);padding:1px 6px;border-radius:10px;
   font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
@@ -115,7 +114,6 @@ tbody tr.st-done{opacity:0.55;}
 .modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;align-items:center;}
 .linkbtn{background:none;border:none;color:var(--status-crit-fg);font-family:inherit;font-size:13px;cursor:pointer;text-decoration:underline;padding:0;}
 
-/* PRINT STYLES */
 @media print {
   @page { margin: 1cm; }
   body { background: #fff; color: #000; }
@@ -128,7 +126,6 @@ tbody tr.st-done{opacity:0.55;}
   .pill { border: 1px solid #000; background: none !important; color: #000 !important; }
   tbody tr { opacity: 1 !important; background: none !important; border-left: none !important; }
   
-  /* Hide non-essential columns for print */
   th:nth-child(4), td:nth-child(4),
   th:nth-child(5), td:nth-child(5),
   th:nth-child(6), td:nth-child(6),
@@ -537,7 +534,15 @@ tbody tr.st-done{opacity:0.55;}
       const pauseEff = outP.length > 0 ? R.minToHM(outP[0]) : '—';
       const retourEff = inP.length > 1 ? R.minToHM(inP[1]) : '—';
       const sortieEff = (outP.length >= inP.length && outP.length > 0) ? R.minToHM(outP[outP.length-1]) : '—';
-      const post = assignments[shift.badge] || '—';
+      
+      // FIX: Find the post where the badge matches
+      let post = '—';
+      for (const [key, val] of Object.entries(assignments)) {
+        if (String(val) === String(shift.badge)) {
+          post = key;
+          break;
+        }
+      }
 
       const tr = document.createElement('tr');
       tr.className = meta.row;
