@@ -14,13 +14,7 @@
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
 .app{max-width:1100px;margin:0 auto;padding:20px 20px 60px;}
-.header{
-  display:flex;align-items:flex-start;justify-content:space-between;
-  gap:20px;flex-wrap:wrap;
-  background:var(--panel-raised);border-bottom:3px solid var(--accent);
-  box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
-  padding:16px 20px;margin-bottom:18px;
-}
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;background:var(--panel-raised);border-bottom:3px solid var(--accent);box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);padding:16px 20px;margin-bottom:18px;}
 .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
 .brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
@@ -39,6 +33,7 @@
 .exp-time{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
 .exp-mid{flex:1;min-width:0;}
 .exp-name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.exp-phone{font-size:12px;color:var(--accent);text-decoration:none;font-family:'IBM Plex Mono',monospace;margin-top:2px;display:inline-block;}
 .exp-status{font-size:12.5px;color:var(--text-muted);}
 .exp-item.soon .exp-status{color:var(--status-warn-fg);font-weight:600;}
 .exp-item.late .exp-status{color:var(--status-crit-fg);font-weight:600;}
@@ -60,7 +55,7 @@
 .week-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
 .week h2{margin:0;font-size:15px;font-weight:700;}
 .daytabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;}
-.daytab{flex:1 0 auto;min-width:66px;border:1px solid var(--line);background:var(--panel-raised);color:var(--text);padding:8px 10px;text-align:center;font-weight:600;font-size:13px;line-height:1.3;}
+.daytab{flex:1 0 auto;min-width:66px;border:1px solid var(--line);background:var(--panel-raised);color:var(--text);padding:8px 10px;text-align:center;font-weight:600;font-size:13px;line-height:1.3;cursor:pointer;}
 .daytab small{display:block;font-weight:500;color:var(--text-muted);font-size:12px;}
 .daytab.today{border-bottom:3px solid var(--accent);}
 .daytab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#FFF;}
@@ -73,6 +68,8 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 .plan td{padding:9px 10px;border-bottom:1px solid var(--line-soft);vertical-align:middle;}
 .plan td.t{font-family:'IBM Plex Mono',monospace;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .plan td.nm{font-weight:600;}
+.plan td.phone{font-family:'IBM Plex Mono',monospace;font-size:13px;}
+.plan td.phone a{color:var(--accent);text-decoration:none;}
 .plan td.end{font-family:'IBM Plex Mono',monospace;color:var(--text-muted);font-size:12.5px;}
 .plan td.act{white-space:nowrap;text-align:right;width:1%;}
 .plan tr.grp td{background:var(--panel-raised);font-weight:700;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
@@ -332,6 +329,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   let importNote = '';
   let timeOffsetMs = 0;
   let staffList = [];
+  let staffByName = {};
 
   try{
     const v = parseInt(localStorage.getItem('csct_time_offset') || '0', 10);
@@ -377,6 +375,12 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         .map(function(d){ return Object.assign({ _id: d.id }, d.data()); })
         .filter(function(s){ return s.active !== false; })
         .sort(function(a,b){ return String(a.name || '').localeCompare(String(b.name || ''), 'fr'); });
+      
+      staffByName = {};
+      staffList.forEach(s => {
+        staffByName[s.name] = s;
+      });
+
       const opts = staffList.map(function(s){
         return '<option value="' + escAttr(s.name) + '">' + esc(s.name) + ' (badge ' + esc(String(s.badge)) + ')</option>';
       }).join('');
@@ -470,21 +474,35 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       nameEl.textContent = it.emp.name;
       nameEl.title = it.emp.name;
       mid.appendChild(nameEl);
+
+      // Add Phone Number
+      const staff = staffByName[it.emp.name];
+      if(staff && staff.phone) {
+        const phoneEl = document.createElement('a');
+        phoneEl.className = 'exp-phone';
+        phoneEl.href = 'tel:' + staff.phone;
+        phoneEl.textContent = '📞 ' + staff.phone;
+        mid.appendChild(phoneEl);
+      }
+
       const statusEl = document.createElement('div');
       statusEl.className = 'exp-status';
       statusEl.textContent = it.dt > 0
         ? ('dans ' + fmtDur(it.dt))
         : (state === 'late' ? ('en retard de ' + fmtDur(-it.dt)) : 'à pointer maintenant');
       mid.appendChild(statusEl);
+      
       const b = document.createElement('button');
       b.className = 'btn exp-btn';
       b.type = 'button';
       b.textContent = 'Arrivé';
       b.title = 'Retirer de la liste';
       b.addEventListener('click', function(){ dismissExpected(it.key); });
+      
       const timeEl = document.createElement('div');
       timeEl.className = 'exp-time';
       timeEl.textContent = it.sh.s;
+      
       row.appendChild(timeEl);
       row.appendChild(mid);
       row.appendChild(b);
@@ -561,7 +579,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     table.className = 'plan';
     const thead = document.createElement('thead');
     const hr = document.createElement('tr');
-    ['Début','Fin','Employé'].concat(isToday ? ['Statut'] : []).concat(['']).forEach(function(h){
+    ['Début','Fin','Employé','Téléphone'].concat(isToday ? ['Statut'] : []).concat(['']).forEach(function(h){
       const th = document.createElement('th');
       th.textContent = h;
       hr.appendChild(th);
@@ -581,7 +599,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       const head = document.createElement('tr');
       head.className = 'grp';
       const td = document.createElement('td');
-      td.colSpan = isToday ? 5 : 4;
+      td.colSpan = isToday ? 6 : 5;
       td.textContent = g[0] + ' (' + gr.length + ')';
       head.appendChild(td);
       tbody.appendChild(head);
@@ -608,6 +626,21 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
           tdN.appendChild(arrow);
         }
         tr.appendChild(tdN);
+
+        // Phone Cell
+        const tdP = document.createElement('td');
+        tdP.className = 'phone';
+        const staff = staffByName[displayName];
+        if (staff && staff.phone) {
+          const a = document.createElement('a');
+          a.href = 'tel:' + staff.phone;
+          a.textContent = staff.phone;
+          tdP.appendChild(a);
+        } else {
+          tdP.textContent = '—';
+        }
+        tr.appendChild(tdP);
+
         if(isToday){
           const st = statusFor(r.emp, r.sh, nowMin);
           const tdSt = document.createElement('td');
