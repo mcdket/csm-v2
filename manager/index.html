@@ -13,7 +13,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
-/* Changed max-width to 100% to make it wide */
 .app{max-width:100%;margin:0 auto;padding:20px;}
 
 .header{
@@ -62,10 +61,11 @@
 .alertrow.warn{background:var(--status-warn-bg);color:var(--status-warn-fg);border-color:var(--status-warn-line);}
 .alertdot{width:8px;height:8px;background:currentColor;flex:none;}
 
+/* TABLE UPDATED HERE */
 .tablewrap{border:1px solid var(--line);overflow-x:auto;background:var(--panel);box-shadow:var(--shadow);}
-table{width:100%;border-collapse:collapse;min-width:1300px;}
-thead th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.03em;color:var(--text-muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel);position:sticky;top:0;}
-tbody td{padding:11px 12px;font-size:13px;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
+table{width:100%;border-collapse:collapse;table-layout:auto;}
+thead th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.03em;color:var(--text-muted);padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel);position:sticky;top:0;}
+tbody td{padding:11px 8px;font-size:13px;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
 tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 tbody td.sugg{color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 tbody td.name{font-weight:600;white-space:normal;}
@@ -83,17 +83,17 @@ tbody tr.st-done{opacity:0.55;}
 .totalhrs{font-weight:700;color:var(--accent-strong);}
 .dash{color:var(--text-muted);}
 
-.action-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-.btn-action{padding:7px 12px;font-size:12px;font-weight:700;border:1.5px solid var(--line);background:var(--panel-raised);color:var(--text);white-space:nowrap;transition:all 0.15s ease;cursor:pointer;font-family:inherit;}
+.action-group{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.btn-action{padding:7px 10px;font-size:11px;font-weight:700;border:1.5px solid var(--line);background:var(--panel-raised);color:var(--text);white-space:nowrap;transition:all 0.15s ease;cursor:pointer;font-family:inherit;}
 .btn-action:hover{border-color:var(--accent);transform:translateY(-1px);}
 .btn-action.break-btn{border-color:#A9850F;background:var(--brand-yellow);color:#2A1400;}
 .btn-action.return-btn{border-color:var(--status-ok-line);background:var(--status-ok-line);color:#FFF;}
 .btn-action.out-btn{border-color:var(--accent);color:var(--accent);background:transparent;}
 .btn-action.out-btn:hover{background:var(--status-crit-bg);}
-.rowedit{border:1px solid var(--line);background:transparent;color:var(--text-muted);width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;}
+.rowedit{border:1px solid var(--line);background:transparent;color:var(--text-muted);width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;}
 .rowedit:hover{border-color:var(--accent);color:var(--accent);}
 
-.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;font-size:11px;font-weight:700;letter-spacing:.02em;border-radius:2px;}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:11px;font-weight:700;letter-spacing:.02em;border-radius:2px;}
 .pill.ok   {background:var(--status-ok-bg);   color:var(--status-ok-fg);}
 .pill.warn {background:var(--status-warn-bg); color:var(--status-warn-fg);}
 .pill.crit {background:var(--status-crit-bg); color:var(--status-crit-fg);}
@@ -536,7 +536,7 @@ tbody tr.st-done{opacity:0.55;}
       const retourEff = inP.length > 1 ? R.minToHM(inP[1]) : '—';
       const sortieEff = (outP.length >= inP.length && outP.length > 0) ? R.minToHM(outP[outP.length-1]) : '—';
       
-      // FIX: Find the post where the badge matches safely
+      // Find post safely
       let post = '—';
       for (const [key, val] of Object.entries(assignments)) {
         if (String(val).trim() === String(shift.badge).trim()) {
