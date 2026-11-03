@@ -1,42 +1,15 @@
 /**
  * shared/rules-helpers.js
- * -----------------------
- * Pure helpers shared by every page. No Firebase, easy to test.
- *
- * Exposes on window.CSMRules:
- *   shiftState(shift, todayIso?)    -- compute state of one shift
- *   sameName(a, b)                   -- fuzzy name match
- *   nameTokens(name)                 -- name → normalized tokens
- *   nowMinutes()                     -- current time as minutes since midnight
- *   minToHM(min)                     -- 725 → "12:05"
- *   hmToMin("12:05")                 -- "12:05" → 725
- *   fmtHrs(min)                      -- 725 → "12h05"
- *   todayKey()                       -- "2025-10-15"
- *   monthKey()                       -- "2025-10"
- *   weekKeys()                       -- 7 ISO dates, Monday → Sunday
- *
- * Constants (Moroccan labour rules):
- *   SEGMENT_MIN      = 290   (4h50 continuous work max)
- *   BREAK_MIN        = 30    (mandatory break)
- *   WARN_MIN         = 270   (4h30 warning threshold)
- *   CRIT_MIN         = 290   (4h50 hard limit)
- *   FULL_NOBREAK_MIN = 610   (10h10 with no break)
  */
 (function(){
   'use strict';
 
-  // ============================================================
-  // Rule constants — mirrored in push-alerts/check-alerts.js
-  // ============================================================
-  const SEGMENT_MIN      = 4 * 60 + 50;   // 4h50 continuous segment max
+  const SEGMENT_MIN      = 4 * 60 + 50;   // 4h50 continuous
   const BREAK_MIN        = 30;            // 30 min mandatory break
-  const WARN_MIN         = 4 * 60 + 30;   // 4h30 warn threshold
-  const CRIT_MIN         = 4 * 60 + 50;   // 4h50 hard limit
-  const FULL_NOBREAK_MIN = 10 * 60 + 10;  // 10h10 with no break at all
+  const WARN_MIN         = 4 * 60 + 50;   // 4h50 warning
+  const CRIT_MIN         = 4 * 60 + 55;   // 4h55 hard limit
+  const FULL_NOBREAK_MIN = 10 * 60 + 10;  // 10h10 no break
 
-  // ============================================================
-  // Time helpers
-  // ============================================================
   function nowMinutes(){
     const d = new Date();
     return d.getHours() * 60 + d.getMinutes();
@@ -74,7 +47,6 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
   }
 
-  // Returns the 7 ISO dates (YYYY-MM-DD) of the current week, Monday → Sunday.
   function weekKeys(){
     const d = new Date();
     const dow = (d.getDay() + 6) % 7;
@@ -91,118 +63,83 @@
     return out;
   }
 
-  // ============================================================
-  // Shift state
-  // ============================================================
-  /**
-   * Compute the live state of a shift.
-   *
-   * @param {object} shift       { clockIn, breakStart, breakReturn, clockOut, date? }
-   *                             All times are minutes-since-midnight or null.
-   * @param {string} todayIso    Optional 'YYYY-MM-DD'. Defaults to today.
-   *
-   * @returns {object} {
-   *   clockIn, breakStart, breakReturn, clockOut,  // pass-through of the input times
-   *   workedMinutes,          // total worked minutes today (breaks excluded)
-   *   continuousMinutes,      // minutes since last break-return (or since clock-in)
-   *   elapsedBreakMinutes,    // minutes spent on the current break (0 if not on break)
-   *   status,                 // see below
-   *   statusLabel             // French label ready to display
-   * }
-   *
-   * Status values:
-   *   'notpunched'  -- no clockIn yet
-   *   'ok'          -- working, under 4h30 continuous
-   *   'warn'        -- between 4h30 and 4h50
-   *   'crit'        -- over 4h50, break overdue
-   *   'break'       -- on break, under 30 min
-   *   'breakover'   -- on break, over 30 min
-   *   'done'        -- clocked out, or stale shift from a previous day
-   *   'stale'       -- alias for done-with-warning (previous day, never clocked out)
-   */
   function shiftState(shift, todayIso){
     if(!todayIso) todayIso = todayKey();
 
     const out = {
-      clockIn:     null,
-      breakStart:  null,
-      breakReturn: null,
-      clockOut:    null,
-      workedMinutes:       0,
-      continuousMinutes:   0,
-      elapsedBreakMinutes: 0,
-      status:       'notpunched',
-      statusLabel:  'Pas encore pointé'
+      clockIn: null, breakStart: null, breakReturn: null, clockOut: null,
+      workedMinutes: 0, continuousMinutes: 0, elapsedBreakMinutes: 0,
+      status: 'notpunched', statusLabel: 'Pas encore pointé',
+      inPunches: [], outPunches: []
     };
-
     if(!shift) return out;
 
-    const ci = shift.clockIn;
-    if(ci === null || ci === undefined) return out;
+    // Build arrays for backward compatibility and new multi-part shifts
+    let inP = shift.inPunches ? shift.inPunches.slice() : [];
+    let outP = shift.outPunches ? shift.outPunches.slice() : [];
 
-    out.clockIn     = ci;
-    out.breakStart  = (shift.breakStart  !== undefined) ? shift.breakStart  : null;
-    out.breakReturn = (shift.breakReturn !== undefined) ? shift.breakReturn : null;
-    out.clockOut    = (shift.clockOut    !== undefined) ? shift.clockOut    : null;
+    if(inP.length === 0 && shift.clockIn != null) inP.push(shift.clockIn);
+    if(outP.length === 0 && shift.breakStart != null) outP.push(shift.breakStart);
+    if(shift.breakReturn != null && !inP.includes(shift.breakReturn)) inP.push(shift.breakReturn);
+    if(shift.clockOut != null && !outP.includes(shift.clockOut)) outP.push(shift.clockOut);
 
-    const hasBreakStart = out.breakStart  !== null;
-    const hasReturn     = out.breakReturn !== null;
-    const hasClockOut   = out.clockOut    !== null;
+    inP.sort(function(a,b){ return a - b; });
+    outP.sort(function(a,b){ return a - b; });
 
-    // A shift belongs to a past day and was never clocked out.
-    const shiftDate   = shift.date || todayIso;
-    const isStale     = !hasClockOut && shiftDate !== todayIso;
+    out.inPunches = inP;
+    out.outPunches = outP;
 
-    // Effective "end of counting" time:
-    // - if clocked out: that's the end
-    // - if stale: last known punch (breakReturn > breakStart > clockIn)
-    // - otherwise: now
-    let endMin;
-    if(hasClockOut){
+    if(inP.length === 0) return out;
+
+    out.clockIn = inP[0];
+    out.clockOut = (outP.length >= inP.length) ? outP[outP.length - 1] : null;
+
+    const shiftDate = shift.date || todayIso;
+    const isStale = !out.clockOut && shiftDate !== todayIso;
+    let endMin = nowMinutes();
+
+    if(out.clockOut != null){
       endMin = out.clockOut;
     } else if(isStale){
-      endMin = hasReturn ? out.breakReturn : (hasBreakStart ? out.breakStart : ci);
-    } else {
-      endMin = nowMinutes();
+      endMin = inP[inP.length - 1];
     }
 
-    // --- Worked minutes (breaks excluded) ---
-    let pre = 0, post = 0;
-
-    if(hasBreakStart){
-      let d = out.breakStart - ci; if(d < 0) d += 1440;
-      pre = d;
-    } else {
-      let d = endMin - ci; if(d < 0) d += 1440;
-      pre = d;
+    // Calculate total worked minutes
+    let totalWorked = 0;
+    for(let i = 0; i < inP.length; i++){
+      if(i < outP.length){
+        let d = outP[i] - inP[i];
+        if(d < 0) d += 1440;
+        totalWorked += d;
+      } else {
+        // Currently working, open segment
+        let d = endMin - inP[i];
+        if(d < 0) d += 1440;
+        totalWorked += d;
+      }
     }
+    out.workedMinutes = totalWorked;
 
-    if(hasReturn){
-      let d = endMin - out.breakReturn; if(d < 0) d += 1440;
-      post = d;
-    }
-
-    out.workedMinutes = pre + post;
-
-    // --- Stale shift: done, but flagged ---
     if(isStale){
       out.status = 'done';
       out.statusLabel = 'Sortie non pointée';
       return out;
     }
 
-    // --- Clocked out ---
-    if(hasClockOut){
+    if(out.clockOut != null){
       out.status = 'done';
       out.statusLabel = 'Journée terminée';
       return out;
     }
 
-    // --- On break ---
-    if(hasBreakStart && !hasReturn){
-      let elapsed = endMin - out.breakStart; if(elapsed < 0) elapsed += 1440;
+    // Determine current status (on break, working, etc)
+    const isOnBreak = inP.length === outP.length;
+    
+    if(isOnBreak){
+      let elapsed = endMin - outP[outP.length - 1];
+      if(elapsed < 0) elapsed += 1440;
       out.elapsedBreakMinutes = elapsed;
-      out.continuousMinutes = pre;
+      out.continuousMinutes = totalWorked;
       if(elapsed >= BREAK_MIN){
         out.status = 'breakover';
         out.statusLabel = 'Pause dépassée (' + elapsed + 'm)';
@@ -213,28 +150,25 @@
       return out;
     }
 
-    // --- Working (with or without a completed break) ---
-    let cont = hasReturn ? (endMin - out.breakReturn) : (endMin - ci);
+    // Working
+    let cont = endMin - inP[inP.length - 1];
     if(cont < 0) cont += 1440;
     out.continuousMinutes = cont;
 
     if(cont >= CRIT_MIN){
       out.status = 'crit';
-      out.statusLabel = 'Limite 4h50 atteinte';
+      out.statusLabel = 'Limite 4h55 atteinte';
     } else if(cont >= WARN_MIN){
       out.status = 'warn';
-      out.statusLabel = 'Limite bientôt atteinte';
+      out.statusLabel = 'Limite 4h50 proche';
     } else {
       out.status = 'ok';
-      out.statusLabel = hasReturn ? 'En poste (post-pause)' : 'En poste';
+      out.statusLabel = 'En poste';
     }
 
     return out;
   }
 
-  // ============================================================
-  // Fuzzy name matching
-  // ============================================================
   function nameTokens(n){
     return String(n || '')
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -243,11 +177,6 @@
       .split(/\s+/).filter(Boolean);
   }
 
-  // True if the two names plausibly refer to the same person.
-  //   "Karim Benali" ↔ "BENALI K."
-  //   "Karim B." ↔ "Karim Benali"
-  //   "Nourreddine El Idrissi" ↔ "NOUREDDINE EL IDRISSI"
-  // Rejects two completely different names, and single-letter-only matches.
   function sameName(a, b){
     const A = nameTokens(a), B = nameTokens(b);
     if(!A.length || !B.length) return false;
@@ -262,27 +191,10 @@
     return hits === small.length && (small.length >= 2 || large.length === 1);
   }
 
-  // ============================================================
-  // Export
-  // ============================================================
   window.CSMRules = {
-    SEGMENT_MIN: SEGMENT_MIN,
-    BREAK_MIN: BREAK_MIN,
-    WARN_MIN: WARN_MIN,
-    CRIT_MIN: CRIT_MIN,
-    FULL_NOBREAK_MIN: FULL_NOBREAK_MIN,
-
-    nowMinutes: nowMinutes,
-    minToHM: minToHM,
-    hmToMin: hmToMin,
-    fmtHrs: fmtHrs,
-    todayKey: todayKey,
-    monthKey: monthKey,
-    weekKeys: weekKeys,
-
-    shiftState: shiftState,
-    sameName: sameName,
-    nameTokens: nameTokens
+    SEGMENT_MIN, BREAK_MIN, WARN_MIN, CRIT_MIN, FULL_NOBREAK_MIN,
+    nowMinutes, minToHM, hmToMin, fmtHrs, todayKey, monthKey, weekKeys,
+    shiftState, sameName, nameTokens
   };
 
 })();

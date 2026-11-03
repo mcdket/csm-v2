@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr" class="theme-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Field — CSM</title>
+<link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/styles.css">
+<style>
+body{background:#fff;color:#000;font-family:'Space Grotesk',sans-serif;padding:20px;margin:0;}
+
+/* LAYOUT */
+.field-container{max-width:1200px;margin:0 auto;border:2px solid #000;padding:10px;background:#fff;}
+.top-bar{display:grid;grid-template-columns:1fr 2fr 200px;gap:10px;margin-bottom:10px;}
+.box{border:1px solid #000;padding:8px;font-size:13px;font-weight:600;}
+.box h3{margin:0 0 5px;font-size:12px;text-transform:uppercase;}
+.msg-box{display:flex;flex-direction:column;justify-content:center;}
+.mcd-logo{background:#DA291C;color:#FFC72C;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:24px;font-weight:800;text-align:center;line-height:1.1;}
+.mcd-logo span{font-size:14px;color:#000;background:#FFC72C;padding:2px 10px;margin-top:5px;font-weight:700;}
+
+.grid{display:grid;grid-template-columns:80px 1fr 1fr 1.5fr 1fr;gap:8px;align-items:start;}
+
+/* COLUMNS */
+.col{display:flex;flex-direction:column;gap:8px;}
+.drive-col{background:#000;color:#fff;border:1px solid #000;padding:10px;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;font-weight:800;letter-spacing:2px;}
+
+/* POSTS */
+.post{display:flex;align-items:center;gap:6px;border:1px solid #000;padding:4px;background:#fff;cursor:pointer;position:relative;}
+.post:hover{background:#f0f0f0;}
+.post .icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;}
+.post .info{flex:1;font-size:11px;line-height:1.2;}
+.post .name{border-bottom:1px solid #000;height:14px;font-weight:700;font-size:11px;color:#000;}
+.post .role{font-weight:700;}
+.post .circle{width:14px;height:14px;border-radius:50%;border:2px solid #000;}
+
+.icon-green{background:#4CAF50;}
+.icon-orange{background:#FF9800;}
+.icon-red{background:#F44336;}
+.icon-blue{background:#2196F3;}
+.icon-purple{background:#9C27B0;}
+.icon-grey{background:#9E9E9E;}
+
+.header-title{text-align:center;font-weight:800;font-size:12px;background:#000;color:#fff;padding:4px;margin-bottom:4px;}
+.header-title.red{background:#DA291C;}
+
+.bottom-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.text-area{height:80px;border:1px solid #000;width:100%;resize:none;padding:5px;font-family:inherit;}
+
+/* MODAL */
+.modalbg{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:100;}
+.modalbg.show{display:flex;}
+.modal{background:#fff;padding:20px;width:400px;border:2px solid #000;color:#000;}
+.modal h3{margin:0 0 10px;}
+.search-input{width:100%;padding:8px;margin-bottom:10px;border:1px solid #ccc;}
+.staff-list{max-height:300px;overflow-y:auto;border:1px solid #ccc;margin-bottom:10px;}
+.staff-item{padding:10px;border-bottom:1px solid #eee;cursor:pointer;display:flex;justify-content:space-between;}
+.staff-item:hover{background:#f0f0f0;}
+.btn-row{display:flex;justify-content:flex-end;gap:10px;}
+
+/* PRINT */
+@media print {
+  body{padding:0;margin:0;}
+  .field-container{border:4px solid #000;padding:5px;}
+  .no-print{display:none !important;}
+  .post{cursor:default;}
+  .post .name{color:#000 !important;}
+}
+</style>
+</head>
+<body>
+
+<div class="field-container">
+  
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="box" style="display:flex;flex-direction:column;gap:4px;">
+      <div>Jour : <span id="cDay" style="display:inline-block;border-bottom:1px solid #000;min-width:100px;"></span></div>
+      <div>Shift : <span id="cShift" style="display:inline-block;border-bottom:1px solid #000;min-width:100px;"></span></div>
+      <div>Manager Shift : <span id="cMan" style="display:inline-block;border-bottom:1px solid #000;min-width:100px;"></span></div>
+    </div>
+    <div class="box msg-box">
+      <h3>Message du jour:</h3>
+      <textarea id="msgInput" style="border:none;outline:none;font-family:inherit;resize:none;flex:1;font-size:13px;" placeholder="Écrivez un message..."></textarea>
+    </div>
+    <div class="box mcd-logo">
+      M
+      <span>Bonjour et Bon rush a tous...</span>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+    
+    <!-- COL 1: Lobby & Accueil -->
+    <div class="col">
+      <div class="post" data-post="Lobby 1"><div class="icon icon-red">L</div><div class="info"><div class="name"></div><div class="role">Lobby</div></div><div class="circle icon-red"></div></div>
+      <div class="post" data-post="Lobby 2"><div class="icon icon-red">L</div><div class="info"><div class="name"></div><div class="role">Lobby</div></div><div class="circle icon-yellow"></div></div>
+      <div class="post" data-post="Lobby 3"><div class="icon icon-red">L</div><div class="info"><div class="name"></div><div class="role">Lobby</div></div><div class="circle icon-red"></div></div>
+      <div class="post" data-post="Lobby 4"><div class="icon icon-red">L</div><div class="info"><div class="name"></div><div class="role">Lobby</div></div><div class="circle icon-yellow"></div></div>
+      <div style="height:20px;"></div>
+      <div class="post" data-post="Chargé d'accueil 1"><div class="icon icon-green">C</div><div class="info"><div class="name"></div><div class="role">Chargé d'accueil</div></div><div class="circle icon-green"></div></div>
+      <div class="post" data-post="Chargé d'accueil 2"><div class="icon icon-green">C</div><div class="info"><div class="name"></div><div class="role">Chargé d'accueil</div></div><div class="circle icon-yellow"></div></div>
+      <div class="post" data-post="Chargé d'accueil 3"><div class="icon icon-green">C</div><div class="info"><div class="name"></div><div class="role">Chargé d'accueil</div></div><div class="circle icon-yellow"></div></div>
+      <div class="post" data-post="Chargé d'accueil 4"><div class="icon icon-green">C</div><div class="info"><div class="name"></div><div class="role">Chargé d'accueil</div></div><div class="circle icon-green"></div></div>
+    </div>
+
+    <!-- COL 2: DRIVE & CUISINE -->
+    <div style="display:flex;gap:8px;">
+      <div class="drive-col">DRIVE</div>
+      <div class="col" style="flex:1;">
+        <div class="header-title">Drive - Guichet 3</div>
+        <div class="post" data-post="Guichet 3 - Présenter 1"><div class="icon icon-green">P</div><div class="info"><div class="name"></div><div class="role">Présenter 1</div></div><div class="circle icon-yellow"></div></div>
+        <div class="post" data-post="Guichet 3 - Finisher 1"><div class="icon icon-orange">F</div><div class="info"><div class="name"></div><div class="role">Finisher 1</div></div><div class="circle icon-yellow"></div></div>
+        <div class="post" data-post="Guichet 3 - Présenter 2"><div class="icon icon-green">P</div><div class="info"><div class="name"></div><div class="role">Présenter 2</div></div><div class="circle icon-yellow"></div></div>
+        <div class="post" data-post="Guichet 3 - Finisher 2"><div class="icon icon-orange">F</div><div class="info"><div class="name"></div><div class="role">Finisher 2</div></div><div class="circle icon-yellow"></div></div>
+        
+        <div style="height:10px;"></div>
+        
+        <div class="header-title">Resp Comptoir</div>
+        <div class="post" data-post="Resp Comptoir"><div class="icon icon-grey">R</div><div class="info"><div class="name"></div><div class="role">Resp Comptoir</div></div><div class="circle icon-grey"></div></div>
+      </div>
+      
+      <div class="col" style="flex:1;">
+        <div class="header-title">Drive - Guichet 2</div>
+        <div class="post" data-post="Guichet 2 - Passeur 1"><div class="icon icon-red">P</div><div class="info"><div class="name"></div><div class="role">Passeur 1</div></div><div class="circle icon-red"></div></div>
+        <div class="post" data-post="Guichet 2 - Runner 1"><div class="icon icon-orange">R</div><div class="info"><div class="name"></div><div class="role">Runner 1</div></div><div class="circle icon-yellow"></div></div>
+        <div class="post" data-post="Guichet 2 - Passeur 2"><div class="icon icon-red">P</div><div class="info"><div class="name"></div><div class="role">Passeur 2</div></div><div class="circle icon-yellow"></div></div>
+        <div class="post" data-post="Guichet 2 - Runner 2"><div class="icon icon-orange">R</div><div class="info"><div class="name"></div><div class="role">Runner 2</div></div><div class="circle icon-yellow"></div></div>
+        
+        <div style="height:10px;"></div>
+        
+        <div class="post" data-post="Resp Drive"><div class="icon icon-grey">R</div><div class="info"><div class="name"></div><div class="role">Resp Drive</div></div><div class="circle icon-grey"></div></div>
+      </div>
+    </div>
+
+    <!-- COL 3: CAISSE & BEVERAGE -->
+    <div class="col">
+      <div class="post" data-post="Caisse"><div class="icon icon-grey">C</div><div class="info"><div class="name"></div><div class="role">Caisse</div></div><div class="circle icon-green"></div></div>
+      <div class="post" data-post="Beverage 1"><div class="icon icon-blue">B</div><div class="info"><div class="name"></div><div class="role">Beverage 1</div></div><div class="circle icon-blue"></div></div>
+      <div class="post" data-post="Beverage 2"><div class="icon icon-blue">B</div><div class="info"><div class="name"></div><div class="role">Beverage 2</div></div><div class="circle icon-blue"></div></div>
+      <div class="post" data-post="Prise de Cde"><div class="icon icon-green">P</div><div class="info"><div class="name"></div><div class="role">Prise de Cde</div></div><div class="circle icon-green"></div></div>
+      <div class="post" data-post="Beverage 3"><div class="icon icon-blue">B</div><div class="info"><div class="name"></div><div class="role">Beverage 3</div></div><div class="circle icon-blue"></div></div>
+      <div class="post" data-post="Beverage 4"><div class="icon icon-blue">B</div><div class="info"><div class="name"></div><div class="role">Beverage 4</div></div><div class="circle icon-blue"></div></div>
+    </div>
+
+    <!-- COL 4: PRODUCTION -->
+    <div class="col">
+      <div class="header-title red">Drive - Prise de Commande et Encaissement</div>
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div class="post" data-post="Enc. Ext 1"><div class="icon icon-red">E</div><div class="info"><div class="name"></div><div class="role">Encaissement Ext</div></div><div class="circle icon-red"></div></div>
+          <div class="post" data-post="P.de Cde 1"><div class="icon icon-green">P</div><div class="info"><div class="name"></div><div class="role">Prise de Cde 1</div></div><div class="circle icon-green"></div></div>
+          <div class="post" data-post="P.de Cde 2"><div class="icon icon-green">P</div><div class="info"><div class="name"></div><div class="role">Prise de Cde 2</div></div><div class="circle icon-red"></div></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div class="post" data-post="Enc. Int 1"><div class="icon icon-red">E</div><div class="info"><div class="name"></div><div class="role">Encaissement Int</div></div><div class="circle icon-red"></div></div>
+        </div>
+      </div>
+      
+      <div style="height:15px;"></div>
+      
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div class="post" data-post="Expéditeur 1"><div class="icon icon-red">E</div><div class="info"><div class="name"></div><div class="role">Expéditeur 1</div></div><div class="circle icon-yellow"></div></div>
+          <div class="post" data-post="Expéditeur 2"><div class="icon icon-red">E</div><div class="info"><div class="name"></div><div class="role">Expéditeur 2</div></div><div class="circle icon-yellow"></div></div>
+          <div class="post" data-post="Expéditeur 3"><div class="icon icon-red">E</div><div class="info"><div class="name"></div><div class="role">Expéditeur 3</div></div><div class="circle icon-yellow"></div></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div class="post" data-post="Finisher 1"><div class="icon icon-orange">F</div><div class="info"><div class="name"></div><div class="role">Finisher 1</div></div><div class="circle icon-black"></div></div>
+          <div class="post" data-post="Finisher 2"><div class="icon icon-orange">F</div><div class="info"><div class="name"></div><div class="role">Finisher 2</div></div><div class="circle icon-black"></div></div>
+          <div class="post" data-post="Finisher 3"><div class="icon icon-orange">F</div><div class="info"><div class="name"></div><div class="role">Finisher 3</div></div><div class="circle icon-black"></div></div>
+        </div>
+      </div>
+
+      <div style="height:15px;"></div>
+      <div class="header-title">Resp Production</div>
+      <div class="post" data-post="Resp Production"><div class="icon icon-grey">R</div><div class="info"><div class="name"></div><div class="role">Resp Production</div></div><div class="circle icon-grey"></div></div>
+      
+      <div style="height:15px;"></div>
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div class="post" data-post="Grill 1"><div class="icon icon-red">G</div><div class="info"><div class="name"></div><div class="role">Grill Batch 1</div></div><div class="circle icon-black"></div></div>
+          <div class="post" data-post="Grill 2"><div class="icon icon-red">G</div><div class="info"><div class="name"></div><div class="role">Grill Batch 2</div></div><div class="circle icon-black"></div></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div class="post" data-post="Fried 1"><div class="icon icon-orange">F</div><div class="info"><div class="name"></div><div class="role">Fried Batch 1</div></div><div class="circle icon-black"></div></div>
+          <div class="post" data-post="Fried 2"><div class="icon icon-orange">F</div><div class="info"><div class="name"></div><div class="role">Fried Batch 2</div></div><div class="circle icon-black"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COL 5: ARRIERES -->
+    <div class="col">
+      <div class="post" data-post="Arrières"><div class="icon icon-purple">A</div><div class="info"><div class="name"></div><div class="role">Arrières</div></div><div class="circle icon-purple"></div></div>
+      <div class="post" data-post="Stock"><div class="icon icon-green">S</div><div class="info"><div class="name"></div><div class="role">Stock</div></div><div class="circle icon-yellow"></div></div>
+      <div class="post" data-post="Nettoyage"><div class="icon icon-purple">N</div><div class="info"><div class="name"></div><div class="role">Nettoyage</div></div><div class="circle icon-purple"></div></div>
+      
+      <div style="height:15px;"></div>
+      
+      <div class="post" data-post="Assembleur 3"><div class="icon icon-grey">A</div><div class="info"><div class="name"></div><div class="role">Assembleur 3</div></div><div class="circle icon-black"></div></div>
+      <div class="post" data-post="Initiateur 3"><div class="icon icon-grey">I</div><div class="info"><div class="name"></div><div class="role">Initiateur 3</div></div><div class="circle icon-black"></div></div>
+      <div class="post" data-post="Assembleur 2"><div class="icon icon-grey">A</div><div class="info"><div class="name"></div><div class="role">Assembleur 2</div></div><div class="circle icon-black"></div></div>
+      <div class="post" data-post="Add Assa 2"><div class="icon icon-grey">A</div><div class="info"><div class="name"></div><div class="role">Add Assa 2</div></div><div class="circle icon-black"></div></div>
+      <div class="post" data-post="Initiateur 2"><div class="icon icon-grey">I</div><div class="info"><div class="name"></div><div class="role">Initiateur 2</div></div><div class="circle icon-black"></div></div>
+      <div class="post" data-post="Assembleur 1"><div class="icon icon-grey">A</div><div class="info"><div class="name"></div><div class="role">Assembleur 1</div></div><div class="circle icon-black"></div></div>
+      <div class="post" data-post="Add Assa 1"><div class="icon icon-grey">A</div><div class="info"><div class="name"></div><div class="role">Add Assa 1</div></div><div class="circle icon-black"></div></div>
+      <div class="post" data-post="Initiateur 1"><div class="icon icon-grey">I</div><div class="info"><div class="name"></div><div class="role">Initiateur 1</div></div><div class="circle icon-black"></div></div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom-bar">
+    <div class="box" style="display:flex;flex-direction:column;">
+      <h3>Objectifs:</h3>
+      <textarea class="text-area" placeholder="Objectifs du jour..."></textarea>
+    </div>
+    <div class="box" style="display:flex;flex-direction:column;">
+      <h3>Information Produit:</h3>
+      <textarea class="text-area" placeholder="Infos produit..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modalbg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Assigner un employé</h3>
+    <input type="text" class="search-input" id="searchEmp" placeholder="Rechercher un employé...">
+    <div class="staff-list" id="staffList"></div>
+    <div class="btn-row">
+      <button class="btn" id="btnRemove" style="color:red;">Retirer</button>
+      <button class="btn" id="btnClose">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden Save Button for Print -->
+<div style="text-align:center;margin-top:20px;" class="no-print">
+  <button class="btn btn-primary" onclick="window.print()" style="padding:15px 30px;font-size:16px;">🖨️ Imprimer le Football Field</button>
+  <a href="index.html" class="btn" style="padding:15px 30px;font-size:16px;margin-left:10px;">Retour au Dashboard</a>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="../shared/firebase.js"></script>
+<script>
+(function(){
+  const $ = function(id){ return document.getElementById(id); };
+  
+  let staffList = [];
+  let assignments = {};
+  let currentPost = null;
+
+  auth.onAuthStateChanged(function(user){
+    if(!user){ window.location.replace('login.html'); return; }
+    CSM.ready.then(function(){
+      // Load staff
+      CSM.refs.staffColl().get().then(snap => {
+        staffList = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(s => s.active !== false);
+        staffList.sort((a,b) => String(a.name).localeCompare(String(b.name), 'fr'));
+      });
+
+      // Load assignments
+      CSM.refs.restaurant().collection('assignments').doc('current').onSnapshot(doc => {
+        assignments = doc.exists ? doc.data() : {};
+        renderAssignments();
+      });
+    });
+  });
+
+  function renderAssignments(){
+    document.querySelectorAll('.post').forEach(el => {
+      const post = el.dataset.post;
+      const badge = assignments[post];
+      const nameEl = el.querySelector('.name');
+      
+      if(badge){
+        const staff = staffList.find(s => String(s.badge) === String(badge));
+        nameEl.textContent = staff ? staff.name : badge;
+        nameEl.style.color = '#000';
+      } else {
+        nameEl.textContent = '';
+      }
+    });
+  }
+
+  // Open modal
+  document.querySelectorAll('.post').forEach(el => {
+    el.addEventListener('click', function(){
+      currentPost = this.dataset.post;
+      $('modalTitle').textContent = 'Assigner : ' + currentPost;
+      $('searchEmp').value = '';
+      filterStaff('');
+      $('modalBg').classList.add('show');
+    });
+  });
+
+  function filterStaff(q){
+    const list = $('staffList');
+    list.innerHTML = '';
+    const filtered = staffList.filter(s => (s.name||'').toLowerCase().includes(q.toLowerCase()) || String(s.badge).includes(q));
+    
+    if(filtered.length === 0){
+      list.innerHTML = '<div style="padding:10px;text-align:center;color:#666;">Aucun employé trouvé</div>';
+    }
+
+    filtered.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'staff-item';
+      div.innerHTML = `<span>${s.name}</span> <span style="color:#666;">#${s.badge}</span>`;
+      div.addEventListener('click', function(){
+        saveAssignment(currentPost, s.badge);
+        $('modalBg').classList.remove('show');
+      });
+      list.appendChild(div);
+    });
+  }
+
+  $('searchEmp').addEventListener('input', e => filterStaff(e.target.value));
+
+  $('btnClose').addEventListener('click', () => $('modalBg').classList.remove('show'));
+  
+  $('btnRemove').addEventListener('click', function(){
+    if(!currentPost) return;
+    delete assignments[currentPost];
+    saveAssignment(currentPost, null);
+    $('modalBg').classList.remove('show');
+  });
+
+  function saveAssignment(post, badge){
+    if(badge) assignments[post] = badge;
+    else delete assignments[post];
+    
+    renderAssignments();
+    CSM.refs.restaurant().collection('assignments').doc('current').set(assignments).catch(err => alert('Erreur: ' + err.message));
+  }
+
+})();
+</script>
+</body>
+</html>

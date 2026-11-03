@@ -3,177 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Import quotidien — Contract Social Manager</title>
+<title>Import quotidien — CSM</title>
 <link rel="icon" type="image/webp" href="../shared/200.webp">
-<link rel="apple-touch-icon" href="../shared/200.webp">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#C9701F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
 .app{max-width:1240px;margin:0 auto;padding:20px 20px 60px;}
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:20px;flex-wrap:wrap;
-  background:var(--panel-raised);
-  border-bottom:3px solid var(--accent);
-  box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
-  padding:16px 20px;margin-bottom:18px;
-}
+.header{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;background:var(--panel-raised);border-bottom:3px solid var(--accent);box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);padding:16px 20px;margin-bottom:18px;}
 .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
-.brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
-.brand .restaurant-badge{color:#2A1F00;font-size:12px;font-weight:700;background:var(--brand-yellow);padding:4px 10px;}
+.brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFF;}
+.brand h1{font-size:21px;font-weight:700;margin:0;color:var(--accent);}
 .controls{display:flex;gap:8px;flex-wrap:wrap;}
-
-.help{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:18px;font-size:13px;line-height:1.55;color:var(--text-muted);}
-.help b{color:var(--text);font-weight:600;}
-
 .import{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:18px;margin-bottom:20px;}
-.import-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
-.import-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
-.dropzone{
-  border:1.5px dashed var(--line);padding:36px 16px;text-align:center;
-  color:var(--text-muted);font-size:14px;
-  transition:border-color .15s ease, background .15s ease;cursor:pointer;
-}
-.dropzone:hover, .dropzone.drag{border-color:var(--accent);background:var(--status-break-bg);}
-.dropzone b{color:var(--text);font-weight:600;font-size:15px;}
-.dropzone .sub{font-size:12.5px;margin-top:6px;}
-.dropzone svg{width:32px;height:32px;color:var(--accent);display:block;margin:0 auto 12px;}
-.importlog{margin-top:14px;font-size:12.5px;color:var(--text-muted);max-height:180px;overflow-y:auto;border-top:1px solid var(--line-soft);padding-top:12px;display:none;line-height:1.6;}
+.dropzone{border:1.5px dashed var(--line);padding:36px 16px;text-align:center;color:var(--text-muted);font-size:14px;cursor:pointer;}
+.dropzone:hover{border-color:var(--accent);background:var(--status-break-bg);}
+.importlog{margin-top:14px;font-size:12.5px;max-height:180px;overflow-y:auto;display:none;padding-top:12px;border-top:1px solid var(--line-soft);}
 .importlog.show{display:block;}
-.importlog div{padding:2px 0;}
-.importlog .ok{color:var(--status-ok-fg);}
-.importlog .warn{color:var(--status-warn-fg);}
-.importlog .err{color:var(--status-crit-fg);}
-
-.summary{
-  background:var(--panel-raised);border:1px solid var(--line);box-shadow:var(--shadow);
-  padding:16px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:14px;
-}
-.summary-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
-.summary-left{display:flex;flex-direction:column;gap:2px;}
-.summary-left .lbl{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-muted);text-transform:uppercase;}
+.summary{background:var(--panel-raised);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:14px;}
+.summary-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
 .summary-left .date{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace;}
-.summary-left .date-sub{font-size:12.5px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
-.summary-stats{display:flex;gap:10px;flex-wrap:wrap;}
+.summary-stats{display:flex;gap:10px;}
 .statbox{padding:8px 14px;border:1px solid var(--line);background:var(--panel);text-align:center;min-width:96px;}
-.statbox.ok  {border-color:var(--status-ok-line);}
+.statbox.ok{border-color:var(--status-ok-line);}
 .statbox.warn{border-color:var(--status-warn-line);background:var(--status-warn-bg);}
 .statbox.crit{border-color:var(--status-crit-line);background:var(--status-crit-bg);}
-.statbox.new {border-color:var(--brand-yellow);background:rgba(240,185,74,0.20);}
+.statbox.new{border-color:var(--brand-yellow);background:rgba(240,185,74,0.20);}
 .statbox .num{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;line-height:1;}
-.statbox.ok  .num{color:var(--status-ok-fg);}
-.statbox.warn .num{color:var(--status-warn-fg);}
-.statbox.crit .num{color:var(--status-crit-fg);}
-.statbox.new  .num{color:#8A5A00;}
-.statbox .lbl{font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;}
-.summary-actions{display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line-soft);padding-top:14px;}
-.summary-actions .btn{flex:1;justify-content:center;min-width:150px;}
-
-.tablewrap{border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);overflow-x:auto;margin-bottom:16px;}
+.statbox .lbl{font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-top:4px;}
+.summary-actions{display:flex;gap:10px;border-top:1px solid var(--line-soft);padding-top:14px;}
+.summary-actions .btn{flex:1;}
+.tablewrap{border:1px solid var(--line);background:var(--panel);overflow-x:auto;margin-bottom:16px;}
 table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13px;}
-.preview thead th{
-  text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);
-  text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;
-  border-bottom:2px solid var(--line);white-space:nowrap;
-  background:var(--panel-raised);position:sticky;top:0;
-}
-.preview tbody td{padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle;}
-.preview tbody tr:hover{background:var(--panel-raised);}
-.preview tbody tr.flagged-ok   {border-left:4px solid var(--status-ok-line);}
-.preview tbody tr.flagged-warn {border-left:4px solid var(--status-warn-line);background:var(--status-warn-bg);}
-.preview tbody tr.flagged-crit {border-left:4px solid var(--status-crit-line);background:var(--status-crit-bg);}
-.preview tbody tr.flagged-new  {border-left:4px solid var(--brand-yellow);background:rgba(240,185,74,0.12);}
-.preview td.mono{font-family:'IBM Plex Mono',monospace;}
-.preview td.center{text-align:center;}
-.preview td.name{font-weight:600;}
-
-.match-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;font-size:11.5px;font-weight:700;letter-spacing:.02em;}
-.match-pill.ok  {background:var(--status-ok-bg);color:var(--status-ok-fg);}
+.preview th{text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;padding:10px 12px;border-bottom:2px solid var(--line);background:var(--panel-raised);}
+.preview td{padding:10px 12px;border-bottom:1px solid var(--line-soft);}
+.preview tr.flagged-ok{border-left:4px solid var(--status-ok-line);}
+.preview tr.flagged-warn{border-left:4px solid var(--status-warn-line);background:var(--status-warn-bg);}
+.preview tr.flagged-crit{border-left:4px solid var(--status-crit-line);background:var(--status-crit-bg);}
+.preview tr.flagged-new{border-left:4px solid var(--brand-yellow);background:rgba(240,185,74,0.12);}
+.match-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;font-size:11.5px;font-weight:700;}
+.match-pill.ok{background:var(--status-ok-bg);color:var(--status-ok-fg);}
 .match-pill.warn{background:var(--status-warn-bg);color:var(--status-warn-fg);}
 .match-pill.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);}
-.match-pill.new {background:rgba(240,185,74,0.30);color:#8A5A00;}
-
-.picker{padding:6px 8px;font-size:12.5px;background:var(--panel);color:var(--text);border:1px solid var(--line);max-width:220px;font-family:inherit;}
-.picker:focus{outline:2px solid var(--accent);}
-
-.rowaction{padding:6px 10px;font-size:11.5px;font-weight:700;background:transparent;border:1px solid var(--line);color:var(--text-muted);cursor:pointer;font-family:inherit;}
-.rowaction:hover{border-color:var(--accent);color:var(--accent);}
-
+.match-pill.new{background:rgba(240,185,74,0.30);color:#8A5A00;}
+.picker{padding:6px 8px;font-size:12.5px;background:var(--panel);color:var(--text);border:1px solid var(--line);max-width:220px;}
+.rowaction{padding:6px 10px;font-size:11.5px;font-weight:700;background:transparent;border:1px solid var(--line);cursor:pointer;}
 .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;background:var(--panel);border:1px dashed var(--line);}
-.empty-state b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
-
-.toast{
-  position:fixed;bottom:24px;left:50%;
-  transform:translateX(-50%) translateY(120%);
-  background:var(--status-ok-fg);color:#fff;
-  padding:14px 22px;font-size:14px;font-weight:700;
-  box-shadow:0 8px 24px rgba(0,0,0,0.35);
-  transition:transform .3s cubic-bezier(.2,.9,.3,1.2);z-index:200;
-}
-.toast.show{transform:translateX(-50%) translateY(0);}
-
 .loading-overlay{position:fixed;inset:0;background:rgba(20,24,29,0.6);display:none;align-items:center;justify-content:center;z-index:150;}
 .loading-overlay.show{display:flex;}
-.loading-overlay .spinner{width:48px;height:48px;border:4px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;}
+.spinner{width:48px;height:48px;border:4px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-
-@media (max-width:640px){
-  .header{flex-direction:column;align-items:stretch;}
-  .controls{justify-content:stretch;}
-  .controls .btn{flex:1;justify-content:center;}
-  .summary-top{flex-direction:column;align-items:stretch;}
-  .summary-stats{justify-content:space-between;}
-  .statbox{flex:1;min-width:0;}
-  table.preview{font-size:12px;}
-}
 </style>
 </head>
 <body>
-
 <div class="app" id="app" style="display:none;">
-
   <div class="header">
-    <div class="brand">
-      <img class="arch" src="../shared/200.webp" alt="McDonald's">
-      <h1>Import quotidien</h1>
-      <span class="restaurant-badge" id="restaurantBadge" style="display:none;"></span>
-    </div>
+    <div class="brand"><img class="arch" src="../shared/200.webp"><h1>Import quotidien</h1></div>
     <div class="controls">
       <a class="btn" href="index.html">← Tableau de bord</a>
       <a class="btn" href="planning.html">Planning</a>
-      <a class="btn" href="staff.html">Employés</a>
-      <a class="btn" href="requests.html">Demandes</a>
-      <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
       <button class="btn" id="btnLogout">Déconnexion</button>
     </div>
   </div>
 
-  <div class="help">
-    <b>Importation d'un rapport quotidien.</b>
-    Déposez le PDF du jour. L'application lit chaque ligne, associe le badge (colonne <b>Bno</b>)
-    à un employé existant, et affiche un aperçu. <b>Les employés qui ne sont pas encore
-    enregistrés seront automatiquement créés</b> avec leur badge et leur nom quand vous cliquez
-    sur « Enregistrer ». Un pointage existant pour la même date sera automatiquement remplacé.
-    Les pointages sont enregistrés à la <b>date détectée dans le PDF</b> pour apparaître
-    immédiatement sur le tableau de bord du bon jour.
-  </div>
-
-  <div class="import" id="importZone">
-    <div class="import-head">
-      <div class="import-title">Étape 1 — Charger le rapport quotidien</div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn" id="btnNewFile" style="display:none;">Charger un autre PDF</button>
-      </div>
-    </div>
+  <div class="import">
     <div class="dropzone" id="dropzone">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-      <div><b>Déposez le PDF ici</b> ou cliquez pour parcourir</div>
-      <div class="sub">Format attendu : « Time Recorder Transaction Report » d'un jour (tous employés)</div>
+      <div><b>Déposez le PDF ici</b> ou cliquez</div>
       <input type="file" id="fileInput" accept="application/pdf" style="display:none;">
     </div>
     <div class="importlog" id="importLog"></div>
@@ -181,43 +77,28 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
   <div class="empty-state" id="emptyState">
     <b>Aucun aperçu en cours</b>
-    Chargez un PDF ci-dessus pour voir les pointages du jour.<br>
-    Rien n'est enregistré tant que vous n'aurez pas confirmé.
+    Chargez un PDF ci-dessus pour voir les pointages.
   </div>
 
   <div id="previewWrap" style="display:none;">
-    <div class="summary" id="summary">
+    <div class="summary">
       <div class="summary-top">
-        <div class="summary-left">
-          <span class="lbl">Date détectée</span>
-          <span class="date" id="sumDate">—</span>
-          <span class="date-sub" id="sumStore">—</span>
-        </div>
+        <div class="summary-left"><span class="date" id="sumDate">—</span></div>
         <div class="summary-stats" id="sumStats"></div>
       </div>
       <div class="summary-actions">
-        <button class="btn" id="btnClearPreview">Effacer le tableau</button>
-        <button class="btn btn-primary" id="btnSaveAll">✓ Enregistrer dans la base</button>
+        <button class="btn" id="btnClearPreview">Effacer l'aperçu</button>
+        <button class="btn btn-primary" id="btnSaveAll">✓ Sync avec la base</button>
       </div>
     </div>
-
     <div class="tablewrap">
       <table class="preview">
-        <thead>
-          <tr>
-            <th>Badge</th><th>Nom (PDF)</th><th>Employé associé</th>
-            <th>Entrée</th><th>Pause</th><th>Retour</th><th>Sortie</th>
-            <th>Heures</th><th>Action</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Badge</th><th>Nom (PDF)</th><th>Employé associé</th><th>Entrées (In)</th><th>Sorties (Out)</th><th>Action</th></tr></thead>
         <tbody id="previewBody"></tbody>
       </table>
     </div>
   </div>
-
 </div>
-
-<div class="toast" id="toast">—</div>
 <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -229,105 +110,24 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 <script>
 (function(){
   'use strict';
-
   const $ = function(id){ return document.getElementById(id); };
   const R = window.CSMRules;
-
-  if(window['pdfjsLib']){
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-
-  // ============================================================
-  // Universal shift-state adapter (works with both old & new
-  // versions of shared/rules-helpers.js)
-  // ============================================================
-  function getShiftWorkedMinutes(shift, dateIso){
-    if(typeof R.shiftState === 'function'){
-      const s = R.shiftState(shift, dateIso);
-      return (s.workedMinutes !== undefined) ? s.workedMinutes : (s.totalMinutes || 0);
-    }
-    if(typeof R.computeShift === 'function'){
-      const c = R.computeShift(shift, dateIso);
-      return (c.workedMinutes !== undefined) ? c.workedMinutes : (c.totalMinutes || 0);
-    }
-    // Fallback: compute manually so the table still renders
-    const ci = shift.clockIn;
-    if(ci === null || ci === undefined) return 0;
-    const hasBrk = shift.breakStart !== null && shift.breakStart !== undefined;
-    const hasRet = shift.breakReturn !== null && shift.breakReturn !== undefined;
-    const hasOut = shift.clockOut !== null && shift.clockOut !== undefined;
-    const now = new Date();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    let end;
-    if(hasOut) end = shift.clockOut;
-    else if(dateIso && shift.date && shift.date !== dateIso){
-      end = hasRet ? shift.breakReturn : (hasBrk ? shift.breakStart : ci);
-    } else {
-      end = nowMin;
-    }
-    let pre = 0, post = 0;
-    if(hasBrk){ let d = shift.breakStart - ci; if(d < 0) d += 1440; pre = d; }
-    else { let d = end - ci; if(d < 0) d += 1440; pre = d; }
-    if(hasRet){ let d = end - shift.breakReturn; if(d < 0) d += 1440; post = d; }
-    return pre + post;
-  }
-
-  // ---------- Theme ----------
-  (function(){
-    const K = 'csct_manager_theme';
-    function apply(){
-      let t = 'light';
-      try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-      document.documentElement.classList.toggle('theme-light', t === 'light');
-      document.documentElement.classList.toggle('theme-dark', t === 'dark');
-      const b = document.getElementById('btnTheme');
-      if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
-    }
-    apply();
-    const btn = document.getElementById('btnTheme');
-    if(btn){
-      btn.addEventListener('click', function(){
-        let t = 'light';
-        try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-        const next = t === 'light' ? 'dark' : 'light';
-        try{ localStorage.setItem(K, next); }catch(e){}
-        apply();
-      });
-    }
-  })();
+  if(window['pdfjsLib']) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   let staffList = [];
   let staffByBadge = {};
   let currentImport = null;
   let unsubImport = null;
 
-  let started = false;
   auth.onAuthStateChanged(function(user){
     if(!user){ window.location.replace('login.html'); return; }
-    if(started) return;
-    started = true;
-
     db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
-      if(!doc.exists){
-        auth.signOut().then(function(){ window.location.replace('login.html'); });
-        return;
-      }
-      return Promise.race([
-        CSM.ready,
-        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timeout')); }, 8000); })
-      ]).then(function(){
-        document.querySelector('.app').style.display = 'block';
-        $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
-        $('restaurantBadge').style.display = 'inline-block';
+      if(!doc.exists){ auth.signOut(); return; }
+      CSM.ready.then(function(){
+        $('app').style.display = 'block';
         wireImport();
-        wireActions();
-        loadStaff().then(function(){
-          subscribeCurrentImport();
-        });
+        loadStaff().then(subscribeCurrentImport);
       });
-    }).catch(function(err){
-      console.error('Auth gating:', err);
-      alert('Erreur de chargement : ' + err.message);
     });
   });
 
@@ -335,19 +135,13 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
   function loadStaff(){
     return CSM.refs.staffColl().get().then(function(snap){
-      staffList = [];
-      staffByBadge = {};
+      staffList = []; staffByBadge = {};
       snap.forEach(function(doc){
         const s = Object.assign({ _id: doc.id }, doc.data());
         if(s.active === false) return;
-        staffList.push(s);
-        staffByBadge[String(s.badge)] = s;
+        staffList.push(s); staffByBadge[String(s.badge)] = s;
       });
-      staffList.sort(function(a,b){
-        return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
-      });
-    }).catch(function(err){
-      console.warn('loadStaff:', err);
+      staffList.sort((a,b) => String(a.name||'').localeCompare(String(b.name||''), 'fr'));
     });
   }
 
@@ -356,633 +150,207 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     unsubImport = CSM.refs.dailyImport('current').onSnapshot(function(doc){
       if(doc.exists && doc.data().rows && doc.data().rows.length){
         currentImport = Object.assign({ _id: 'current' }, doc.data());
-        matchAgainstStaff();
-        render();
+        matchAgainstStaff(); render();
       } else {
-        currentImport = null;
-        render();
+        currentImport = null; render();
       }
-    }, function(err){
-      console.warn('subscribeCurrentImport:', err);
     });
   }
 
   function wireImport(){
-    $('dropzone').addEventListener('click', function(){ $('fileInput').click(); });
+    $('dropzone').addEventListener('click', () => $('fileInput').click());
     $('fileInput').addEventListener('change', function(e){
       if(e.target.files[0]) handleFile(e.target.files[0]);
       e.target.value = '';
     });
-    ['dragenter','dragover'].forEach(function(evt){
-      $('dropzone').addEventListener(evt, function(e){
-        e.preventDefault(); $('dropzone').classList.add('drag');
-      });
-    });
-    ['dragleave','drop'].forEach(function(evt){
-      $('dropzone').addEventListener(evt, function(e){
-        e.preventDefault(); $('dropzone').classList.remove('drag');
-      });
-    });
-    $('dropzone').addEventListener('drop', function(e){
-      e.preventDefault();
-      $('dropzone').classList.remove('drag');
-      const file = e.dataTransfer && e.dataTransfer.files[0];
-      if(file && file.type === 'application/pdf') handleFile(file);
-      else if(file) alert('Veuillez déposer un fichier PDF.');
-    });
-    $('btnNewFile').addEventListener('click', function(){ $('fileInput').click(); });
   }
 
   async function handleFile(file){
-    clearLog();
-    log('Lecture du fichier "' + file.name + '"…');
     $('loadingOverlay').classList.add('show');
     try{
-      if(!window['pdfjsLib']) throw new Error('Le lecteur PDF n\'est pas chargé.');
       const pages = await extractPdfItems(await file.arrayBuffer());
       const parsed = parseDailyReport(pages);
-      if(!parsed.rows.length){
-        throw new Error('Aucun employé détecté dans le PDF. Vérifiez le format.');
-      }
-      log('PDF analysé — ' + parsed.rows.length + ' employés trouvés.', 'ok');
-
+      if(!parsed.rows.length) throw new Error('Aucun employé détecté.');
+      
       const payload = {
-        date: parsed.date,
-        store: parsed.store,
-        location: parsed.location,
-        rows: parsed.rows,
-        importedAt: new Date().toISOString(),
-        importedBy: auth.currentUser ? auth.currentUser.uid : null,
-        fileName: file.name,
-        savedAt: null,
-        savedCount: 0
+        date: parsed.date, rows: parsed.rows,
+        importedAt: new Date().toISOString(), importedBy: auth.currentUser.uid,
+        savedAt: null, savedCount: 0
       };
       await CSM.refs.dailyImport('current').set(payload);
-      log('Aperçu enregistré.', 'ok');
     }catch(err){
-      console.error('handleFile:', err);
-      log('Erreur : ' + err.message, 'err');
       alert('Import impossible : ' + err.message);
     }finally{
       $('loadingOverlay').classList.remove('show');
     }
   }
 
-  // ============================================================
-  // PDF extraction — keep x, y positions
-  // ============================================================
   async function extractPdfItems(arrayBuffer){
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const pages = [];
     for(let p = 1; p <= pdf.numPages; p++){
       const page = await pdf.getPage(p);
       const content = await page.getTextContent();
-      const items = content.items
-        .filter(function(i){ return typeof i.str === 'string' && i.str.trim(); })
-        .map(function(i){
-          return { str: i.str, x: i.transform[4], y: i.transform[5], w: i.width };
-        });
-      pages.push(items);
+      pages.push(content.items.filter(i => typeof i.str === 'string' && i.str.trim()).map(i => ({ str: i.str, x: i.transform[4], y: i.transform[5] })));
     }
     return pages;
   }
 
-  const COL = {
-    BNO:    { min: 30,  max: 55  },
-    EMPLNO: { min: 60,  max: 95  },
-    NAME:   { min: 96,  max: 185 },
-    DATE:   { min: 186, max: 275 },
-    IN:     { min: 276, max: 330 },
-    OUT:    { min: 331, max: 430 },
-    BREAK:  { min: 435, max: 475 },
-    HRS:    { min: 476, max: 525 },
-    SUM:    { min: 526, max: 600 }
-  };
-
-  function colOf(x){
-    for(const key in COL){
-      const c = COL[key];
-      if(x >= c.min && x <= c.max) return key;
-    }
-    return null;
-  }
-
-  function parseTimeTag(str){
-    if(!str) return null;
-    const m = /^(\d{1,2}):(\d{2})([GPKMSAC])?$/i.exec(str);
-    if(!m) return null;
-    const h = parseInt(m[1], 10);
-    const min = parseInt(m[2], 10);
-    const tag = m[3] ? m[3].toUpperCase() : null;
-    return { h: h, min: min, tag: tag };
-  }
-
-  function cleanPdfName(s){
-    return String(s || '')
-      .replace(/\([^)]*\)/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
+  const COL = { BNO:{min:30,max:55}, NAME:{min:96,max:185}, IN:{min:276,max:330}, OUT:{min:331,max:430} };
+  function colOf(x){ for(const key in COL){ if(x >= COL[key].min && x <= COL[key].max) return key; } return null; }
 
   function parseDailyReport(pages){
-    let date = null, store = null, location = null;
+    let date = null;
     if(pages[0]){
       const p1 = pages[0];
-      const dateItem = p1.find(function(i){
-        return /^\d{2}\/\d{2}\/\d{4}$/.test(i.str) && i.y > 780;
-      });
+      const dateItem = p1.find(i => /^\d{2}\/\d{2}\/\d{4}$/.test(i.str) && i.y > 780);
       if(dateItem) date = dateItem.str;
-
-      const storeIdx = p1.findIndex(function(i){ return i.str === 'Store'; });
-      if(storeIdx >= 0 && p1[storeIdx + 1] && /^\d+$/.test(p1[storeIdx + 1].str)){
-        store = p1[storeIdx + 1].str;
-      }
-
-      const locItem = p1.find(function(i){
-        return /^[A-Z][A-Z\s]+$/.test(i.str) && i.x > 230 && i.x < 410 && i.y > 780;
-      });
-      if(locItem) location = locItem.str.trim();
     }
 
     const blocks = [];
-    const HEADER_WORDS = { 'Bno':1,'No':1,'Empl-':1,'Employee':1,'Date':1,'In':1,'Out':1,'Break':1,'Hrs':1,'Sum':1,'SUM':1 };
     let current = null;
 
-    pages.forEach(function(pageItems){
-      const headerItem = pageItems.find(function(i){
-        return i.str === 'Bno' && i.x >= COL.BNO.min && i.x <= COL.BNO.max;
-      });
+    pages.forEach(pageItems => {
+      const headerItem = pageItems.find(i => i.str === 'Bno' && i.x >= COL.BNO.min && i.x <= COL.BNO.max);
       const headerY = headerItem ? headerItem.y : Infinity;
+      
+      const items = pageItems.filter(i => i.y < headerY)
+        .sort((a, b) => { return Math.abs(a.y - b.y) > 2 ? b.y - a.y : a.x - b.x; });
 
-      const items = pageItems
-        .filter(function(i){ return i.y < headerY; })
-        .filter(function(i){ return !HEADER_WORDS[i.str]; })
-        .sort(function(a, b){
-          if(Math.abs(a.y - b.y) > 2) return b.y - a.y;
-          return a.x - b.x;
-        });
-
-      items.forEach(function(it){
+      items.forEach(it => {
         const col = colOf(it.x);
-
         if(col === 'BNO' && /^\d+$/.test(it.str)){
           if(current) blocks.push(current);
-          current = {
-            bno: it.str,
-            emplNo: null,
-            nameParts: [],
-            date: null,
-            inPunches: [],
-            outPunches: []
-          };
+          current = { bno: it.str, nameParts: [], inPunches: [], outPunches: [] };
           return;
         }
-
         if(!current) return;
-
-        if(col === 'EMPLNO' && /^\d+$/.test(it.str)){
-          current.emplNo = (current.emplNo || '') + it.str;
-          return;
-        }
-        if(col === 'NAME'){
-          current.nameParts.push(it.str);
-          return;
-        }
-        if(col === 'DATE' && !current.date && /\d{2}\/\d{2}\/\d{4}/.test(it.str)){
-          current.date = it.str;
-          return;
-        }
-        if(col === 'IN'){
-          const t = parseTimeTag(it.str);
-          if(t) current.inPunches.push(t);
-          return;
-        }
-        if(col === 'OUT'){
-          const t = parseTimeTag(it.str);
-          if(t) current.outPunches.push(t);
-          return;
-        }
+        if(col === 'NAME') current.nameParts.push(it.str);
+        else if(col === 'IN'){ const m = /^(\d{1,2}):(\d{2})/.exec(it.str); if(m) current.inPunches.push(parseInt(m[1])*60 + parseInt(m[2])); }
+        else if(col === 'OUT'){ const m = /^(\d{1,2}):(\d{2})/.exec(it.str); if(m) current.outPunches.push(parseInt(m[1])*60 + parseInt(m[2])); }
       });
     });
     if(current) blocks.push(current);
 
-    return buildRowsFromBlocks(blocks, date, store, location);
+    const rows = blocks.map(b => {
+      let name = b.nameParts.join(' ').replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+      b.inPunches.sort((a,b)=>a-b); b.outPunches.sort((a,b)=>a-b);
+      return {
+        rawNum: b.bno, namePdf: name,
+        inPunches: b.inPunches, outPunches: b.outPunches,
+        match: null, chosenBadge: null
+      };
+    }).filter(r => r.namePdf);
+
+    return { date, rows };
   }
 
-  function buildRowsFromBlocks(blocks, date, store, location){
-    const rows = [];
-
-    blocks.forEach(function(b){
-      const name = cleanPdfName(b.nameParts.join(' '));
-      if(!name) return;
-
-      const ins = b.inPunches.slice();
-
-      let breakStartPunch = null;
-      let outFromOut = null;
-      b.outPunches.forEach(function(p){
-        if(p.tag === 'P' && !breakStartPunch) breakStartPunch = p;
-        if(p.tag === 'G' && !outFromOut)       outFromOut = p;
-      });
-
-      let clockIn = null, breakReturn = null, clockOut = null;
-      let breakStart = null;
-
-      if(ins[0]) clockIn     = ins[0].h * 60 + ins[0].min;
-      if(ins[1]) breakReturn = ins[1].h * 60 + ins[1].min;
-      if(breakStartPunch) breakStart = breakStartPunch.h * 60 + breakStartPunch.min;
-      if(outFromOut)      clockOut   = outFromOut.h * 60 + outFromOut.min;
-
-      if(breakReturn !== null && clockIn !== null && breakReturn < clockIn) breakReturn += 24 * 60;
-      if(breakStart !== null && clockIn !== null && breakStart < clockIn && breakReturn !== null && breakReturn >= 24 * 60) breakStart += 24 * 60;
-      if(clockOut !== null && clockIn !== null && clockOut < clockIn) clockOut += 24 * 60;
-      if(clockOut !== null && breakReturn !== null && clockOut < breakReturn) clockOut += 24 * 60;
-
-      rows.push({
-        rawNum: b.bno,
-        emplNo: b.emplNo,
-        namePdf: name,
-        date: b.date,
-        clockIn: clockIn,
-        breakStart: breakStart,
-        breakReturn: breakReturn,
-        clockOut: clockOut,
-        match: null,
-        chosenBadge: null,
-        isNew: false
-      });
-    });
-
-    return { date: date, store: store, location: location, rows: rows };
-  }
-
-  // ============================================================
-  // Match against staff
-  // ============================================================
   function matchAgainstStaff(){
     if(!currentImport) return;
-    currentImport.rows.forEach(function(row){
-      const chosen = row.chosenBadge || null;
-      row.match = resolveRow(row);
-      if(chosen) row.chosenBadge = chosen;
-    });
-  }
-
-  function resolveRow(row){
-    const bno = String(row.rawNum || '').trim();
-
-    if(bno && staffByBadge[bno]){
-      const staff = staffByBadge[bno];
-      const nameOk = R.sameName(staff.name, row.namePdf);
-      return {
-        badge: bno,
-        staffName: staff.name,
-        level: nameOk ? 'ok' : 'warn',
-        reason: nameOk ? 'badge + nom' : 'badge seulement (nom différent)'
-      };
-    }
-
-    const byName = staffList.find(function(s){ return R.sameName(s.name, row.namePdf); });
-    if(byName){
-      return {
-        badge: String(byName.badge),
-        staffName: byName.name,
-        level: 'warn',
-        reason: 'nom seulement (badge ' + byName.badge + ')'
-      };
-    }
-
-    return { badge: bno, staffName: null, level: 'new', reason: 'nouvel employé' };
-  }
-
-  function effectiveLevel(row){
-    if(row.chosenBadge) return 'ok';
-    return row.match ? row.match.level : 'crit';
-  }
-
-  function currentImportChosenBadge(row){
-    if(row.chosenBadge) return row.chosenBadge;
-    if(row.match && row.match.badge) return row.match.badge;
-    return null;
-  }
-
-  // ============================================================
-  // Render — with per-row try/catch so one bad row doesn't kill the whole table
-  // ============================================================
-  function render(){
-    if(!currentImport){
-      $('previewWrap').style.display = 'none';
-      $('emptyState').style.display = 'block';
-      $('btnNewFile').style.display = 'none';
-      return;
-    }
-    $('previewWrap').style.display = 'block';
-    $('emptyState').style.display = 'none';
-    $('btnNewFile').style.display = 'inline-flex';
-
-    $('sumDate').textContent = currentImport.date || '—';
-    const store = currentImport.store ? ('Store ' + currentImport.store) : '';
-    const loc = currentImport.location || CSM.restaurantName || '';
-    $('sumStore').textContent = [loc, store].filter(Boolean).join(' · ') || '—';
-
-    const rows = currentImport.rows;
-    const okRows   = rows.filter(function(r){ return effectiveLevel(r) === 'ok'; }).length;
-    const warnRows = rows.filter(function(r){ return effectiveLevel(r) === 'warn'; }).length;
-    const newRows  = rows.filter(function(r){ return effectiveLevel(r) === 'new'; }).length;
-    const critRows = rows.filter(function(r){ return effectiveLevel(r) === 'crit'; }).length;
-
-    $('sumStats').innerHTML =
-      statBox(okRows, 'Reconnues', 'ok') +
-      (newRows ? statBox(newRows, 'Nouveaux', 'new') : '') +
-      (warnRows ? statBox(warnRows, 'À vérifier', 'warn') : '') +
-      (critRows ? statBox(critRows, 'Introuvables', 'crit') : '');
-
-    const body = $('previewBody');
-    body.innerHTML = '';
-    rows.forEach(function(row, idx){
-      try{
-        body.appendChild(buildRow(row, idx));
-      }catch(err){
-        console.error('buildRow failed for row', idx, row, err);
-        // Render a fallback row so the user sees SOMETHING
-        const tr = document.createElement('tr');
-        tr.className = 'flagged-crit';
-        tr.innerHTML =
-          '<td class="mono"><b>' + esc(row.rawNum || '—') + '</b></td>' +
-          '<td class="name">' + esc(row.namePdf || '—') + '</td>' +
-          '<td style="color:var(--status-crit-fg);font-size:11.5px;">Erreur d\'affichage : ' + esc(err.message) + '</td>' +
-          '<td colspan="6"></td>';
-        body.appendChild(tr);
+    currentImport.rows.forEach(row => {
+      const bno = String(row.rawNum).trim();
+      if(bno && staffByBadge[bno]){
+        row.match = { badge: bno, staffName: staffByBadge[bno].name, level: R.sameName(staffByBadge[bno].name, row.namePdf) ? 'ok' : 'warn', reason: '' };
+      } else {
+        const byName = staffList.find(s => R.sameName(s.name, row.namePdf));
+        if(byName) row.match = { badge: String(byName.badge), staffName: byName.name, level: 'warn', reason: 'nom seulement' };
+        else row.match = { badge: bno, staffName: null, level: 'new', reason: 'nouvel employé' };
       }
     });
-
-    const saveBtn = $('btnSaveAll');
-    saveBtn.disabled = rows.length === 0;
-    saveBtn.textContent = currentImport.savedAt
-      ? '✓ Enregistré (' + (currentImport.savedCount || 0) + ') — réenregistrer'
-      : '✓ Enregistrer dans la base (' + rows.length + ')';
   }
 
-  function statBox(num, label, cls){
-    return '<div class="statbox ' + cls + '"><div class="num">' + num + '</div><div class="lbl">' + label + '</div></div>';
-  }
+  function effectiveLevel(row){ return row.chosenBadge ? 'ok' : (row.match ? row.match.level : 'crit'); }
+  function chosenBadge(row){ return row.chosenBadge || (row.match && row.match.badge); }
 
-  function buildRow(row, idx){
-    const tr = document.createElement('tr');
-    const level = effectiveLevel(row);
-    tr.className = 'flagged-' + level;
-    const badgeDisplay = currentImportChosenBadge(row) || '—';
-    const matchLabel = { ok: 'Reconnu', warn: 'À vérifier', new: 'Nouveau', crit: 'Introuvable' }[level];
+  function render(){
+    if(!currentImport){ $('previewWrap').style.display = 'none'; $('emptyState').style.display = 'block'; return; }
+    $('previewWrap').style.display = 'block'; $('emptyState').style.display = 'none';
+    $('sumDate').textContent = currentImport.date || '—';
 
-    let employeeCell = '';
-    if(level === 'ok' && !row.chosenBadge){
-      const name = row.match && row.match.staffName ? row.match.staffName : badgeDisplay;
-      employeeCell = '<div class="match-pill ok">✓ ' + esc(name) + '</div>';
-    } else if(level === 'new' && !row.chosenBadge){
-      employeeCell =
-        '<div class="match-pill new">+ ' + esc(row.namePdf) + ' sera créé</div>' +
-        '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + esc(row.match ? row.match.reason : '') + '</div>';
-    } else {
-      const options = ['<option value="">— Choisir un employé —</option>']
-        .concat(staffList.map(function(s){
-          const sel = (currentImportChosenBadge(row) === String(s.badge)) ? ' selected' : '';
-          return '<option value="' + escAttr(String(s.badge)) + '"' + sel + '>' + esc(s.name) + ' (badge ' + esc(String(s.badge)) + ')</option>';
-        })).join('');
-      employeeCell =
-        '<div class="match-pill ' + level + '" style="margin-bottom:6px;">' +
-          esc(matchLabel) + (row.match && row.match.reason ? ' · ' + esc(row.match.reason) : '') +
-        '</div>' +
-        '<select class="picker" data-idx="' + idx + '">' + options + '</select>';
-    }
+    const rows = currentImport.rows;
+    $('sumStats').innerHTML = 
+      '<div class="statbox ok"><div class="num">'+rows.filter(r=>effectiveLevel(r)==='ok').length+'</div><div class="lbl">Reconnues</div></div>' +
+      '<div class="statbox new"><div class="num">'+rows.filter(r=>effectiveLevel(r)==='new').length+'</div><div class="lbl">Nouveaux</div></div>' +
+      '<div class="statbox warn"><div class="num">'+rows.filter(r=>effectiveLevel(r)==='warn').length+'</div><div class="lbl">À vérifier</div></div>';
 
-    tr.innerHTML =
-      '<td class="mono"><b>' + esc(badgeDisplay) + '</b></td>' +
-      '<td class="name">' + esc(row.namePdf) + '</td>' +
-      '<td>' + employeeCell + '</td>' +
-      '<td class="mono center">' + (R.minToHM(row.clockIn) || '—') + '</td>' +
-      '<td class="mono center">' + (R.minToHM(row.breakStart) || '—') + '</td>' +
-      '<td class="mono center">' + (R.minToHM(row.breakReturn) || '—') + '</td>' +
-      '<td class="mono center">' + (R.minToHM(row.clockOut) || '—') + '</td>' +
-      '<td class="mono center"><b>' + esc(fmtHrsFromTimes(row)) + '</b></td>' +
-      '<td class="center"><button class="rowaction" data-idx="' + idx + '" data-act="ignore">Ignorer</button></td>';
+    const body = $('previewBody'); body.innerHTML = '';
+    rows.forEach((row, idx) => {
+      const level = effectiveLevel(row);
+      const badgeDisp = chosenBadge(row) || '—';
+      let inTxt = row.inPunches.map(m => R.minToHM(m)).join(', ') || '—';
+      let outTxt = row.outPunches.map(m => R.minToHM(m)).join(', ') || '—';
 
-    const picker = tr.querySelector('.picker');
-    if(picker){
-      picker.addEventListener('change', function(e){
-        currentImport.rows[idx].chosenBadge = e.target.value || null;
-        saveCurrentImport();
-        render();
-      });
-    }
-    const ignoreBtn = tr.querySelector('.rowaction');
-    if(ignoreBtn){
-      ignoreBtn.addEventListener('click', function(){
-        currentImport.rows.splice(idx, 1);
-        saveCurrentImport();
-        render();
-      });
-    }
-    return tr;
-  }
+      let cellHtml = '';
+      if(level === 'ok' && !row.chosenBadge) cellHtml = '<div class="match-pill ok">✓ '+esc(row.match.staffName)+'</div>';
+      else if(level === 'new' && !row.chosenBadge) cellHtml = '<div class="match-pill new">+ Sera créé</div>';
+      else {
+        const opts = ['<option value="">— Choisir —</option>'].concat(staffList.map(s => 
+          '<option value="'+s.badge+'" '+(chosenBadge(row)===String(s.badge)?'selected':'')+'>'+esc(s.name)+'</option>'
+        )).join('');
+        cellHtml = '<div class="match-pill '+level+'" style="margin-bottom:4px;">'+level.toUpperCase()+'</div><select class="picker" data-idx="'+idx+'">'+opts+'</select>';
+      }
 
-  function fmtHrsFromTimes(row){
-    const dateIso = R.todayKey();
-    const minutes = getShiftWorkedMinutes({
-      clockIn: row.clockIn, breakStart: row.breakStart,
-      breakReturn: row.breakReturn, clockOut: row.clockOut,
-      date: dateIso
-    }, dateIso);
-    return R.fmtHrs(minutes || 0);
-  }
-
-  function saveCurrentImport(){
-    if(!currentImport) return Promise.resolve();
-    const payload = Object.assign({}, currentImport);
-    delete payload._id;
-    return CSM.refs.dailyImport('current').set(payload).catch(function(err){
-      console.warn('saveCurrentImport:', err);
+      const tr = document.createElement('tr');
+      tr.className = 'flagged-' + level;
+      tr.innerHTML = '<td class="mono"><b>'+esc(badgeDisp)+'</b></td><td class="name">'+esc(row.namePdf)+'</td><td>'+cellHtml+'</td><td class="mono">'+inTxt+'</td><td class="mono">'+outTxt+'</td><td><button class="rowaction" data-idx="'+idx+'">Ignorer</button></td>';
+      
+      tr.querySelector('.picker')?.addEventListener('change', e => { currentImport.rows[idx].chosenBadge = e.target.value; saveDraft(); render(); });
+      tr.querySelector('.rowaction')?.addEventListener('click', () => { currentImport.rows.splice(idx, 1); saveDraft(); render(); });
+      body.appendChild(tr);
     });
+
+    $('btnSaveAll').textContent = currentImport.savedAt ? '✓ Ré-enregistrer' : '✓ Sync avec la base ('+rows.length+')';
   }
 
-  function wireActions(){
-    $('btnClearPreview').addEventListener('click', function(){
-      if(!currentImport) return;
-      if(!confirm('Effacer le tableau d\'aperçu ?\n\nLes pointages déjà enregistrés dans la base ne seront pas supprimés.')) return;
-      CSM.refs.dailyImport('current').delete().then(function(){
-        currentImport = null;
-        render();
-      }).catch(function(err){
-        alert('Erreur : ' + err.message);
-      });
-    });
-    $('btnSaveAll').addEventListener('click', saveAll);
-  }
+  function saveDraft(){ const p = Object.assign({}, currentImport); delete p._id; CSM.refs.dailyImport('current').set(p); }
 
-  async function saveAll(){
-    if(!currentImport) return;
+  $('btnClearPreview').addEventListener('click', () => {
+    if(!confirm('Effacer l\'aperçu ?')) return;
+    CSM.refs.dailyImport('current').delete();
+  });
+
+  $('btnSaveAll').addEventListener('click', async function(){
     const rows = currentImport.rows;
     if(!rows.length) return;
-
-    const newRows = rows.filter(function(r){ return effectiveLevel(r) === 'new'; });
-    if(newRows.length > 0){
-      const names = newRows.slice(0, 8).map(function(r){ return '• ' + r.namePdf + ' (badge ' + currentImportChosenBadge(r) + ')'; });
-      const extra = newRows.length > 8 ? '\n• … et ' + (newRows.length - 8) + ' autre(s)' : '';
-      if(!confirm(
-        newRows.length + ' nouvel/nouveaux employé(s) seront créés :\n\n' +
-        names.join('\n') + extra + '\n\n' +
-        'Ces employés pourront se connecter au portail avec leur badge.'
-      )) return;
-    }
-
-    const btn = $('btnSaveAll');
-    btn.disabled = true;
-    const originalText = btn.textContent;
-    btn.textContent = 'Enregistrement…';
-    $('loadingOverlay').classList.add('show');
-
-    let saved = 0, created = 0, failed = 0;
-    const errors = [];
+    this.disabled = true; this.textContent = 'Sync…'; $('loadingOverlay').classList.add('show');
 
     let dateIso = R.todayKey();
-    if(currentImport && currentImport.date){
-      const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(currentImport.date);
-      if(m) dateIso = m[3] + '-' + m[2] + '-' + m[1];
-    }
+    if(currentImport.date){ const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(currentImport.date); if(m) dateIso = m[3]+'-'+m[2]+'-'+m[1]; }
 
+    let saved = 0;
     for(const row of rows){
-      const badge = String(currentImportChosenBadge(row));
-      if(!badge){ failed++; errors.push(row.namePdf + ': badge manquant'); continue; }
+      const badge = String(chosenBadge(row));
+      if(!badge) continue;
 
       let staff = staffByBadge[badge];
-
       if(!staff && effectiveLevel(row) === 'new'){
-        try{
-          const newStaff = {
-            badge: badge,
-            name: row.namePdf || 'Employé',
-            active: true,
-            source: 'daily-import',
-            createdAt: new Date().toISOString(),
-            photo: null
-          };
-          await CSM.refs.staff(badge).set(newStaff);
-          staff = newStaff;
-          staffByBadge[badge] = newStaff;
-          staffList.push(newStaff);
-          staffList.sort(function(a,b){
-            return String(a.name || '').localeCompare(String(b.name || ''), 'fr');
-          });
-          created++;
-        }catch(err){
-          failed++;
-          errors.push(badge + ' (création): ' + err.message);
-          continue;
-        }
+        const newStaff = { badge, name: row.namePdf, active: true, source: 'import', createdAt: new Date().toISOString() };
+        await CSM.refs.staff(badge).set(newStaff); staff = newStaff;
       }
 
-      if(!staff){
-        failed++;
-        errors.push(badge + ': employé introuvable et non créable');
-        continue;
-      }
+      const shiftData = { date: dateIso, inPunches: row.inPunches, outPunches: row.outPunches };
+      const state = R.shiftState(shiftData, dateIso);
 
-      const shiftData = {
-        clockIn: row.clockIn, breakStart: row.breakStart,
-        breakReturn: row.breakReturn, clockOut: row.clockOut,
-        date: dateIso
+      const existing = await CSM.refs.shifts().where('badge', '==', badge).where('date', '==', dateIso).get();
+      const payload = {
+        badge, name: staff.name || row.namePdf, date: dateIso,
+        inPunches: row.inPunches, outPunches: row.outPunches,
+        totalMinutes: state.workedMinutes, status: state.clockOut !== null ? 'closed' : 'open',
+        source: 'daily-import', updatedAt: new Date().toISOString()
       };
-      const workedMinutes = getShiftWorkedMinutes(shiftData, dateIso);
-      const status = (row.clockOut !== null && row.clockOut !== undefined) ? 'closed' : 'open';
 
-      try{
-        const existing = await CSM.refs.shifts()
-          .where('badge', '==', badge)
-          .where('date', '==', dateIso)
-          .limit(1).get();
-
-        const payload = {
-          badge: badge,
-          name: staff.name || row.namePdf || '',
-          date: dateIso,
-          clockIn: row.clockIn,
-          breakStart: row.breakStart,
-          breakReturn: row.breakReturn,
-          clockOut: row.clockOut,
-          totalMinutes: workedMinutes,
-          status: status,
-          source: 'daily-import',
-          importedAt: new Date().toISOString(),
-          importedBy: auth.currentUser ? auth.currentUser.uid : null,
-          updatedAt: new Date().toISOString()
-        };
-
-        if(!existing.empty){
-          await existing.docs[0].ref.update(payload);
-        } else {
-          payload.createdAt = new Date().toISOString();
-          await CSM.refs.shifts().add(payload);
-        }
-        saved++;
-      }catch(err){
-        failed++;
-        errors.push(badge + ': ' + err.message);
-      }
+      if(!existing.empty) await existing.docs[0].ref.update(payload);
+      else { payload.createdAt = new Date().toISOString(); await CSM.refs.shifts().add(payload); }
+      saved++;
     }
 
-    btn.disabled = false;
-    btn.textContent = originalText;
-    $('loadingOverlay').classList.remove('show');
+    currentImport.savedAt = new Date().toISOString(); currentImport.savedCount = saved;
+    await saveDraft(); await loadStaff(); render();
+    this.disabled = false; $('loadingOverlay').classList.remove('show');
+    alert('✓ ' + saved + ' pointages synchronisés.');
+  });
 
-    if(failed === 0){
-      currentImport.savedAt = new Date().toISOString();
-      currentImport.savedCount = saved;
-      await saveCurrentImport();
-      showToast('✓ ' + saved + ' pointage(s) enregistré(s)' + (created ? ' · ' + created + ' employé(s) créé(s)' : ''));
-      await loadStaff();
-      render();
-    } else {
-      alert(
-        'Terminé avec des erreurs.\n\n' +
-        'Enregistrés : ' + saved + '\n' +
-        'Employés créés : ' + created + '\n' +
-        'Échecs : ' + failed + '\n\n' +
-        errors.slice(0, 10).join('\n') +
-        (errors.length > 10 ? '\n… et ' + (errors.length - 10) + ' autre(s)' : '')
-      );
-    }
-  }
-
-  let toastTimer = null;
-  function showToast(msg){
-    const t = $('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    if(toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3500);
-  }
-
-  function log(msg, cls){
-    const el = $('importLog');
-    el.classList.add('show');
-    const d = document.createElement('div');
-    if(cls) d.className = cls;
-    d.textContent = msg;
-    el.appendChild(d);
-    el.scrollTop = el.scrollHeight;
-  }
-  function clearLog(){
-    const el = $('importLog');
-    el.innerHTML = '';
-    el.classList.remove('show');
-  }
-
-  function esc(s){
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
-  function escAttr(s){ return esc(s); }
-
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 })();
 </script>
 </body>
