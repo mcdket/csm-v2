@@ -61,7 +61,6 @@
 .alertrow.warn{background:var(--status-warn-bg);color:var(--status-warn-fg);border-color:var(--status-warn-line);}
 .alertdot{width:8px;height:8px;background:currentColor;flex:none;}
 
-/* TABLE UPDATED HERE */
 .tablewrap{border:1px solid var(--line);overflow-x:auto;background:var(--panel);box-shadow:var(--shadow);}
 table{width:100%;border-collapse:collapse;table-layout:auto;}
 thead th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.03em;color:var(--text-muted);padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel);position:sticky;top:0;}
@@ -531,7 +530,9 @@ tbody tr.st-done{opacity:0.55;}
       if(shift.clockOut != null) outP.push(shift.clockOut);
       outP.sort((a,b)=>a-b);
 
-      const inStr = inP.map(m => R.minToHM(m)).join(', ') || '—';
+      // Only show the first clock-in time for the entry
+      const inStr = (inP.length > 0) ? R.minToHM(inP[0]) : '—';
+      
       const pauseEff = outP.length > 0 ? R.minToHM(outP[0]) : '—';
       const retourEff = inP.length > 1 ? R.minToHM(inP[1]) : '—';
       const sortieEff = (outP.length >= inP.length && outP.length > 0) ? R.minToHM(outP[outP.length-1]) : '—';
