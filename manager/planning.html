@@ -329,7 +329,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   let importNote = '';
   let timeOffsetMs = 0;
   let staffList = [];
-  let staffByName = {};
 
   try{
     const v = parseInt(localStorage.getItem('csct_time_offset') || '0', 10);
@@ -376,11 +375,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         .filter(function(s){ return s.active !== false; })
         .sort(function(a,b){ return String(a.name || '').localeCompare(String(b.name || ''), 'fr'); });
       
-      staffByName = {};
-      staffList.forEach(s => {
-        staffByName[s.name] = s;
-      });
-
       const opts = staffList.map(function(s){
         return '<option value="' + escAttr(s.name) + '">' + esc(s.name) + ' (badge ' + esc(String(s.badge)) + ')</option>';
       }).join('');
@@ -431,6 +425,14 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     sub.textContent = t;
   }
 
+  // Helper to find staff using fuzzy name matching
+  function findStaff(name) {
+    for (let s of staffList) {
+      if (R.sameName(s.name, name)) return s;
+    }
+    return null;
+  }
+
   function renderExpected(){
     const list = $('expectedList'), count = $('expectedCount');
     list.innerHTML = '';
@@ -475,8 +477,8 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       nameEl.title = it.emp.name;
       mid.appendChild(nameEl);
 
-      // Add Phone Number
-      const staff = staffByName[it.emp.name];
+      // Find Phone Number
+      const staff = findStaff(it.emp.name);
       if(staff && staff.phone) {
         const phoneEl = document.createElement('a');
         phoneEl.className = 'exp-phone';
@@ -630,7 +632,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         // Phone Cell
         const tdP = document.createElement('td');
         tdP.className = 'phone';
-        const staff = staffByName[displayName];
+        const staff = findStaff(displayName);
         if (staff && staff.phone) {
           const a = document.createElement('a');
           a.href = 'tel:' + staff.phone;
