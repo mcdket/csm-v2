@@ -85,8 +85,8 @@
       <a class="btn" href="index.html">← Tableau de bord</a>
       <a class="btn" href="planning.html">Planning</a>
       <a class="btn" href="requests.html">Demandes</a>
-      <button class="btn" id="btnImportPhones" style="background:var(--panel);border:1px solid var(--line);color:var(--text);">📞 Importer Téléphones (PDF)</button>
-      <input type="file" id="phoneFileInput" accept="application/pdf" style="display:none;">
+      <button class="btn" id="btnImportBase" style="background:var(--panel);border:1px solid var(--line);color:var(--text);">📥 Importer la base employés (PDF)</button>
+      <input type="file" id="baseFileInput" accept="application/pdf" style="display:none;">
       <button class="btn btn-primary" id="btnAdd">+ Ajouter un employé</button>
       <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
       <button class="btn" id="btnLogout">Déconnexion</button>
@@ -96,7 +96,7 @@
   <div class="toolbar">
     <div class="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input type="text" id="searchInput" placeholder="Rechercher par nom ou badge…">
+      <input type="text" id="searchInput" placeholder="Rechercher par nom, badge ou téléphone…">
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="filter-btn btn" data-show="active" id="btnShowActive">Actifs uniquement</button>
@@ -107,7 +107,7 @@
   <div class="stafflist" id="staffList"></div>
   <div class="empty hidden" id="emptyState">
     <b>Aucun employé pour le moment</b>
-    Cliquez sur « Ajouter un employé » pour créer le premier profil.
+    Importez la base employés (PDF) ou cliquez sur « Ajouter un employé ».
   </div>
 
 </div>
@@ -126,13 +126,11 @@
     <div class="field">
       <label>Nom & Prénom</label>
       <input type="text" id="fName" placeholder="Karim Benali" autocomplete="off">
-      <div class="hint">Doit correspondre au nom utilisé dans le planning PDF.</div>
     </div>
 
     <div class="field">
       <label>Numéro de téléphone</label>
       <input type="text" id="fPhone" placeholder="06 12 34 56 78" autocomplete="off">
-      <div class="hint">Affiché sur le planning pour appeler en cas de retard.</div>
     </div>
 
     <div class="modalactions">
@@ -144,7 +142,7 @@
 
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
-  <div id="loadingText">Importation des téléphones en cours...</div>
+  <div id="loadingText">Lecture du fichier PDF en cours...</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -278,9 +276,9 @@
       if(currentQuery.trim()){
         empty.innerHTML = '<b>Aucun résultat</b>Aucun employé ne correspond à « ' + escapeHtml(currentQuery) + ' ».';
       } else if(currentShow === 'active'){
-        empty.innerHTML = '<b>Aucun employé actif</b>Cliquez sur « Tous » pour voir aussi les employés désactivés, ou ajoutez-en un nouveau.';
+        empty.innerHTML = '<b>Aucun employé actif</b>Cliquez sur « Tous » pour voir aussi les employés désactivés, ou importez la base.';
       } else {
-        empty.innerHTML = '<b>Aucun employé pour le moment</b>Cliquez sur « Ajouter un employé » pour créer le premier profil.';
+        empty.innerHTML = '<b>Aucun employé pour le moment</b>Importez la base employés (PDF) ou cliquez sur « Ajouter un employé ».';
       }
       return;
     }
@@ -438,16 +436,16 @@
   });
 
   // ============================================================
-  // Phone Import Logic
+  // Master Database Import (PDF)
   // ============================================================
   
-  $('btnImportPhones').addEventListener('click', () => $('phoneFileInput').click());
+  $('btnImportBase').addEventListener('click', () => $('baseFileInput').click());
   
-  $('phoneFileInput').addEventListener('change', async function(e){
+  $('baseFileInput').addEventListener('change', async function(e){
     if(!e.target.files[0]) return;
     
     $('loadingOverlay').classList.add('show');
-    $('btnImportPhones').disabled = true;
+    $('btnImportBase').disabled = true;
     
     try {
       const file = e.target.files[0];
@@ -455,7 +453,6 @@
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let fullText = '';
       
-      // Extract text line by line from all pages
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
@@ -474,43 +471,51 @@
         });
       }
 
-      // Regex to find: Badge, FirstName/LastName, Birthday, Phone
-      // Matches: [Badge Number][Name]NT[Date] [Time][Phone Number]
       const regex = /(\d+)([A-Za-zÀ-ÿ\s\-']+?)NT(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2})([\d\s]+)(?=\d+[A-Za-zÀ-ÿ\s\-']+NT|$)/g;
       let match;
+      let created = 0;
       let updated = 0;
-      let notFound = 0;
 
       while ((match = regex.exec(fullText)) !== null) {
         const badge = match[1];
         const nameStr = match[2].trim();
-        // Remove spaces from phone number
         const phone = match[4].replace(/\s+/g, '');
 
-        // Find the employee by badge first, then by name
-        let staffMember = staff.find(s => String(s.badge) === badge);
-        if (!staffMember) {
-          staffMember = staff.find(s => R.sameName(s.name, nameStr));
-        }
+        // Check if employee already exists
+        const existing = staff.find(s => String(s.badge) === badge);
 
-        if (staffMember) {
-          // Update the phone number in Firestore
-          await CSM.refs.staff(staffMember.badge).update({ phone: phone });
+        if (existing) {
+          // Update name and phone
+          await CSM.refs.staff(badge).update({ 
+            name: nameStr, 
+            phone: phone,
+            updatedAt: new Date().toISOString()
+          });
           updated++;
         } else {
-          notFound++;
+          // Create new employee
+          await CSM.refs.staff(badge).set({
+            badge: badge,
+            name: nameStr,
+            phone: phone,
+            active: true,
+            source: 'pdf-import',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+          created++;
         }
       }
       
-      alert(`Importation terminée !\n\n✅ Numéros mis à jour : ${updated}\n⚠️ Employés non trouvés : ${notFound}`);
+      alert(`Importation de la base terminée !\n\n✅ Nouveaux employés ajoutés : ${created}\n🔄 Profils mis à jour : ${updated}`);
       
     } catch (err) {
       console.error(err);
       alert('Erreur lors de l\'importation : ' + err.message);
     } finally {
       $('loadingOverlay').classList.remove('show');
-      $('btnImportPhones').disabled = false;
-      e.target.value = ''; // Reset file input
+      $('btnImportBase').disabled = false;
+      e.target.value = '';
     }
   });
 
