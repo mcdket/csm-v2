@@ -456,36 +456,33 @@
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        const lineMap = new Map();
-        
-        content.items.filter(it => it.str.trim()).forEach(item => {
-          const y = Math.round(item.transform[5]);
-          if (!lineMap.has(y)) lineMap.set(y, []);
-          lineMap.get(y).push(item);
-        });
-        
-        const sortedY = Array.from(lineMap.keys()).sort((a, b) => b - a);
-        sortedY.forEach(y => {
-          const rowItems = lineMap.get(y).sort((a, b) => a.transform[4] - b.transform[4]);
-          fullText += rowItems.map(it => it.str).join('') + '\n';
-        });
+        fullText += content.items.map(it => it.str).join('') + '\n';
       }
 
-      const regex = /(\d+)([A-Za-zÀ-ÿ\s\-']+?)NT(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2})([\d\s]+)(?=\d+[A-Za-zÀ-ÿ\s\-']+NT|$)/g;
+      // Regex explanation:
+      // 1. (\d+) : Match the badge number
+      // 2. ([A-Za-zÀ-ÿ\s\-']+?) : Match the name (first and last glued) - stops at "NT"
+      // 3. NT\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2} : Match the Employee Type and Birthday
+      // 4. ([\d\s]+?) : Match the phone number (digits and spaces)
+      // 5. (?=\d+[A-Za-zÀ-ÿ\s\-']+NT|$) : Lookahead to ensure we stop right before the next badge/name
+      const regex = /(\d+)([A-Za-zÀ-ÿ\s\-']+?)NT\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}([\d\s]+?)(?=\d+[A-Za-zÀ-ÿ\s\-']+NT|$)/g;
+      
       let match;
       let created = 0;
       let updated = 0;
 
       while ((match = regex.exec(fullText)) !== null) {
-        const badge = match[1];
+        const badge = match[1].trim();
         const nameStr = match[2].trim();
-        const phone = match[4].replace(/\s+/g, '');
+        // Clean phone number: keep only digits
+        const phone = match[3].replace(/\D/g, '');
+
+        if (!badge || !nameStr) continue;
 
         // Check if employee already exists
         const existing = staff.find(s => String(s.badge) === badge);
 
         if (existing) {
-          // Update name and phone
           await CSM.refs.staff(badge).update({ 
             name: nameStr, 
             phone: phone,
@@ -493,7 +490,6 @@
           });
           updated++;
         } else {
-          // Create new employee
           await CSM.refs.staff(badge).set({
             badge: badge,
             name: nameStr,
