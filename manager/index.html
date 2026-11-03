@@ -13,7 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
-.app{max-width:1440px;margin:0 auto;padding:20px 20px 60px;}
+/* Changed max-width to 100% to make it wide */
+.app{max-width:100%;margin:0 auto;padding:20px;}
 
 .header{
   display:flex;align-items:center;justify-content:space-between;
@@ -535,10 +536,10 @@ tbody tr.st-done{opacity:0.55;}
       const retourEff = inP.length > 1 ? R.minToHM(inP[1]) : '—';
       const sortieEff = (outP.length >= inP.length && outP.length > 0) ? R.minToHM(outP[outP.length-1]) : '—';
       
-      // FIX: Find the post where the badge matches
+      // FIX: Find the post where the badge matches safely
       let post = '—';
       for (const [key, val] of Object.entries(assignments)) {
-        if (String(val) === String(shift.badge)) {
+        if (String(val).trim() === String(shift.badge).trim()) {
           post = key;
           break;
         }
