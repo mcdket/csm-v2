@@ -425,10 +425,20 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     sub.textContent = t;
   }
 
-  // Helper to find staff using fuzzy name matching
-  function findStaff(name) {
+  // Enhanced Fuzzy Name Matching Logic
+  function findStaff(schedName) {
+    const schedTokens = R.nameTokens(schedName); // e.g. ['ait', 'addi', 'najate']
     for (let s of staffList) {
-      if (R.sameName(s.name, name)) return s;
+      const staffTokens = R.nameTokens(s.name); // e.g. ['najateait', 'addi'] or ['najate', 'ait', 'addi']
+      let matches = 0;
+      schedTokens.forEach(st => {
+        // Check if any part of the staff name contains the schedule token, or vice versa
+        if (staffTokens.some(pt => pt.includes(st) || st.includes(pt))) {
+          matches++;
+        }
+      });
+      // Require most tokens to match (allow 1 mismatch for middle names, etc.)
+      if (matches >= Math.max(1, schedTokens.length - 1)) return s;
     }
     return null;
   }
