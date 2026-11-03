@@ -93,7 +93,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     </div>
     <div class="tablewrap">
       <table class="preview">
-        <thead><tr><th>Badge</th><th>Nom (PDF)</th><th>Employé associé</th><th>Entrées (In)</th><th>Sorties (Out)</th><th>Action</th></tr></thead>
+        <thead><tr><th>Badge</th><th>Nom (PDF)</th><th>Employé associé</th><th>Entrée</th><th>Pause</th><th>Retour</th><th>Sortie</th><th>Action</th></tr></thead>
         <tbody id="previewBody"></tbody>
       </table>
     </div>
@@ -214,6 +214,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       const headerItem = pageItems.find(i => i.str === 'Bno' && i.x >= COL.BNO.min && i.x <= COL.BNO.max);
       const headerY = headerItem ? headerItem.y : Infinity;
       
+      // Sort strictly top-to-bottom, then left-to-right
       const items = pageItems.filter(i => i.y < headerY)
         .sort((a, b) => { return Math.abs(a.y - b.y) > 2 ? b.y - a.y : a.x - b.x; });
 
@@ -234,10 +235,27 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
     const rows = blocks.map(b => {
       let name = b.nameParts.join(' ').replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-      b.inPunches.sort((a,b)=>a-b); b.outPunches.sort((a,b)=>a-b);
+      
+      // DO NOT SORT. The arrays are already in visual top-to-bottom order.
+      // 1st IN is clock in, 2nd IN is break return.
+      // 1st OUT is break start, 2nd OUT is clock out.
+      
+      let clockIn = null, breakReturn = null, clockOut = null, breakStart = null;
+      
+      if(b.inPunches[0] !== undefined) clockIn = b.inPunches[0];
+      if(b.inPunches[1] !== undefined) breakReturn = b.inPunches[1];
+      if(b.outPunches[0] !== undefined) breakStart = b.outPunches[0];
+      if(b.outPunches[1] !== undefined) clockOut = b.outPunches[1];
+
+      // Cross-midnight corrections
+      if(breakReturn !== null && clockIn !== null && breakReturn < clockIn) breakReturn += 24 * 60;
+      if(breakStart !== null && clockIn !== null && breakStart < clockIn && breakReturn !== null && breakReturn >= 24 * 60) breakStart += 24 * 60;
+      if(clockOut !== null && clockIn !== null && clockOut < clockIn) clockOut += 24 * 60;
+      if(clockOut !== null && breakReturn !== null && clockOut < breakReturn) clockOut += 24 * 60;
+
       return {
         rawNum: b.bno, namePdf: name,
-        inPunches: b.inPunches, outPunches: b.outPunches,
+        clockIn: clockIn, breakStart: breakStart, breakReturn: breakReturn, clockOut: clockOut,
         match: null, chosenBadge: null
       };
     }).filter(r => r.namePdf);
@@ -250,11 +268,11 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     currentImport.rows.forEach(row => {
       const bno = String(row.rawNum).trim();
       if(bno && staffByBadge[bno]){
-        row.match = { badge: bno, staffName: staffByBadge[bno].name, level: R.sameName(staffByBadge[bno].name, row.namePdf) ? 'ok' : 'warn', reason: '' };
+        row.match = { badge: bno, staffName: staffByBadge[bno].name, level: R.sameName(staffByBadge[bno].name, row.namePdf) ? 'ok' : 'warn' };
       } else {
         const byName = staffList.find(s => R.sameName(s.name, row.namePdf));
-        if(byName) row.match = { badge: String(byName.badge), staffName: byName.name, level: 'warn', reason: 'nom seulement' };
-        else row.match = { badge: bno, staffName: null, level: 'new', reason: 'nouvel employé' };
+        if(byName) row.match = { badge: String(byName.badge), staffName: byName.name, level: 'warn' };
+        else row.match = { badge: bno, staffName: null, level: 'new' };
       }
     });
   }
@@ -277,9 +295,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     rows.forEach((row, idx) => {
       const level = effectiveLevel(row);
       const badgeDisp = chosenBadge(row) || '—';
-      let inTxt = row.inPunches.map(m => R.minToHM(m)).join(', ') || '—';
-      let outTxt = row.outPunches.map(m => R.minToHM(m)).join(', ') || '—';
-
+      
       let cellHtml = '';
       if(level === 'ok' && !row.chosenBadge) cellHtml = '<div class="match-pill ok">✓ '+esc(row.match.staffName)+'</div>';
       else if(level === 'new' && !row.chosenBadge) cellHtml = '<div class="match-pill new">+ Sera créé</div>';
@@ -292,7 +308,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
       const tr = document.createElement('tr');
       tr.className = 'flagged-' + level;
-      tr.innerHTML = '<td class="mono"><b>'+esc(badgeDisp)+'</b></td><td class="name">'+esc(row.namePdf)+'</td><td>'+cellHtml+'</td><td class="mono">'+inTxt+'</td><td class="mono">'+outTxt+'</td><td><button class="rowaction" data-idx="'+idx+'">Ignorer</button></td>';
+      tr.innerHTML = '<td class="mono"><b>'+esc(badgeDisp)+'</b></td><td class="name">'+esc(row.namePdf)+'</td><td>'+cellHtml+'</td><td class="mono">'+(R.minToHM(row.clockIn)||'—')+'</td><td class="mono">'+(R.minToHM(row.breakStart)||'—')+'</td><td class="mono">'+(R.minToHM(row.breakReturn)||'—')+'</td><td class="mono">'+(R.minToHM(row.clockOut)||'—')+'</td><td><button class="rowaction" data-idx="'+idx+'">Ignorer</button></td>';
       
       tr.querySelector('.picker')?.addEventListener('change', e => { currentImport.rows[idx].chosenBadge = e.target.value; saveDraft(); render(); });
       tr.querySelector('.rowaction')?.addEventListener('click', () => { currentImport.rows.splice(idx, 1); saveDraft(); render(); });
@@ -328,14 +344,19 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
         await CSM.refs.staff(badge).set(newStaff); staff = newStaff;
       }
 
-      const shiftData = { date: dateIso, inPunches: row.inPunches, outPunches: row.outPunches };
+      const shiftData = { date: dateIso, inPunches: [], outPunches: [] };
+      if (row.clockIn !== null) shiftData.inPunches.push(row.clockIn);
+      if (row.breakReturn !== null) shiftData.inPunches.push(row.breakReturn);
+      if (row.breakStart !== null) shiftData.outPunches.push(row.breakStart);
+      if (row.clockOut !== null) shiftData.outPunches.push(row.clockOut);
+
       const state = R.shiftState(shiftData, dateIso);
 
       const existing = await CSM.refs.shifts().where('badge', '==', badge).where('date', '==', dateIso).get();
       const payload = {
         badge, name: staff.name || row.namePdf, date: dateIso,
-        inPunches: row.inPunches, outPunches: row.outPunches,
-        totalMinutes: state.workedMinutes, status: state.clockOut !== null ? 'closed' : 'open',
+        inPunches: shiftData.inPunches, outPunches: shiftData.outPunches,
+        totalMinutes: state.workedMinutes, status: row.clockOut !== null ? 'closed' : 'open',
         source: 'daily-import', updatedAt: new Date().toISOString()
       };
 
