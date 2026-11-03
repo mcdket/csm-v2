@@ -15,100 +15,52 @@
 <style>
 .app{max-width:1100px;margin:0 auto;padding:20px 20px 60px;}
 
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:20px;flex-wrap:wrap;
-  background:var(--panel-raised);
-  border-bottom:3px solid var(--accent);
-  box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
-  padding:16px 20px;
-  margin-bottom:18px;
-}
+.header{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;background:var(--panel-raised);border-bottom:3px solid var(--accent);box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);padding:16px 20px;margin-bottom:18px;}
 .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.brand .arch{
-  width:34px;height:34px;object-fit:cover;border-radius:50%;
-  border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);
-}
+.brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
 .brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
-.brand .restaurant-badge{
-  color:#2A1F00;font-size:12px;font-weight:700;
-  background:var(--brand-yellow);padding:4px 10px;
-}
+.brand .restaurant-badge{color:#2A1F00;font-size:12px;font-weight:700;background:var(--brand-yellow);padding:4px 10px;}
 .controls{display:flex;gap:8px;flex-wrap:wrap;}
 
-.toolbar{
-  display:flex;justify-content:space-between;align-items:center;
-  gap:12px;flex-wrap:wrap;margin-bottom:14px;
-}
-.search-box{
-  display:flex;align-items:center;background:var(--panel-raised);
-  border:1px solid var(--line);padding:6px 12px;flex:1;max-width:340px;
-}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.search-box{display:flex;align-items:center;background:var(--panel-raised);border:1px solid var(--line);padding:6px 12px;flex:1;max-width:340px;}
 .search-box svg{width:14px;height:14px;color:var(--text-muted);margin-right:6px;flex:none;}
 .search-box input{border:none;background:transparent;color:var(--text);font-size:13px;width:100%;outline:none;}
 
-.stafflist{
-  display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
-  gap:12px;
-}
-.staffcard{
-  background:var(--panel-raised);
-  border:1px solid var(--line);
-  border-left:4px solid var(--accent);
-  box-shadow:var(--shadow);
-  padding:14px 16px;
-  display:flex;
-  align-items:center;
-  gap:14px;
-  transition:transform .1s ease;
-}
+.stafflist{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;}
+.staffcard{background:var(--panel-raised);border:1px solid var(--line);border-left:4px solid var(--accent);box-shadow:var(--shadow);padding:14px 16px;display:flex;align-items:center;gap:14px;transition:transform .1s ease;}
 .staffcard:hover{transform:translateY(-1px);}
 .staffcard.inactive{opacity:0.5;border-left-color:var(--line);}
 .staffcard .avatar{width:52px;height:52px;object-fit:cover;border-radius:50%;border:2px solid var(--line);background:var(--panel);flex-shrink:0;}
-.staffcard .avatar-fallback{
-  width:52px;height:52px;display:flex;align-items:center;justify-content:center;
-  background:var(--accent);color:#FFF;font-size:20px;font-weight:700;
-  border-radius:50%;border:2px solid var(--line);flex-shrink:0;
-}
+.staffcard .avatar-fallback{width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:var(--accent);color:#FFF;font-size:20px;font-weight:700;border-radius:50%;border:2px solid var(--line);flex-shrink:0;}
 .staffcard .info{flex:1;min-width:0;}
 .staffcard .name{font-size:15px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .staffcard .badge{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted);margin-top:3px;}
+.staffcard .phone{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);margin-top:2px;}
 .staffcard .actions{display:flex;flex-direction:column;gap:4px;}
-.staffcard .actions button{
-  background:transparent;border:1px solid var(--line);
-  color:var(--text-muted);padding:5px 10px;
-  font-size:11px;font-weight:600;cursor:pointer;
-}
+.staffcard .actions button{background:transparent;border:1px solid var(--line);color:var(--text-muted);padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;}
 .staffcard .actions button:hover{border-color:var(--accent);color:var(--accent);}
 .staffcard .actions button.danger:hover{border-color:var(--status-crit-line);color:var(--status-crit-fg);}
 
-.empty{
-  text-align:center;padding:60px 20px;color:var(--text-muted);
-  background:var(--panel);border:1px dashed var(--line);font-size:14px;
-}
+.empty{text-align:center;padding:60px 20px;color:var(--text-muted);background:var(--panel);border:1px dashed var(--line);font-size:14px;}
 .empty b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
 
-.modalbg{
-  position:fixed;inset:0;background:rgba(10,12,10,0.5);
-  display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
-}
+.modalbg{position:fixed;inset:0;background:rgba(10,12,10,0.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
 .modalbg.show{display:flex;}
-.modal{
-  background:var(--panel-raised);border:1px solid var(--line);
-  width:100%;max-width:440px;padding:22px;box-shadow:var(--shadow);
-}
+.modal{background:var(--panel-raised);border:1px solid var(--line);width:100%;max-width:440px;padding:22px;box-shadow:var(--shadow);}
 .modal h3{margin:0 0 6px;font-size:17px;}
 .modal .sub{font-size:12.5px;color:var(--text-muted);margin-bottom:16px;line-height:1.45;}
 .field{margin-bottom:14px;}
 .field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;}
-.field input{
-  width:100%;padding:10px 12px;border:1.5px solid var(--line);
-  background:var(--panel);color:var(--text);font-size:14px;
-}
+.field input{width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--panel);color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;}
 .field input:focus{outline:2px solid var(--accent);outline-offset:1px;}
 .field .hint{font-size:11px;color:var(--text-muted);margin-top:5px;}
 .modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+
+.loading-overlay{position:fixed;inset:0;background:rgba(20,24,29,0.7);display:none;align-items:center;justify-content:center;z-index:150;flex-direction:column;gap:15px;color:#fff;}
+.loading-overlay.show{display:flex;}
+.spinner{width:48px;height:48px;border:4px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
 @media (max-width:640px){
   .header{flex-direction:column;align-items:stretch;}
@@ -133,6 +85,8 @@
       <a class="btn" href="index.html">← Tableau de bord</a>
       <a class="btn" href="planning.html">Planning</a>
       <a class="btn" href="requests.html">Demandes</a>
+      <button class="btn" id="btnImportPhones" style="background:var(--panel);border:1px solid var(--line);color:var(--text);">📞 Importer Téléphones (PDF)</button>
+      <input type="file" id="phoneFileInput" accept="application/pdf" style="display:none;">
       <button class="btn btn-primary" id="btnAdd">+ Ajouter un employé</button>
       <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
       <button class="btn" id="btnLogout">Déconnexion</button>
@@ -161,7 +115,7 @@
 <div class="modalbg" id="modalBg">
   <div class="modal">
     <h3 id="modalTitle">Ajouter un employé</h3>
-    <div class="sub" id="modalSub">Créez un profil. L'employé pourra compléter sa photo depuis le portail employé.</div>
+    <div class="sub" id="modalSub">Créez un profil.</div>
 
     <div class="field">
       <label>N° de badge</label>
@@ -175,6 +129,12 @@
       <div class="hint">Doit correspondre au nom utilisé dans le planning PDF.</div>
     </div>
 
+    <div class="field">
+      <label>Numéro de téléphone</label>
+      <input type="text" id="fPhone" placeholder="06 12 34 56 78" autocomplete="off">
+      <div class="hint">Affiché sur le planning pour appeler en cas de retard.</div>
+    </div>
+
     <div class="modalactions">
       <button class="btn" id="btnCancel">Annuler</button>
       <button class="btn btn-primary" id="btnSave">Enregistrer</button>
@@ -182,9 +142,15 @@
   </div>
 </div>
 
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div id="loadingText">Importation des téléphones en cours...</div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="../shared/firebase.js"></script>
 <script src="../shared/rules-helpers.js"></script>
 <script>
@@ -192,8 +158,12 @@
   'use strict';
 
   const $ = function(id){ return document.getElementById(id); };
+  const R = window.CSMRules;
 
-  // ---------- Theme ----------
+  if(window['pdfjsLib']){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
   (function(){
     const K = 'csct_manager_theme';
     function apply(){
@@ -276,7 +246,6 @@
         render();
       }, function(err){
         console.error('Live staff:', err);
-        alert('Erreur de chargement des employés : ' + err.message);
       });
   }
 
@@ -295,7 +264,8 @@
       const q = currentQuery.toLowerCase();
       filtered = filtered.filter(function(s){
         return (s.name || '').toLowerCase().includes(q)
-            || String(s.badge || '').toLowerCase().includes(q);
+            || String(s.badge || '').toLowerCase().includes(q)
+            || String(s.phone || '').toLowerCase().includes(q);
       });
     }
 
@@ -330,6 +300,7 @@
           '<div class="badge">Badge ' + escapeHtml(String(s.badge || '—')) +
             (s.active === false ? ' · <span style="color:var(--status-crit-fg)">désactivé</span>' : '') +
           '</div>' +
+          (s.phone ? '<div class="phone">📞 ' + escapeHtml(s.phone) + '</div>' : '') +
         '</div>' +
         '<div class="actions">' +
           '<button data-act="edit"   data-badge="' + escapeAttr(String(s.badge)) + '">Modifier</button>' +
@@ -355,10 +326,11 @@
   function openAddModal(){
     editingBadge = null;
     $('modalTitle').textContent = 'Ajouter un employé';
-    $('modalSub').textContent = "Créez un profil. L'employé pourra compléter sa photo depuis le portail employé.";
+    $('modalSub').textContent = "Créez un profil.";
     $('fBadge').value = '';
     $('fBadge').disabled = false;
     $('fName').value = '';
+    $('fPhone').value = '';
     $('badgeHint').style.display = 'block';
     modalBg.classList.add('show');
     setTimeout(function(){ $('fBadge').focus(); }, 50);
@@ -369,10 +341,11 @@
     if(!s) return;
     editingBadge = badge;
     $('modalTitle').textContent = 'Modifier le profil';
-    $('modalSub').textContent = 'Corrigez le nom ci-dessous. Le badge ne peut pas être modifié.';
+    $('modalSub').textContent = 'Corrigez le nom ou le numéro. Le badge ne peut pas être modifié.';
     $('fBadge').value = s.badge || badge;
     $('fBadge').disabled = true;
     $('fName').value = s.name || '';
+    $('fPhone').value = s.phone || '';
     $('badgeHint').style.display = 'none';
     modalBg.classList.add('show');
     setTimeout(function(){ $('fName').focus(); }, 50);
@@ -391,6 +364,7 @@
   $('btnSave').addEventListener('click', function(){
     const badge = $('fBadge').value.trim();
     const name  = $('fName').value.trim();
+    const phone = $('fPhone').value.trim();
 
     if(!badge){ alert('Le numéro de badge est requis.'); return; }
     if(!name){  alert('Le nom est requis.'); return; }
@@ -405,6 +379,7 @@
     if(editingBadge){
       CSM.refs.staff(editingBadge).update({
         name: name,
+        phone: phone,
         updatedAt: new Date().toISOString()
       }).then(function(){
         btn.disabled = false;
@@ -421,6 +396,7 @@
         return CSM.refs.staff(badge).set({
           badge: badge,
           name: name,
+          phone: phone,
           active: true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -459,6 +435,83 @@
   $('searchInput').addEventListener('input', function(e){
     currentQuery = e.target.value;
     render();
+  });
+
+  // ============================================================
+  // Phone Import Logic
+  // ============================================================
+  
+  $('btnImportPhones').addEventListener('click', () => $('phoneFileInput').click());
+  
+  $('phoneFileInput').addEventListener('change', async function(e){
+    if(!e.target.files[0]) return;
+    
+    $('loadingOverlay').classList.add('show');
+    $('btnImportPhones').disabled = true;
+    
+    try {
+      const file = e.target.files[0];
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      
+      // Extract text line by line from all pages
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const lineMap = new Map();
+        
+        content.items.filter(it => it.str.trim()).forEach(item => {
+          const y = Math.round(item.transform[5]);
+          if (!lineMap.has(y)) lineMap.set(y, []);
+          lineMap.get(y).push(item);
+        });
+        
+        const sortedY = Array.from(lineMap.keys()).sort((a, b) => b - a);
+        sortedY.forEach(y => {
+          const rowItems = lineMap.get(y).sort((a, b) => a.transform[4] - b.transform[4]);
+          fullText += rowItems.map(it => it.str).join('') + '\n';
+        });
+      }
+
+      // Regex to find: Badge, FirstName/LastName, Birthday, Phone
+      // Matches: [Badge Number][Name]NT[Date] [Time][Phone Number]
+      const regex = /(\d+)([A-Za-zÀ-ÿ\s\-']+?)NT(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2})([\d\s]+)(?=\d+[A-Za-zÀ-ÿ\s\-']+NT|$)/g;
+      let match;
+      let updated = 0;
+      let notFound = 0;
+
+      while ((match = regex.exec(fullText)) !== null) {
+        const badge = match[1];
+        const nameStr = match[2].trim();
+        // Remove spaces from phone number
+        const phone = match[4].replace(/\s+/g, '');
+
+        // Find the employee by badge first, then by name
+        let staffMember = staff.find(s => String(s.badge) === badge);
+        if (!staffMember) {
+          staffMember = staff.find(s => R.sameName(s.name, nameStr));
+        }
+
+        if (staffMember) {
+          // Update the phone number in Firestore
+          await CSM.refs.staff(staffMember.badge).update({ phone: phone });
+          updated++;
+        } else {
+          notFound++;
+        }
+      }
+      
+      alert(`Importation terminée !\n\n✅ Numéros mis à jour : ${updated}\n⚠️ Employés non trouvés : ${notFound}`);
+      
+    } catch (err) {
+      console.error(err);
+      alert('Erreur lors de l\'importation : ' + err.message);
+    } finally {
+      $('loadingOverlay').classList.remove('show');
+      $('btnImportPhones').disabled = false;
+      e.target.value = ''; // Reset file input
+    }
   });
 
   function escapeHtml(s){
