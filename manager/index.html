@@ -114,27 +114,48 @@ tbody tr.st-done{opacity:0.55;}
 .modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;align-items:center;}
 .linkbtn{background:none;border:none;color:var(--status-crit-fg);font-family:inherit;font-size:13px;cursor:pointer;text-decoration:underline;padding:0;}
 
+/* ============================================================
+   PRINT STYLES (Landscape mode, shows all columns)
+   ============================================================ */
 @media print {
-  @page { margin: 1cm; }
-  body { background: #fff; color: #000; }
-  .header, .filterbar, .action-group, .rowedit, .alertstrip, .controls, .footnote { display: none !important; }
-  .app { padding: 0; max-width: 100%; }
-  .tablewrap { border: none; box-shadow: none; overflow: visible; }
-  table { min-width: 100%; border: 1px solid #000; border-collapse: collapse; }
-  th, td { border: 1px solid #000 !important; color: #000 !important; padding: 6px 8px !important; font-size: 12px !important; }
-  thead th { background: #eee !important; }
-  .pill { border: 1px solid #000; background: none !important; color: #000 !important; }
-  tbody tr { opacity: 1 !important; background: none !important; border-left: none !important; }
+  @page { 
+    margin: 10mm; 
+    size: A4 landscape; 
+  }
+  body { 
+    background: #fff !important; 
+    color: #000 !important; 
+    font-size: 10px !important; 
+  }
   
-  th:nth-child(4), td:nth-child(4),
-  th:nth-child(5), td:nth-child(5),
-  th:nth-child(6), td:nth-child(6),
-  th:nth-child(7), td:nth-child(7),
-  th:nth-child(8), td:nth-child(8),
-  th:nth-child(10), td:nth-child(10),
-  th:nth-child(12), td:nth-child(12),
-  th:nth-child(13), td:nth-child(13),
-  th:nth-child(14), td:nth-child(14) { display: none !important; }
+  /* Hide all UI elements */
+  .header, .filterbar, .alertstrip, .controls, .action-group, .rowedit, .search-box, .liveclock { 
+    display: none !important; 
+  }
+  
+  .app { padding: 0; max-width: 100%; }
+  .tablewrap { border: none !important; box-shadow: none !important; overflow: visible !important; }
+  table { width: 100% !important; min-width: 0 !important; border-collapse: collapse !important; }
+  th, td { 
+    border: 1px solid #000 !important; 
+    padding: 4px 6px !important; 
+    color: #000 !important; 
+    font-size: 10px !important; 
+  }
+  th { background: #eee !important; }
+  
+  /* Make status pills readable on B&W */
+  .pill { border: 1px solid #000 !important; background: none !important; color: #000 !important; padding: 2px 4px !important; }
+  .pilldot { display: none !important; }
+  
+  /* Hide the last 2 columns (Actions and Edit icon) */
+  th:nth-last-child(1), td:nth-last-child(1),
+  th:nth-last-child(2), td:nth-last-child(2) { 
+    display: none !important; 
+  }
+  
+  /* Keep row colors light so they don't use too much ink */
+  tbody tr { opacity: 1 !important; background: none !important; border-left: none !important; }
 }
 </style>
 </head>
