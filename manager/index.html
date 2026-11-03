@@ -64,7 +64,7 @@ tbody tr.st-ok{border-left-color:var(--status-ok-line);}
 tbody tr.st-warn{border-left-color:var(--status-warn-line);background:var(--status-warn-bg);}
 tbody tr.st-crit{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
 tbody tr.st-break{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
-tbody tr.st-breakover{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
+tbody tr.st-breakover{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
 tbody tr.st-done{opacity:0.55;}
 
 .totalhrs{font-weight:700;color:var(--accent-strong);}
@@ -94,7 +94,7 @@ tbody tr.st-done{opacity:0.55;}
 .empcard.st-warn{border-left-color:var(--status-warn-line);background:var(--status-warn-bg);}
 .empcard.st-crit{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
 .empcard.st-break{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
-.empcard.st-breakover{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
+.empcard.st-breakover{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
 .empcard.st-done{opacity:0.6;}
 .empcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 16px 12px;}
 .empcard-name{font-size:16px;font-weight:700;line-height:1.25;}
@@ -188,10 +188,10 @@ tbody tr.st-done{opacity:0.55;}
   <div class="filterbar">
     <div class="filter-group">
       <span style="font-size:12px;font-weight:600;color:var(--text-muted);margin-right:2px;">Filtrer :</span>
-      <button class="filter-btn" data-filter="all">Tous</button>
+      <button class="filter-btn active" data-filter="all">Tous</button>
       <button class="filter-btn" data-filter="working">En poste</button>
       <button class="filter-btn" data-filter="break">En pause</button>
-      <button class="filter-btn active" data-filter="action">Action requise</button>
+      <button class="filter-btn" data-filter="action">Action requise</button>
     </div>
     <div class="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -416,7 +416,7 @@ tbody tr.st-done{opacity:0.55;}
 
   // ---------- State ----------
   let shifts = [];
-  let currentFilter = 'action';
+  let currentFilter = 'all';
   let searchQuery = '';
   let editingId = null;
   let unsubShifts = null;
@@ -553,7 +553,7 @@ tbody tr.st-done{opacity:0.55;}
       warn:      {pill:'warn', row:'st-warn'},
       crit:      {pill:'crit', row:'st-crit'},
       break:     {pill:'brk',  row:'st-break'},
-      breakover: {pill:'crit', row:'st-breakover'},
+      breakover: {pill:'brk',  row:'st-break'},
       done:      {pill:'done', row:'st-done'},
       notpunched:{pill:'done', row:'st-done'},
       nodata:    {pill:'done', row:'st-done'}
@@ -602,7 +602,7 @@ tbody tr.st-done{opacity:0.55;}
       const { shift, calc } = item;
       if(currentFilter === 'working' && !(calc.status === 'ok' || calc.status === 'warn')) return false;
       if(currentFilter === 'break'   && !(calc.status === 'break' || calc.status === 'breakover')) return false;
-      if(currentFilter === 'action'  && !(calc.status === 'warn' || calc.status === 'crit' || calc.status === 'breakover')) return false;
+      if(currentFilter === 'action'  && !(calc.status === 'warn' || calc.status === 'crit')) return false;
       if(searchQuery.trim() !== ''){
         const q = searchQuery.toLowerCase();
         if(!(shift.name || '').toLowerCase().includes(q) &&
@@ -631,7 +631,19 @@ tbody tr.st-done{opacity:0.55;}
       empty.style.display = 'none';
     }
 
-    const rank = function(s){ return ({crit:0, breakover:0, warn:1, break:2, ok:3, done:4, notpunched:5, nodata:6})[s] ?? 7; };
+    const rank = function(s){ 
+      return ({
+        crit: 0, 
+        warn: 1, 
+        break: 2, 
+        breakover: 2, 
+        ok: 3, 
+        done: 4, 
+        notpunched: 5, 
+        nodata: 6
+      })[s] ?? 7; 
+    };
+    
     filtered.sort(function(a, b){
       return rank(a.calc.status) - rank(b.calc.status) ||
              ((a.shift.clockIn ?? 999) - (b.shift.clockIn ?? 999));
@@ -639,7 +651,7 @@ tbody tr.st-done{opacity:0.55;}
       const { shift, calc, sugg } = item;
       const meta = statusMeta(calc.status);
 
-      if(calc.status === 'crit' || calc.status === 'breakover'){
+      if(calc.status === 'crit'){
         alerts.push({ shift, calc, kind: 'crit' });
       } else if(calc.status === 'warn'){
         alerts.push({ shift, calc, kind: 'warn' });
@@ -720,7 +732,7 @@ tbody tr.st-done{opacity:0.55;}
     if(crit.length){
       const row = document.createElement('div');
       row.className = 'alertrow crit';
-      row.innerHTML = '<span class="alertdot"></span> Limite 4h50 atteinte ou pause dépassée : ' +
+      row.innerHTML = '<span class="alertdot"></span> Limite 4h50 atteinte : ' +
         crit.map(nameOf).join(', ');
       strip.appendChild(row);
     }
