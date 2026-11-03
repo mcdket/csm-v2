@@ -436,7 +436,7 @@
   });
 
   // ============================================================
-  // Master Database Import (PDF) - BULLETPROOF REGEX
+  // Master Database Import (PDF) - BULLETPROOF LINE PARSER
   // ============================================================
   
   $('btnImportBase').addEventListener('click', () => $('baseFileInput').click());
@@ -451,54 +451,69 @@
       const file = e.target.files[0];
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
       
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        fullText += content.items.map(it => it.str).join('') + '\n';
-      }
-
-      // The magic regex: Looks for Badge, Name, 'NT', Birthday, and Phone.
-      // We use ([^A-Za-z]*?) for the phone number to ensure it stops exactly when the next name starts.
-      const regex = /(\d+)([A-Za-zÀ-ÿ\s\-']+?)NT(\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}:\d{2})([^A-Za-z]*?)(?=\d+[A-Za-zÀ-ÿ\s\-']+NT|$)/g;
-      
-      let match;
       let created = 0;
       let updated = 0;
 
-      while ((match = regex.exec(fullText)) !== null) {
-        const badge = match[1].trim();
-        const nameStr = match[2].trim();
-        // Clean phone number: keep only digits
-        const phone = match[4].replace(/\D/g, '');
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        
+        // Group text items by their Y coordinate (line by line)
+        const lineMap = new Map();
+        content.items.forEach(item => {
+          if (!item.str.trim()) return;
+          const y = Math.round(item.transform[5]);
+          if (!lineMap.has(y)) lineMap.set(y, []);
+          lineMap.get(y).push(item);
+        });
 
-        if (!badge || !nameStr) continue;
+        // Sort lines from top to bottom
+        const sortedY = Array.from(lineMap.keys()).sort((a, b) => b - a);
+        
+        for (const y of sortedY) {
+          // Sort items on this line from left to right
+          const rowItems = lineMap.get(y).sort((a, b) => a.transform[4] - b.transform[4]);
+          const rowString = rowItems.map(it => it.str).join('');
 
-        const existing = staff.find(s => String(s.badge) === badge);
+          // Regex targets the specific line format: Badge + Name + NT + Date + Time + Phone
+          // Example: 32NAJATEAIT ADDINT30/10/2001 00:00:0006 01 71 46 90
+          const regex = /^(\d+)(.+?)NT\s*(\d{2}\/\d{2}\/\d{4})\s*(\d{2}:\d{2}:\d{2})([\d\s]*)$/;
+          const match = regex.exec(rowString);
 
-        if (existing) {
-          await CSM.refs.staff(badge).update({ 
-            name: nameStr, 
-            phone: phone,
-            updatedAt: new Date().toISOString()
-          });
-          updated++;
-        } else {
-          await CSM.refs.staff(badge).set({
-            badge: badge,
-            name: nameStr,
-            phone: phone,
-            active: true,
-            source: 'pdf-import',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          });
-          created++;
+          if (match) {
+            const badge = match[1].trim();
+            const nameStr = match[2].trim();
+            // Clean phone number: keep only digits
+            const phone = match[5].replace(/\D/g, '');
+
+            if (!badge || !nameStr) continue;
+
+            const existing = staff.find(s => String(s.badge) === badge);
+
+            if (existing) {
+              await CSM.refs.staff(badge).update({ 
+                name: nameStr, 
+                phone: phone,
+                updatedAt: new Date().toISOString()
+              });
+              updated++;
+            } else {
+              await CSM.refs.staff(badge).set({
+                badge: badge,
+                name: nameStr,
+                phone: phone,
+                active: true,
+                source: 'pdf-import',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              });
+              created++;
+            }
+          }
         }
       }
       
-      // Move this BEFORE the alert so the overlay hides immediately
       $('loadingOverlay').classList.remove('show');
       $('btnImportBase').disabled = false;
       e.target.value = '';
