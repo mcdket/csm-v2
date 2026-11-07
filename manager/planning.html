@@ -39,6 +39,20 @@
 .exp-item.late .exp-status{color:var(--status-crit-fg);font-weight:600;}
 .exp-btn{padding:7px 11px;font-size:12px;}
 .exp-empty{grid-column:1 / -1;font-size:13px;color:var(--text-muted);padding:4px 0;}
+
+/* ===== NEW: day-off section ===== */
+.dayoff{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px;margin-bottom:20px;}
+.dayoff-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.dayoff-count{min-width:22px;height:22px;padding:0 7px;background:var(--text-muted);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.dayoff-count:empty{display:none;}
+.dayoff-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:8px;}
+.dayoff-item{display:flex;align-items:center;gap:12px;padding:8px 12px;border:1px solid var(--line);border-left-width:4px;border-left-color:var(--text-muted);background:var(--panel-raised);}
+.dayoff-mid{flex:1;min-width:0;}
+.dayoff-name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dayoff-phone{font-size:12px;color:var(--accent);text-decoration:none;font-family:'IBM Plex Mono',monospace;margin-top:2px;display:inline-block;}
+.dayoff-phone.muted{color:var(--text-muted);pointer-events:none;}
+.dayoff-empty{grid-column:1 / -1;font-size:13px;color:var(--text-muted);padding:4px 0;}
+
 .import{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px;margin-bottom:20px;}
 .import-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
 .import-title{font-size:13px;font-weight:600;color:var(--text-muted);}
@@ -118,7 +132,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 @media print{
   @page{margin:14mm;}
   body{background:#fff;color:#000;}
-  .header,.plansub,.expected,.import,.week-head,.daytabs,.daysum,.addrow,.plan td.act{display:none !important;}
+  .header,.plansub,.expected,.dayoff,.import,.week-head,.daytabs,.daysum,.addrow,.plan td.act{display:none !important;}
   .app{max-width:none;padding:0;}
   .week{background:none;border:0;padding:0;box-shadow:none;}
   .tablewrap{overflow:visible;}
@@ -161,6 +175,12 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   <section class="expected">
     <div class="expected-title">Attendus prochainement <span class="expected-count" id="expectedCount"></span></div>
     <div class="expected-list" id="expectedList"></div>
+  </section>
+
+  <!-- NEW: En repos aujourd'hui -->
+  <section class="dayoff">
+    <div class="dayoff-title">En repos aujourd'hui <span class="dayoff-count" id="dayoffCount"></span></div>
+    <div class="dayoff-list" id="dayoffList"></div>
   </section>
 
   <section class="import">
@@ -358,7 +378,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         $('restaurantBadge').style.display = 'inline-block';
         loadStaff();
         startListeners();
-        setInterval(function(){ renderExpected(); renderWeek(); }, 15000);
+        setInterval(function(){ renderExpected(); renderDayOff(); renderWeek(); }, 15000);
       });
     }).catch(function(err){
       console.error('Auth gating:', err);
@@ -374,7 +394,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         .map(function(d){ return Object.assign({ _id: d.id }, d.data()); })
         .filter(function(s){ return s.active !== false; })
         .sort(function(a,b){ return String(a.name || '').localeCompare(String(b.name || ''), 'fr'); });
-      
+
       const opts = staffList.map(function(s){
         return '<option value="' + escAttr(s.name) + '">' + esc(s.name) + ' (badge ' + esc(String(s.badge)) + ')</option>';
       }).join('');
@@ -404,6 +424,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   function renderAll(){
     renderPlanSub();
     renderExpected();
+    renderDayOff();     // NEW
     renderWeek();
     updateAddRow();
   }
@@ -425,22 +446,130 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     sub.textContent = t;
   }
 
-  // Enhanced Fuzzy Name Matching Logic
-  function findStaff(schedName) {
-    const schedTokens = R.nameTokens(schedName); // e.g. ['ait', 'addi', 'najate']
-    for (let s of staffList) {
-      const staffTokens = R.nameTokens(s.name); // e.g. ['najateait', 'addi'] or ['najate', 'ait', 'addi']
-      let matches = 0;
-      schedTokens.forEach(st => {
-        // Check if any part of the staff name contains the schedule token, or vice versa
-        if (staffTokens.some(pt => pt.includes(st) || st.includes(pt))) {
-          matches++;
-        }
-      });
-      // Require most tokens to match (allow 1 mismatch for middle names, etc.)
-      if (matches >= Math.max(1, schedTokens.length - 1)) return s;
+  // ============================================================
+  // FIXED: strict-then-fallback fuzzy name matching
+  // ============================================================
+  function findStaff(schedName){
+    // 1) Strict: all tokens of the shorter name must match (via R.sameName)
+    for(const s of staffList){
+      if(R.sameName(s.name, schedName)) return s;
     }
+
+    const schedTokens = R.nameTokens(schedName);
+    if(!schedTokens.length) return null;
+
+    // 2) Fallback: staff name collapsed into a single token (e.g. "LAMYAEMACHKOUR"
+    //    from PDF extraction that concatenated "LAMYAE" + "MACHKOUR").
+    //    Only significant schedule tokens (>=3 chars) must be substrings of the single token.
+    const significant = schedTokens.filter(function(t){ return t.length >= 3; });
+    if(significant.length >= 2){
+      for(const s of staffList){
+        const staffTokens = R.nameTokens(s.name);
+        if(staffTokens.length === 1 && staffTokens[0].length >= 8){
+          const single = staffTokens[0];
+          if(significant.every(function(t){ return single.includes(t); })) return s;
+        }
+      }
+    }
+
+    // 3) Single-token schedule name (nickname) with a real staff match
+    if(schedTokens.length === 1 && schedTokens[0].length >= 5){
+      for(const s of staffList){
+        const staffTokens = R.nameTokens(s.name);
+        if(staffTokens.includes(schedTokens[0])) return s;
+      }
+    }
+
     return null;
+  }
+
+  // ============================================================
+  // FIXED: arrival detection uses inPunches[], not clockIn
+  // ============================================================
+  function arrivedFor(emp){
+    const key = 'd' + todayIdx() + '_' + emp.n;
+    if(schedule.dismissed && schedule.dismissed[key]) return true;
+
+    const schedStaff = findStaff(emp.name);
+
+    return employees.some(function(e){
+      // Shift docs store inPunches[] (array of minutes). Old data may have clockIn.
+      const hasArrived =
+        (Array.isArray(e.inPunches) && e.inPunches.length > 0) ||
+        (e.clockIn !== null && e.clockIn !== undefined);
+      if(!hasArrived) return false;
+
+      // Primary: match by badge (survives name spelling drift)
+      if(schedStaff && String(e.badge) === String(schedStaff.badge)) return true;
+
+      // Fallback: match by name
+      return R.sameName(emp.name, e.name);
+    });
+  }
+
+  // ============================================================
+  // NEW: render day-off section
+  // ============================================================
+  function renderDayOff(){
+    const list = $('dayoffList'), count = $('dayoffCount');
+    list.innerHTML = '';
+    count.textContent = '';
+
+    if(!schedule){
+      list.innerHTML = '<div class="dayoff-empty">Importez le planning pour voir les employés en repos.</div>';
+      return;
+    }
+    const ti = todayIdx();
+    if(ti < 0 || ti > 6){
+      list.innerHTML = '<div class="dayoff-empty">Le planning chargé ne couvre pas aujourd\'hui.</div>';
+      return;
+    }
+
+    const onRest = (schedule.employees || []).filter(function(emp){
+      const sh = emp.d && emp.d[ti];
+      return !sh || !sh.s;
+    });
+
+    if(!onRest.length){
+      list.innerHTML = '<div class="dayoff-empty">Tout le monde travaille aujourd\'hui.</div>';
+      return;
+    }
+
+    count.textContent = String(onRest.length);
+
+    onRest.sort(function(a,b){
+      return String(a.name).localeCompare(String(b.name), 'fr');
+    });
+
+    onRest.forEach(function(emp){
+      const staff = findStaff(emp.name);
+
+      const row = document.createElement('div');
+      row.className = 'dayoff-item';
+
+      const mid = document.createElement('div');
+      mid.className = 'dayoff-mid';
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'dayoff-name';
+      nameEl.textContent = emp.name;
+      mid.appendChild(nameEl);
+
+      const phoneEl = document.createElement('a');
+      phoneEl.className = 'dayoff-phone';
+      if(staff && staff.phone){
+        phoneEl.href = 'tel:' + staff.phone;
+        phoneEl.textContent = '📞 ' + staff.phone;
+      } else {
+        phoneEl.href = '#';
+        phoneEl.textContent = 'Pas de téléphone';
+        phoneEl.classList.add('muted');
+      }
+      mid.appendChild(phoneEl);
+
+      row.appendChild(mid);
+      list.appendChild(row);
+    });
   }
 
   function renderExpected(){
@@ -487,7 +616,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       nameEl.title = it.emp.name;
       mid.appendChild(nameEl);
 
-      // Find Phone Number
       const staff = findStaff(it.emp.name);
       if(staff && staff.phone) {
         const phoneEl = document.createElement('a');
@@ -503,18 +631,18 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         ? ('dans ' + fmtDur(it.dt))
         : (state === 'late' ? ('en retard de ' + fmtDur(-it.dt)) : 'à pointer maintenant');
       mid.appendChild(statusEl);
-      
+
       const b = document.createElement('button');
       b.className = 'btn exp-btn';
       b.type = 'button';
       b.textContent = 'Arrivé';
       b.title = 'Retirer de la liste';
       b.addEventListener('click', function(){ dismissExpected(it.key); });
-      
+
       const timeEl = document.createElement('div');
       timeEl.className = 'exp-time';
       timeEl.textContent = it.sh.s;
-      
+
       row.appendChild(timeEl);
       row.appendChild(mid);
       row.appendChild(b);
@@ -639,7 +767,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         }
         tr.appendChild(tdN);
 
-        // Phone Cell
         const tdP = document.createElement('td');
         tdP.className = 'phone';
         const staff = findStaff(displayName);
@@ -687,15 +814,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     list.appendChild(table);
   }
 
-  function arrivedFor(emp){
-    const key = 'd' + todayIdx() + '_' + emp.n;
-    if(schedule.dismissed && schedule.dismissed[key]) return true;
-    return employees.some(function(e){
-      return e.clockIn !== null && e.clockIn !== undefined &&
-             R.sameName(emp.name, e.name);
-    });
-  }
-
   function statusFor(emp, sh, nowMin){
     if(sh.st === 'absent')    return { cls: 'mut', text: 'Absent' };
     if(sh.st === 'sick')      return { cls: 'warn', text: 'Maladie' };
@@ -713,7 +831,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
   function dismissExpected(key){
     if(!schedule || !schedule._id) return;
-    const current = Array.isArray(schedule.employees) ? schedule.employees : [];
     const newDismissed = Object.assign({}, schedule.dismissed || {});
     newDismissed[key] = true;
     CSM.refs.schedules().doc(schedule._id).update({ dismissed: newDismissed })
@@ -831,7 +948,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     }catch(err){ alert('Erreur : ' + err.message); }
   }
 
-  // ---- Add employee to a day ----
   $('btnAddEmp').addEventListener('click', function(){
     if(!schedule) return;
     $('addSub').textContent = 'Ajouter à ' + DAY_NAMES[selDay] + ' ' + dayDate(selDay).getUTCDate() + ' ' + MONTHS[dayDate(selDay).getUTCMonth()];
