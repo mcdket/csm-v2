@@ -19,8 +19,14 @@
 .import{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:18px;margin-bottom:20px;}
 .dropzone{border:1.5px dashed var(--line);padding:36px 16px;text-align:center;color:var(--text-muted);font-size:14px;cursor:pointer;}
 .dropzone:hover{border-color:var(--accent);background:var(--status-break-bg);}
+.dropzone.drag{border-color:var(--accent);background:var(--status-break-bg);}
+.dropzone .sub{font-size:12px;margin-top:6px;color:var(--text-muted);}
 .importlog{margin-top:14px;font-size:12.5px;max-height:180px;overflow-y:auto;display:none;padding-top:12px;border-top:1px solid var(--line-soft);}
 .importlog.show{display:block;}
+.importlog div{padding:2px 0;}
+.importlog .ok{color:var(--status-ok-fg);}
+.importlog .warn{color:var(--status-warn-fg);}
+.importlog .info{color:var(--text-muted);}
 .summary{background:var(--panel-raised);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:14px;}
 .summary-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
 .summary-left .date{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace;}
@@ -35,7 +41,7 @@
 .summary-actions{display:flex;gap:10px;border-top:1px solid var(--line-soft);padding-top:14px;}
 .summary-actions .btn{flex:1;}
 .tablewrap{border:1px solid var(--line);background:var(--panel);overflow-x:auto;margin-bottom:16px;}
-table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13px;}
+table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13px;}
 .preview th{text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;padding:10px 12px;border-bottom:2px solid var(--line);background:var(--panel-raised);}
 .preview td{padding:10px 12px;border-bottom:1px solid var(--line-soft);}
 .preview tr.flagged-ok{border-left:4px solid var(--status-ok-line);}
@@ -49,11 +55,13 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 .match-pill.new{background:rgba(240,185,74,0.30);color:#8A5A00;}
 .picker{padding:6px 8px;font-size:12.5px;background:var(--panel);color:var(--text);border:1px solid var(--line);max-width:220px;}
 .rowaction{padding:6px 10px;font-size:11.5px;font-weight:700;background:transparent;border:1px solid var(--line);cursor:pointer;}
+.role-tag{display:inline-block;padding:2px 8px;font-size:11px;font-weight:700;background:var(--panel-raised);color:var(--text-muted);border:1px solid var(--line);}
 .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;background:var(--panel);border:1px dashed var(--line);}
-.loading-overlay{position:fixed;inset:0;background:rgba(20,24,29,0.6);display:none;align-items:center;justify-content:center;z-index:150;}
+.loading-overlay{position:fixed;inset:0;background:rgba(20,24,29,0.7);display:none;align-items:center;justify-content:center;z-index:150;flex-direction:column;gap:15px;color:#fff;}
 .loading-overlay.show{display:flex;}
 .spinner{width:48px;height:48px;border:4px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:13px;color:#fff;}
 </style>
 </head>
 <body>
@@ -69,15 +77,18 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
   <div class="import">
     <div class="dropzone" id="dropzone">
-      <div><b>Déposez le PDF ici</b> ou cliquez</div>
-      <input type="file" id="fileInput" accept="application/pdf" style="display:none;">
+      <div><b>Déposez le fichier Excel ici</b> ou cliquez</div>
+      <div class="sub">Rapport Time Recorder (Kronos) — format .xls / .xlsx</div>
+      <input type="file" id="fileInput"
+        accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        style="display:none;">
     </div>
     <div class="importlog" id="importLog"></div>
   </div>
 
   <div class="empty-state" id="emptyState">
     <b>Aucun aperçu en cours</b>
-    Chargez un PDF ci-dessus pour voir les pointages.
+    Chargez un fichier Excel ci-dessus pour voir les pointages.
   </div>
 
   <div id="previewWrap" style="display:none;">
@@ -93,18 +104,24 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     </div>
     <div class="tablewrap">
       <table class="preview">
-        <thead><tr><th>Badge</th><th>Nom (PDF)</th><th>Employé associé</th><th>Entrée</th><th>Pause</th><th>Retour</th><th>Sortie</th><th>Action</th></tr></thead>
+        <thead><tr>
+          <th>Badge</th><th>Nom (Excel)</th><th>Rôle</th><th>Employé associé</th>
+          <th>Entrée</th><th>Pause</th><th>Retour</th><th>Sortie</th><th>Action</th>
+        </tr></thead>
         <tbody id="previewBody"></tbody>
       </table>
     </div>
   </div>
 </div>
-<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Lecture du fichier Excel…</div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="../shared/firebase.js"></script>
 <script src="../shared/rules-helpers.js"></script>
 <script>
@@ -112,7 +129,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   'use strict';
   const $ = function(id){ return document.getElementById(id); };
   const R = window.CSMRules;
-  if(window['pdfjsLib']) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   let staffList = [];
   let staffByBadge = {};
@@ -163,106 +179,238 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       if(e.target.files[0]) handleFile(e.target.files[0]);
       e.target.value = '';
     });
+    ['dragenter','dragover'].forEach(function(evt){
+      $('dropzone').addEventListener(evt, function(e){
+        e.preventDefault(); $('dropzone').classList.add('drag');
+      });
+    });
+    ['dragleave','drop'].forEach(function(evt){
+      $('dropzone').addEventListener(evt, function(e){
+        e.preventDefault(); $('dropzone').classList.remove('drag');
+      });
+    });
+    $('dropzone').addEventListener('drop', function(e){
+      e.preventDefault(); $('dropzone').classList.remove('drag');
+      const file = e.dataTransfer && e.dataTransfer.files[0];
+      if(file) handleFile(file);
+    });
   }
 
   async function handleFile(file){
+    const name = (file.name || '').toLowerCase();
+    if(!name.endsWith('.xls') && !name.endsWith('.xlsx')){
+      alert('Format non supporté.\nVeuillez utiliser un fichier Excel (.xls ou .xlsx) exporté depuis le Time Recorder.');
+      return;
+    }
     $('loadingOverlay').classList.add('show');
+    clearLog();
+    log('Lecture du fichier "' + file.name + '"…', 'info');
     try{
-      const pages = await extractPdfItems(await file.arrayBuffer());
-      const parsed = parseDailyReport(pages);
-      if(!parsed.rows.length) throw new Error('Aucun employé détecté.');
-      
+      const buf = await file.arrayBuffer();
+      const parsed = parseExcelReport(buf);
+      log('✓ ' + parsed.rows.length + ' employés détectés — date ' + parsed.date, 'ok');
+      if(!parsed.rows.length) throw new Error('Aucun employé détecté dans le fichier.');
+
       const payload = {
-        date: parsed.date, rows: parsed.rows,
-        importedAt: new Date().toISOString(), importedBy: auth.currentUser.uid,
-        savedAt: null, savedCount: 0
+        date: parsed.date,
+        rows: parsed.rows,
+        importedAt: new Date().toISOString(),
+        importedBy: auth.currentUser.uid,
+        savedAt: null, savedCount: 0,
+        source: 'excel-import'
       };
       await CSM.refs.dailyImport('current').set(payload);
     }catch(err){
-      alert('Import impossible : ' + err.message);
+      log('✗ Erreur : ' + err.message, 'warn');
+      alert('Import impossible :\n\n' + err.message);
     }finally{
       $('loadingOverlay').classList.remove('show');
     }
   }
 
-  async function extractPdfItems(arrayBuffer){
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const pages = [];
-    for(let p = 1; p <= pdf.numPages; p++){
-      const page = await pdf.getPage(p);
-      const content = await page.getTextContent();
-      pages.push(content.items.filter(i => typeof i.str === 'string' && i.str.trim()).map(i => ({ str: i.str, x: i.transform[4], y: i.transform[5] })));
-    }
-    return pages;
-  }
-
-  const COL = { BNO:{min:30,max:55}, NAME:{min:96,max:185}, IN:{min:276,max:330}, OUT:{min:331,max:430} };
-  function colOf(x){ for(const key in COL){ if(x >= COL[key].min && x <= COL[key].max) return key; } return null; }
-
-  function parseDailyReport(pages){
-    let date = null;
-    if(pages[0]){
-      const p1 = pages[0];
-      const dateItem = p1.find(i => /^\d{2}\/\d{2}\/\d{4}$/.test(i.str) && i.y > 780);
-      if(dateItem) date = dateItem.str;
-    }
-
-    const blocks = [];
-    let current = null;
-
-    pages.forEach(pageItems => {
-      const headerItem = pageItems.find(i => i.str === 'Bno' && i.x >= COL.BNO.min && i.x <= COL.BNO.max);
-      const headerY = headerItem ? headerItem.y : Infinity;
-      
-      // Sort strictly top-to-bottom, then left-to-right
-      const items = pageItems.filter(i => i.y < headerY)
-        .sort((a, b) => { return Math.abs(a.y - b.y) > 2 ? b.y - a.y : a.x - b.x; });
-
-      items.forEach(it => {
-        const col = colOf(it.x);
-        if(col === 'BNO' && /^\d+$/.test(it.str)){
-          if(current) blocks.push(current);
-          current = { bno: it.str, nameParts: [], inPunches: [], outPunches: [] };
-          return;
-        }
-        if(!current) return;
-        if(col === 'NAME') current.nameParts.push(it.str);
-        else if(col === 'IN'){ const m = /^(\d{1,2}):(\d{2})/.exec(it.str); if(m) current.inPunches.push(parseInt(m[1])*60 + parseInt(m[2])); }
-        else if(col === 'OUT'){ const m = /^(\d{1,2}):(\d{2})/.exec(it.str); if(m) current.outPunches.push(parseInt(m[1])*60 + parseInt(m[2])); }
-      });
+  // ============================================================
+  // EXCEL PARSER — Time Recorder (Kronos) format
+  // ============================================================
+  function parseExcelReport(arrayBuffer){
+    const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: false, raw: false });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, {
+      header: 1, defval: '', blankrows: true, raw: false
     });
-    if(current) blocks.push(current);
 
-    const rows = blocks.map(b => {
-      let name = b.nameParts.join(' ').replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-      
-      // DO NOT SORT. The arrays are already in visual top-to-bottom order.
-      // 1st IN is clock in, 2nd IN is break return.
-      // 1st OUT is break start, 2nd OUT is clock out.
-      
-      let clockIn = null, breakReturn = null, clockOut = null, breakStart = null;
-      
-      if(b.inPunches[0] !== undefined) clockIn = b.inPunches[0];
-      if(b.inPunches[1] !== undefined) breakReturn = b.inPunches[1];
-      if(b.outPunches[0] !== undefined) breakStart = b.outPunches[0];
-      if(b.outPunches[1] !== undefined) clockOut = b.outPunches[1];
+    // --- 1. Locate the header row (contains "Bno" and "Empl-No") ---
+    let headerIdx = -1;
+    for(let i = 0; i < Math.min(rows.length, 30); i++){
+      const rowStr = (rows[i] || []).map(c => String(c || '')).join('|');
+      if(/\bBno\b/i.test(rowStr) && /Empl-No/i.test(rowStr)){
+        headerIdx = i; break;
+      }
+    }
+    if(headerIdx < 0) throw new Error('Ligne d\'en-tête "Bno" / "Empl-No" introuvable. Est-ce bien un export Time Recorder ?');
 
-      // Cross-midnight corrections
-      if(breakReturn !== null && clockIn !== null && breakReturn < clockIn) breakReturn += 24 * 60;
-      if(breakStart !== null && clockIn !== null && breakStart < clockIn && breakReturn !== null && breakReturn >= 24 * 60) breakStart += 24 * 60;
-      if(clockOut !== null && clockIn !== null && clockOut < clockIn) clockOut += 24 * 60;
-      if(clockOut !== null && breakReturn !== null && clockOut < breakReturn) clockOut += 24 * 60;
+    // --- 2. Auto-detect In / Break / Out columns ---
+    // (The header row is unreliable — the data is offset by 1-3 columns.
+    //  We scan the first ~60 data rows for pattern evidence instead.)
+    let inCol = 10, brkCol = 13, outCol = 12;   // Defaults from Kronos layout
+    let bestIn = 0, bestBrk = 0;
 
-      return {
-        rawNum: b.bno, namePdf: name,
-        clockIn: clockIn, breakStart: breakStart, breakReturn: breakReturn, clockOut: clockOut,
-        match: null, chosenBadge: null
-      };
-    }).filter(r => r.namePdf);
+    for(let c = 0; c < 25; c++){
+      let gCount = 0, pCount = 0;
+      for(let i = headerIdx + 1; i < Math.min(headerIdx + 60, rows.length); i++){
+        const cell = String((rows[i] || [])[c] || '');
+        const gMatches = cell.match(/\d{1,2}:\d{2}G/g);
+        const pMatches = cell.match(/\d{1,2}:\d{2}P/g);
+        if(gMatches) gCount += gMatches.length;
+        if(pMatches) pCount += pMatches.length;
+      }
+      if(gCount > bestIn){ bestIn = gCount; inCol = c; }
+      if(pCount > bestBrk){ bestBrk = pCount; brkCol = c; }
+    }
 
-    return { date, rows };
+    // Out column sits between In and Break (usually Break - 1)
+    if(bestBrk > 0 && brkCol > inCol){
+      outCol = brkCol - 1;
+    } else {
+      outCol = inCol + 2; // Fallback for files without any break punches
+    }
+
+    log('Colonnes détectées → In: ' + colLetter(inCol)
+        + ' · Out: ' + colLetter(outCol)
+        + ' · Break: ' + colLetter(brkCol), 'info');
+
+    // --- 3. Find date ---
+    // Primary: cell E2 (index 4 of row 1, 0-based)
+    let date = null;
+    if(rows[1] && rows[1][4]){
+      const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(rows[1][4]).trim());
+      if(m){
+        date = String(parseInt(m[1],10)).padStart(2,'0') + '/' +
+               String(parseInt(m[2],10)).padStart(2,'0') + '/' + m[3];
+      }
+    }
+    // Fallback: scan header area for any DD/MM/YYYY
+    if(!date){
+      for(let i = 0; i < headerIdx; i++){
+        const row = rows[i] || [];
+        for(const cell of row){
+          if(cell === null || cell === undefined) continue;
+          const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(cell).trim());
+          if(m){
+            date = String(parseInt(m[1],10)).padStart(2,'0') + '/' +
+                   String(parseInt(m[2],10)).padStart(2,'0') + '/' + m[3];
+            break;
+          }
+        }
+        if(date) break;
+      }
+    }
+    // Fallback: first employee row's date column (assume H = index 7)
+    if(!date){
+      for(let i = headerIdx + 1; i < rows.length; i++){
+        const cell = String((rows[i] || [])[7] || '').trim();
+        const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(cell);
+        if(m){
+          date = String(parseInt(m[1],10)).padStart(2,'0') + '/' +
+                 String(parseInt(m[2],10)).padStart(2,'0') + '/' + m[3];
+          break;
+        }
+      }
+    }
+    if(!date) throw new Error('Date introuvable dans le fichier.');
+
+    // --- 4. Iterate employee rows ---
+    const result = [];
+
+    for(let i = headerIdx + 1; i < rows.length; i++){
+      const row = rows[i] || [];
+
+      // Employee row detection: col A is a pure number (badge)
+      const bno = String(row[0] || '').trim();
+      if(!/^\d+$/.test(bno)) continue;
+
+      // Name is in col D, format "29761    YOUNESS EL GHACHI"
+      const emplCell = String(row[3] || '').trim();
+      const nameMatch = /^(\d+)\s+(.+?)\s*$/.exec(emplCell);
+      if(!nameMatch) continue;
+
+      const employeeNum = nameMatch[1];
+      const name = nameMatch[2].trim();
+
+      // Role: look 1–3 rows down for "(Role)" pattern in col A
+      let role = null;
+      for(const off of [1, 2, 3]){
+        const nextRow = rows[i + off];
+        if(!nextRow) continue;
+        const firstCell = String(nextRow[0] || '').trim();
+        if(/^\(.+\)$/.test(firstCell)){
+          role = firstCell.replace(/^\(|\)$/g, '').trim();
+          break;
+        }
+        // Stop at the next employee row (don't steal its role)
+        if(/^\d+$/.test(firstCell)) break;
+      }
+
+      // Parse the three time columns
+      const inPunches    = parseTimes(String(row[inCol]  || ''), 'G');
+      const outPunches   = parseTimes(String(row[outCol] || ''), 'G');
+      const breakPunches = parseTimes(String(row[brkCol] || ''), 'P');
+
+      const clockIn     = inPunches[0]    ?? null;
+      const breakReturn = inPunches[1]    ?? null;
+      const breakStart  = breakPunches[0] ?? null;
+      const clockOut    = outPunches[0]   ?? null;
+
+      // Skip rows with no punch data at all
+      if(clockIn === null && breakStart === null && clockOut === null) continue;
+
+      result.push({
+        rawNum: bno,
+        employeeNum: employeeNum,
+        namePdf: name,          // keep field name for existing code
+        role: role,
+        clockIn: clockIn,
+        breakStart: breakStart,
+        breakReturn: breakReturn,
+        clockOut: clockOut,
+        match: null,
+        chosenBadge: null
+      });
+    }
+
+    return { date: date, rows: result };
   }
 
+  // Split "<br>"-joined cells, filter by suffix (G / P), return minutes-since-midnight
+  function parseTimes(raw, expectedSuffix){
+    if(!raw) return [];
+    const parts = String(raw).split(/<br\s*\/?>|\n/i);
+    const result = [];
+    for(const part of parts){
+      const s = part.trim();
+      if(!s || s === '-') continue;
+      const m = /^(\d{1,2}):(\d{2})([A-Za-z]?)/.exec(s);
+      if(!m) continue;
+      const cellSuffix = (m[3] || '').toUpperCase();
+      // Accept matching suffix OR no suffix (some exports drop it)
+      if(expectedSuffix && cellSuffix && cellSuffix !== expectedSuffix) continue;
+      const h = parseInt(m[1], 10);
+      const mn = parseInt(m[2], 10);
+      if(h >= 0 && h <= 23 && mn >= 0 && mn <= 59){
+        result.push(h * 60 + mn);
+      }
+    }
+    return result;
+  }
+
+  function colLetter(idx){
+    if(idx < 0) return '?';
+    if(idx < 26) return String.fromCharCode(65 + idx);
+    return String.fromCharCode(64 + Math.floor(idx / 26)) + String.fromCharCode(65 + (idx % 26));
+  }
+
+  // ============================================================
+  // STAFF MATCHING (unchanged)
+  // ============================================================
   function matchAgainstStaff(){
     if(!currentImport) return;
     currentImport.rows.forEach(row => {
@@ -280,13 +428,16 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
   function effectiveLevel(row){ return row.chosenBadge ? 'ok' : (row.match ? row.match.level : 'crit'); }
   function chosenBadge(row){ return row.chosenBadge || (row.match && row.match.badge); }
 
+  // ============================================================
+  // RENDER
+  // ============================================================
   function render(){
     if(!currentImport){ $('previewWrap').style.display = 'none'; $('emptyState').style.display = 'block'; return; }
     $('previewWrap').style.display = 'block'; $('emptyState').style.display = 'none';
     $('sumDate').textContent = currentImport.date || '—';
 
     const rows = currentImport.rows;
-    $('sumStats').innerHTML = 
+    $('sumStats').innerHTML =
       '<div class="statbox ok"><div class="num">'+rows.filter(r=>effectiveLevel(r)==='ok').length+'</div><div class="lbl">Reconnues</div></div>' +
       '<div class="statbox new"><div class="num">'+rows.filter(r=>effectiveLevel(r)==='new').length+'</div><div class="lbl">Nouveaux</div></div>' +
       '<div class="statbox warn"><div class="num">'+rows.filter(r=>effectiveLevel(r)==='warn').length+'</div><div class="lbl">À vérifier</div></div>';
@@ -295,12 +446,12 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
     rows.forEach((row, idx) => {
       const level = effectiveLevel(row);
       const badgeDisp = chosenBadge(row) || '—';
-      
+
       let cellHtml = '';
       if(level === 'ok' && !row.chosenBadge) cellHtml = '<div class="match-pill ok">✓ '+esc(row.match.staffName)+'</div>';
       else if(level === 'new' && !row.chosenBadge) cellHtml = '<div class="match-pill new">+ Sera créé</div>';
       else {
-        const opts = ['<option value="">— Choisir —</option>'].concat(staffList.map(s => 
+        const opts = ['<option value="">— Choisir —</option>'].concat(staffList.map(s =>
           '<option value="'+s.badge+'" '+(chosenBadge(row)===String(s.badge)?'selected':'')+'>'+esc(s.name)+'</option>'
         )).join('');
         cellHtml = '<div class="match-pill '+level+'" style="margin-bottom:4px;">'+level.toUpperCase()+'</div><select class="picker" data-idx="'+idx+'">'+opts+'</select>';
@@ -308,30 +459,57 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
 
       const tr = document.createElement('tr');
       tr.className = 'flagged-' + level;
-      tr.innerHTML = '<td class="mono"><b>'+esc(badgeDisp)+'</b></td><td class="name">'+esc(row.namePdf)+'</td><td>'+cellHtml+'</td><td class="mono">'+(R.minToHM(row.clockIn)||'—')+'</td><td class="mono">'+(R.minToHM(row.breakStart)||'—')+'</td><td class="mono">'+(R.minToHM(row.breakReturn)||'—')+'</td><td class="mono">'+(R.minToHM(row.clockOut)||'—')+'</td><td><button class="rowaction" data-idx="'+idx+'">Ignorer</button></td>';
-      
-      tr.querySelector('.picker')?.addEventListener('change', e => { currentImport.rows[idx].chosenBadge = e.target.value; saveDraft(); render(); });
-      tr.querySelector('.rowaction')?.addEventListener('click', () => { currentImport.rows.splice(idx, 1); saveDraft(); render(); });
+      tr.innerHTML =
+        '<td class="mono"><b>'+esc(badgeDisp)+'</b></td>'+
+        '<td class="name">'+esc(row.namePdf)+'</td>'+
+        '<td>'+(row.role ? '<span class="role-tag">'+esc(row.role)+'</span>' : '—')+'</td>'+
+        '<td>'+cellHtml+'</td>'+
+        '<td class="mono">'+(R.minToHM(row.clockIn)||'—')+'</td>'+
+        '<td class="mono">'+(R.minToHM(row.breakStart)||'—')+'</td>'+
+        '<td class="mono">'+(R.minToHM(row.breakReturn)||'—')+'</td>'+
+        '<td class="mono">'+(R.minToHM(row.clockOut)||'—')+'</td>'+
+        '<td><button class="rowaction" data-idx="'+idx+'">Ignorer</button></td>';
+
+      tr.querySelector('.picker')?.addEventListener('change', e => {
+        currentImport.rows[idx].chosenBadge = e.target.value;
+        saveDraft(); render();
+      });
+      tr.querySelector('.rowaction')?.addEventListener('click', () => {
+        currentImport.rows.splice(idx, 1);
+        saveDraft(); render();
+      });
       body.appendChild(tr);
     });
 
-    $('btnSaveAll').textContent = currentImport.savedAt ? '✓ Ré-enregistrer' : '✓ Sync avec la base ('+rows.length+')';
+    $('btnSaveAll').textContent = currentImport.savedAt
+      ? '✓ Ré-enregistrer'
+      : '✓ Sync avec la base ('+rows.length+')';
   }
 
-  function saveDraft(){ const p = Object.assign({}, currentImport); delete p._id; CSM.refs.dailyImport('current').set(p); }
+  function saveDraft(){
+    const p = Object.assign({}, currentImport);
+    delete p._id;
+    CSM.refs.dailyImport('current').set(p);
+  }
 
   $('btnClearPreview').addEventListener('click', () => {
     if(!confirm('Effacer l\'aperçu ?')) return;
     CSM.refs.dailyImport('current').delete();
   });
 
+  // ============================================================
+  // SAVE TO FIRESTORE (unchanged)
+  // ============================================================
   $('btnSaveAll').addEventListener('click', async function(){
     const rows = currentImport.rows;
     if(!rows.length) return;
     this.disabled = true; this.textContent = 'Sync…'; $('loadingOverlay').classList.add('show');
 
     let dateIso = R.todayKey();
-    if(currentImport.date){ const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(currentImport.date); if(m) dateIso = m[3]+'-'+m[2]+'-'+m[1]; }
+    if(currentImport.date){
+      const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(currentImport.date);
+      if(m) dateIso = m[3]+'-'+m[2]+'-'+m[1];
+    }
 
     let saved = 0;
     for(const row of rows){
@@ -341,23 +519,30 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       let staff = staffByBadge[badge];
       if(!staff && effectiveLevel(row) === 'new'){
         const newStaff = { badge, name: row.namePdf, active: true, source: 'import', createdAt: new Date().toISOString() };
-        await CSM.refs.staff(badge).set(newStaff); staff = newStaff;
+        await CSM.refs.staff(badge).set(newStaff);
+        staff = newStaff;
       }
 
       const shiftData = { date: dateIso, inPunches: [], outPunches: [] };
-      if (row.clockIn !== null) shiftData.inPunches.push(row.clockIn);
-      if (row.breakReturn !== null) shiftData.inPunches.push(row.breakReturn);
-      if (row.breakStart !== null) shiftData.outPunches.push(row.breakStart);
-      if (row.clockOut !== null) shiftData.outPunches.push(row.clockOut);
+      if(row.clockIn !== null)     shiftData.inPunches.push(row.clockIn);
+      if(row.breakReturn !== null) shiftData.inPunches.push(row.breakReturn);
+      if(row.breakStart !== null)  shiftData.outPunches.push(row.breakStart);
+      if(row.clockOut !== null)    shiftData.outPunches.push(row.clockOut);
 
       const state = R.shiftState(shiftData, dateIso);
 
-      const existing = await CSM.refs.shifts().where('badge', '==', badge).where('date', '==', dateIso).get();
+      const existing = await CSM.refs.shifts()
+        .where('badge', '==', badge)
+        .where('date', '==', dateIso)
+        .get();
+
       const payload = {
         badge, name: staff.name || row.namePdf, date: dateIso,
         inPunches: shiftData.inPunches, outPunches: shiftData.outPunches,
-        totalMinutes: state.workedMinutes, status: row.clockOut !== null ? 'closed' : 'open',
-        source: 'daily-import', updatedAt: new Date().toISOString()
+        totalMinutes: state.workedMinutes,
+        status: row.clockOut !== null ? 'closed' : 'open',
+        source: 'daily-import',
+        updatedAt: new Date().toISOString()
       };
 
       if(!existing.empty) await existing.docs[0].ref.update(payload);
@@ -365,13 +550,30 @@ table.preview{width:100%;border-collapse:collapse;min-width:1100px;font-size:13p
       saved++;
     }
 
-    currentImport.savedAt = new Date().toISOString(); currentImport.savedCount = saved;
+    currentImport.savedAt = new Date().toISOString();
+    currentImport.savedCount = saved;
     await saveDraft(); await loadStaff(); render();
-    this.disabled = false; $('loadingOverlay').classList.remove('show');
+    this.disabled = false;
+    $('loadingOverlay').classList.remove('show');
     alert('✓ ' + saved + ' pointages synchronisés.');
   });
 
   function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function log(msg, cls){
+    const el = $('importLog');
+    el.classList.add('show');
+    const d = document.createElement('div');
+    if(cls) d.className = cls;
+    d.textContent = msg;
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
+  }
+  function clearLog(){
+    const el = $('importLog');
+    el.innerHTML = '';
+    el.classList.remove('show');
+  }
 })();
 </script>
 </body>
