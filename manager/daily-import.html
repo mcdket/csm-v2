@@ -5,19 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Import quotidien — CSM</title>
 <link rel="icon" type="image/webp" href="../shared/200.webp">
+<link rel="apple-touch-icon" href="../shared/200.webp">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#067A8C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
-.app{max-width:1240px;margin:0 auto;padding:20px 20px 60px;}
-.header{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;background:var(--panel-raised);border-bottom:3px solid var(--accent);box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);padding:16px 20px;margin-bottom:18px;}
-.brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFF;}
-.brand h1{font-size:21px;font-weight:700;margin:0;color:var(--accent);}
-.controls{display:flex;gap:8px;flex-wrap:wrap;}
+.app{max-width:1240px;margin:0 auto;padding:0;}
+
+/* Top Nav */
+.top-nav{background:var(--accent);color:#FFF;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:60px;}
+.nav-brand{font-weight:700;font-size:20px;}
+.nav-links{display:flex;gap:24px;}
+.nav-links a{color:#FFF;text-decoration:none;font-weight:600;font-size:14px;opacity:0.9;transition:opacity 0.2s;}
+.nav-links a:hover{opacity:1;}
+.nav-links a.active{opacity:1;font-weight:700;}
+.btn-logout{background:transparent;border:none;color:#FFF;font-weight:600;cursor:pointer;font-size:14px;opacity:0.9;}
+.btn-logout:hover{opacity:1;}
+
+/* Page Header */
+.page-header{display:flex;justify-content:space-between;align-items:center;padding:24px 20px 16px 20px;flex-wrap:wrap;gap:16px;background:var(--panel);}
+.page-title{font-size:28px;font-weight:700;color:var(--accent);margin:0;}
+
+/* Content */
+.content{padding:0 20px 40px 20px;}
 .import{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:18px;margin-bottom:20px;}
-.dropzone{border:1.5px dashed var(--line);padding:36px 16px;text-align:center;color:var(--text-muted);font-size:14px;cursor:pointer;}
+.dropzone{border:1.5px dashed var(--line);padding:36px 16px;text-align:center;color:var(--text-muted);font-size:14px;cursor:pointer;background:var(--panel-raised);}
 .dropzone:hover{border-color:var(--accent);background:var(--status-break-bg);}
 .dropzone.drag{border-color:var(--accent);background:var(--status-break-bg);}
 .dropzone .sub{font-size:12px;margin-top:6px;color:var(--text-muted);}
@@ -27,9 +42,11 @@
 .importlog .ok{color:var(--status-ok-fg);}
 .importlog .warn{color:var(--status-warn-fg);}
 .importlog .info{color:var(--text-muted);}
+
+/* Summary */
 .summary{background:var(--panel-raised);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:14px;}
 .summary-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
-.summary-left .date{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace;}
+.summary-left .date{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:var(--accent);}
 .summary-stats{display:flex;gap:10px;}
 .statbox{padding:8px 14px;border:1px solid var(--line);background:var(--panel);text-align:center;min-width:96px;}
 .statbox.ok{border-color:var(--status-ok-line);}
@@ -40,6 +57,8 @@
 .statbox .lbl{font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-top:4px;}
 .summary-actions{display:flex;gap:10px;border-top:1px solid var(--line-soft);padding-top:14px;}
 .summary-actions .btn{flex:1;}
+
+/* Table */
 .tablewrap{border:1px solid var(--line);background:var(--panel);overflow-x:auto;margin-bottom:16px;}
 table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13px;}
 .preview th{text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;padding:10px 12px;border-bottom:2px solid var(--line);background:var(--panel-raised);}
@@ -56,6 +75,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
 .picker{padding:6px 8px;font-size:12.5px;background:var(--panel);color:var(--text);border:1px solid var(--line);max-width:220px;}
 .rowaction{padding:6px 10px;font-size:11.5px;font-weight:700;background:transparent;border:1px solid var(--line);cursor:pointer;}
 .role-tag{display:inline-block;padding:2px 8px;font-size:11px;font-weight:700;background:var(--panel-raised);color:var(--text-muted);border:1px solid var(--line);}
+
 .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;background:var(--panel);border:1px dashed var(--line);}
 .loading-overlay{position:fixed;inset:0;background:rgba(20,24,29,0.7);display:none;align-items:center;justify-content:center;z-index:150;flex-direction:column;gap:15px;color:#fff;}
 .loading-overlay.show{display:flex;}
@@ -65,54 +85,70 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
 </style>
 </head>
 <body>
+
 <div class="app" id="app" style="display:none;">
-  <div class="header">
-    <div class="brand"><img class="arch" src="../shared/200.webp"><h1>Import quotidien</h1></div>
-    <div class="controls">
-      <a class="btn" href="index.html">← Tableau de bord</a>
-      <a class="btn" href="planning.html">Planning</a>
-      <button class="btn" id="btnLogout">Déconnexion</button>
-    </div>
-  </div>
-
-  <div class="import">
-    <div class="dropzone" id="dropzone">
-      <div><b>Déposez le fichier Excel ici</b> ou cliquez</div>
-      <div class="sub">Rapport Time Recorder (Kronos) — format .xls / .xlsx</div>
-      <input type="file" id="fileInput"
-        accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        style="display:none;">
-    </div>
-    <div class="importlog" id="importLog"></div>
-  </div>
-
-  <div class="empty-state" id="emptyState">
-    <b>Aucun aperçu en cours</b>
-    Chargez un fichier Excel ci-dessus pour voir les pointages.
-  </div>
-
-  <div id="previewWrap" style="display:none;">
-    <div class="summary">
-      <div class="summary-top">
-        <div class="summary-left"><span class="date" id="sumDate">—</span></div>
-        <div class="summary-stats" id="sumStats"></div>
-      </div>
-      <div class="summary-actions">
-        <button class="btn" id="btnClearPreview">Effacer l'aperçu</button>
-        <button class="btn btn-primary" id="btnSaveAll">✓ Sync avec la base</button>
+  
+  <!-- TOP NAV BAR -->
+  <div class="top-nav">
+    <div style="display:flex; align-items:center; gap:30px;">
+      <div class="nav-brand">mngmt.tech</div>
+      <div class="nav-links">
+        <a href="index.html">Time Punch</a>
+        <a href="planning.html">Planning</a>
+        <a href="staff.html">Staff</a>
       </div>
     </div>
-    <div class="tablewrap">
-      <table class="preview">
-        <thead><tr>
-          <th>Badge</th><th>Nom (Excel)</th><th>Rôle</th><th>Employé associé</th>
-          <th>Entrée</th><th>Pause</th><th>Retour</th><th>Sortie</th><th>Action</th>
-        </tr></thead>
-        <tbody id="previewBody"></tbody>
-      </table>
+    <button class="btn-logout" id="btnLogout">Déconnexion</button>
+  </div>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1 class="page-title">Import quotidien SOTEC</h1>
+    <a href="index.html" class="btn" style="text-decoration:none;">← Retour au tableau de bord</a>
+  </div>
+
+  <div class="content">
+    <div class="import">
+      <div class="dropzone" id="dropzone">
+        <div><b>Déposez le fichier Excel ici</b> ou cliquez</div>
+        <div class="sub">Rapport Time Recorder (Kronos) — format .xls / .xlsx</div>
+        <input type="file" id="fileInput"
+          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          style="display:none;">
+      </div>
+      <div class="importlog" id="importLog"></div>
+    </div>
+
+    <div class="empty-state" id="emptyState">
+      <b>Aucun aperçu en cours</b>
+      Chargez un fichier Excel ci-dessus pour voir les pointages.
+    </div>
+
+    <div id="previewWrap" style="display:none;">
+      <div class="summary">
+        <div class="summary-top">
+          <div class="summary-left"><span class="date" id="sumDate">—</span></div>
+          <div class="summary-stats" id="sumStats"></div>
+        </div>
+        <div class="summary-actions">
+          <button class="btn" id="btnClearPreview">Effacer l'aperçu</button>
+          <button class="btn btn-primary" id="btnSaveAll">✓ Sync avec la base</button>
+        </div>
+      </div>
+      <div class="tablewrap">
+        <table class="preview">
+          <thead><tr>
+            <th>Badge</th><th>Nom (Excel)</th><th>Rôle</th><th>Employé associé</th>
+            <th>Entrée</th><th>Pause</th><th>Retour</th><th>Sortie</th><th>Action</th>
+          </tr></thead>
+          <tbody id="previewBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
+
 </div>
+
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
   <div class="loading-text" id="loadingText">Lecture du fichier Excel…</div>
@@ -228,9 +264,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
     }
   }
 
-  // ============================================================
-  // EXCEL PARSER — Time Recorder (Kronos) format
-  // ============================================================
   function parseExcelReport(arrayBuffer){
     const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: false, raw: false });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -489,10 +522,29 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
       if(!badge) continue;
 
       let staff = staffByBadge[badge];
+      const importedRole = row.role || 'Crew'; // Fallback to Crew if empty
+
       if(!staff && effectiveLevel(row) === 'new'){
-        const newStaff = { badge, name: row.namePdf, active: true, source: 'import', createdAt: new Date().toISOString() };
+        // CREATE NEW STAFF WITH ROLE
+        const newStaff = { 
+          badge, 
+          name: row.namePdf, 
+          role: importedRole,
+          active: true, 
+          source: 'import', 
+          createdAt: new Date().toISOString() 
+        };
         await CSM.refs.staff(badge).set(newStaff);
         staff = newStaff;
+      } else if (staff) {
+        // UPDATE EXISTING STAFF IF ROLE CHANGED
+        if (row.role && staff.role !== row.role) {
+          await CSM.refs.staff(badge).update({ 
+            role: row.role,
+            updatedAt: new Date().toISOString()
+          });
+          staff.role = row.role; // Update local cache
+        }
       }
 
       const shiftData = { date: dateIso, inPunches: [], outPunches: [] };
@@ -527,7 +579,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
     await saveDraft(); await loadStaff(); render();
     this.disabled = false;
     $('loadingOverlay').classList.remove('show');
-    alert('✓ ' + saved + ' pointages synchronisés.');
+    alert('✓ ' + saved + ' pointages synchronisés avec les rôles mis à jour.');
   });
 
   function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
