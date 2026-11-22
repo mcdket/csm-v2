@@ -71,9 +71,9 @@ tbody td.name{font-weight:600;white-space:normal;}
 .modal .sub{font-size:12.5px;color:var(--text-muted);margin-bottom:16px;line-height:1.45;}
 .field{margin-bottom:14px;}
 .field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;}
-.field input{width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--panel);color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;}
-.field input:focus{outline:2px solid var(--accent);outline-offset:1px;}
-.modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+.field input, .field select{width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--panel);color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;}
+.field input:focus, .field select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.modalactions{display:flex;justify-content:space-between;gap:8px;margin-top:18px;}
 
 .loading-overlay{position:fixed;inset:0;background:rgba(20,24,29,0.7);display:none;align-items:center;justify-content:center;z-index:150;flex-direction:column;gap:15px;color:#fff;}
 .loading-overlay.show{display:flex;}
@@ -146,7 +146,6 @@ tbody td.name{font-weight:600;white-space:normal;}
     <div class="field">
       <label>N° de badge</label>
       <input type="text" id="fBadge" inputmode="numeric" placeholder="4021" autocomplete="off">
-      <div class="hint" id="badgeHint">Identifiant unique. Ne peut pas être changé après création.</div>
     </div>
 
     <div class="field">
@@ -159,9 +158,24 @@ tbody td.name{font-weight:600;white-space:normal;}
       <input type="text" id="fPhone" placeholder="06 12 34 56 78" autocomplete="off">
     </div>
 
+    <div class="field">
+      <label>Fonction</label>
+      <select id="fRole">
+        <option value="Crew">Crew</option>
+        <option value="Form">Form</option>
+        <option value="GEL">GEL</option>
+        <option value="Equipier Pol">Equipier Pol</option>
+        <option value="Dépôt">Dépôt</option>
+        <option value="Equipier">Equipier</option>
+      </select>
+    </div>
+
     <div class="modalactions">
-      <button class="btn" id="btnCancel">Annuler</button>
-      <button class="btn btn-primary" id="btnSave">Enregistrer</button>
+      <button class="btn btn-danger" id="btnHardDelete" style="display:none; margin-right:auto;">Supprimer définitivement</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" id="btnCancel">Annuler</button>
+        <button class="btn btn-primary" id="btnSave">Enregistrer</button>
+      </div>
     </div>
   </div>
 </div>
@@ -289,7 +303,8 @@ tbody td.name{font-weight:600;white-space:normal;}
     $('fBadge').disabled = false;
     $('fName').value = '';
     $('fPhone').value = '';
-    $('badgeHint').style.display = 'block';
+    $('fRole').value = 'Crew';
+    $('btnHardDelete').style.display = 'none';
     modalBg.classList.add('show');
     setTimeout(function(){ $('fBadge').focus(); }, 50);
   }
@@ -299,14 +314,14 @@ tbody td.name{font-weight:600;white-space:normal;}
     if(!s) return;
     editingBadge = badge;
     $('modalTitle').textContent = 'Modifier le profil';
-    $('modalSub').textContent = 'Corrigez le nom ou le numéro. Le badge ne peut pas être modifié.';
+    $('modalSub').textContent = 'Mettez à jour les informations.';
     $('fBadge').value = s.badge || badge;
     $('fBadge').disabled = true;
     $('fName').value = s.name || '';
     $('fPhone').value = s.phone || '';
-    $('badgeHint').style.display = 'none';
+    $('fRole').value = s.role || 'Crew';
+    $('btnHardDelete').style.display = 'block';
     modalBg.classList.add('show');
-    setTimeout(function(){ $('fName').focus(); }, 50);
   }
 
   function closeModal(){
@@ -323,11 +338,19 @@ tbody td.name{font-weight:600;white-space:normal;}
     const badge = $('fBadge').value.trim();
     const name  = $('fName').value.trim();
     const phone = $('fPhone').value.trim();
+    const role  = $('fRole').value;
 
     if(!badge){ alert('Le numéro de badge est requis.'); return; }
     if(!name){  alert('Le nom est requis.'); return; }
     if(!/^[0-9A-Za-z_-]{1,20}$/.test(badge)){
       alert('Le badge doit contenir uniquement des chiffres, lettres, tirets ou underscores (max 20).');
+      return;
+    }
+
+    // Check for name duplicates (Case insensitive and fuzzy matching)
+    const duplicateName = staff.find(s => R.sameName(s.name, name) && String(s.badge) !== String(badge));
+    if (duplicateName) {
+      alert('Un employé avec ce nom existe déjà (Badge : ' + duplicateName.badge + ').\n\nVeuillez utiliser un nom différent ou modifier le profil existant.');
       return;
     }
 
@@ -338,6 +361,7 @@ tbody td.name{font-weight:600;white-space:normal;}
       CSM.refs.staff(editingBadge).update({
         name: name,
         phone: phone,
+        role: role,
         updatedAt: new Date().toISOString()
       }).then(function(){
         btn.disabled = false;
@@ -355,7 +379,7 @@ tbody td.name{font-weight:600;white-space:normal;}
           badge: badge,
           name: name,
           phone: phone,
-          role: 'Crew', // Default role
+          role: role,
           active: true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -371,6 +395,19 @@ tbody td.name{font-weight:600;white-space:normal;}
     }
   });
 
+  $('btnHardDelete').addEventListener('click', function() {
+    if(!editingBadge) return;
+    if(!confirm('Voulez-vous supprimer définitivement cet employé ?\n\nAttention: Son historique de pointages restera dans la base de données, mais il sera retiré de l\'annuaire.')) return;
+    
+    $('btnHardDelete').disabled = true;
+    CSM.refs.staff(editingBadge).delete().then(() => {
+      closeModal();
+    }).catch(err => {
+      $('btnHardDelete').disabled = false;
+      alert('Erreur : ' + err.message);
+    });
+  });
+
   window.toggleActive = function(badge){
     const s = staff.find(function(x){ return String(x.badge) === String(badge); });
     if(!s) return;
@@ -378,8 +415,7 @@ tbody td.name{font-weight:600;white-space:normal;}
     if(willDeactivate){
       const ok = confirm(
         'Désactiver ' + (s.name || badge) + ' ?\n\n' +
-        "L'employé ne pourra plus pointer, et disparaîtra des vues actives. " +
-        "Son historique de pointages est conservé."
+        "L'employé ne pourra plus pointer, et disparaîtra des vues actives."
       );
       if(!ok) return;
     }
@@ -415,6 +451,7 @@ tbody td.name{font-weight:600;white-space:normal;}
       
       let created = 0;
       let updated = 0;
+      let skipped = 0;
 
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
@@ -444,6 +481,13 @@ tbody td.name{font-weight:600;white-space:normal;}
 
             if (!badge || !nameStr) continue;
 
+            // Prevent duplicate names from PDF import
+            const duplicateName = staff.find(s => R.sameName(s.name, nameStr) && String(s.badge) !== badge);
+            if (duplicateName) {
+                skipped++;
+                continue;
+            }
+
             const existing = staff.find(s => String(s.badge) === badge);
 
             if (existing) {
@@ -458,7 +502,7 @@ tbody td.name{font-weight:600;white-space:normal;}
                 badge: badge,
                 name: nameStr,
                 phone: phone,
-                role: 'Crew',
+                role: 'Crew', // Default role for PDF import
                 active: true,
                 source: 'pdf-import',
                 createdAt: new Date().toISOString(),
@@ -474,7 +518,9 @@ tbody td.name{font-weight:600;white-space:normal;}
       $('btnImportBase').disabled = false;
       e.target.value = '';
       
-      alert(`Importation de la base terminée !\n\n✅ Nouveaux employés ajoutés : ${created}\n🔄 Profils mis à jour : ${updated}`);
+      let msg = `Importation terminée !\n\n✅ Nouveaux : ${created}\n🔄 Mis à jour : ${updated}`;
+      if(skipped > 0) msg += `\n⚠️ Ignorés (nom en double) : ${skipped}`;
+      alert(msg);
       
     } catch (err) {
       console.error(err);
