@@ -1,218 +1,81 @@
 <!DOCTYPE html>
-<html lang="fr" class="theme-light">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pointages — CSM</title>
 <link rel="icon" type="image/webp" href="../shared/200.webp">
-<link rel="apple-touch-icon" href="../shared/200.webp">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#C9701F">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/styles.css">
-<style>
-.app{max-width:100%;margin:0 auto;padding:20px;}
-
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:20px;flex-wrap:wrap;
-  background:var(--panel-raised);
-  border-bottom:3px solid var(--accent);
-  box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
-  padding:16px 20px;margin-bottom:18px;
-}
-.brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
-.brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
-.brand .restaurant-badge{color:#2A1F00;font-size:12px;font-weight:700;background:var(--brand-yellow);padding:4px 10px;}
-.brand #dataDate{font-size:12px;color:var(--text-muted);margin-left:6px;}
-.headerside{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
-.controls{display:flex;gap:8px;flex-wrap:wrap;}
-.liveclock{display:flex;flex-direction:column;line-height:1;}
-.liveclock .lbl{font-size:9.5px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;margin-bottom:2px;}
-.liveclock #clockNow{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;letter-spacing:-0.02em;}
-
-.filterbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
-.filter-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-.filter-btn{
-  border:1px solid var(--line);background:var(--panel);color:var(--text-muted);
-  padding:6px 12px;font-size:12px;font-weight:600;transition:all .15s ease;
-  cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;
-}
-.filter-btn:hover{border-color:var(--accent);color:var(--text);}
-.filter-btn.active{background:var(--accent);color:#FFF;border-color:var(--accent);}
-
-.badge-count{
-  background:rgba(0,0,0,0.08);padding:1px 6px;border-radius:10px;
-  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
-}
-.filter-btn.active .badge-count{background:rgba(255,255,255,0.25);}
-
-.search-box{display:flex;align-items:center;background:var(--panel-raised);border:1px solid var(--line);padding:4px 10px;min-width:240px;}
-.search-box svg{width:14px;height:14px;color:var(--text-muted);margin-right:6px;flex:none;}
-.search-box input{border:none;background:transparent;color:var(--text);font-size:12px;width:100%;outline:none;font-family:inherit;}
-
-.alertstrip{display:none;flex-direction:column;gap:6px;margin-bottom:16px;}
-.alertstrip.show{display:flex;}
-.alertrow{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;font-weight:600;border:1px solid transparent;}
-.alertrow.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);border-color:var(--status-crit-line);}
-.alertrow.warn{background:var(--status-warn-bg);color:var(--status-warn-fg);border-color:var(--status-warn-line);}
-.alertdot{width:8px;height:8px;background:currentColor;flex:none;}
-
-.tablewrap{border:1px solid var(--line);overflow-x:auto;background:var(--panel);box-shadow:var(--shadow);}
-table{width:100%;border-collapse:collapse;table-layout:auto;}
-thead th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.03em;color:var(--text-muted);padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel);position:sticky;top:0;}
-tbody td{padding:11px 8px;font-size:13px;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
-tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
-tbody td.sugg{color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
-tbody td.name{font-weight:600;white-space:normal;}
-
-tbody tr{border-left:4px solid transparent;}
-tbody tr:hover{background:var(--panel-raised);}
-tbody tr.st-ok{border-left-color:var(--status-ok-line);}
-tbody tr.st-warn{border-left-color:var(--status-warn-line);background:var(--status-warn-bg);}
-tbody tr.st-crit{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
-tbody tr.st-break{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
-tbody tr.st-breakover{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
-tbody tr.st-done{opacity:0.55;}
-
-.totalhrs{font-weight:700;color:var(--accent-strong);}
-.dash{color:var(--text-muted);}
-
-.action-group{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
-.btn-action{padding:7px 10px;font-size:11px;font-weight:700;border:1.5px solid var(--line);background:var(--panel-raised);color:var(--text);white-space:nowrap;transition:all 0.15s ease;cursor:pointer;font-family:inherit;}
-.btn-action:hover{border-color:var(--accent);transform:translateY(-1px);}
-.btn-action.break-btn{border-color:#A9850F;background:var(--brand-yellow);color:#2A1400;}
-.btn-action.return-btn{border-color:var(--status-ok-line);background:var(--status-ok-line);color:#FFF;}
-.btn-action.out-btn{border-color:var(--accent);color:var(--accent);background:transparent;}
-.btn-action.out-btn:hover{background:var(--status-crit-bg);}
-.rowedit{border:1px solid var(--line);background:transparent;color:var(--text-muted);width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;}
-.rowedit:hover{border-color:var(--accent);color:var(--accent);}
-
-.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:11px;font-weight:700;letter-spacing:.02em;border-radius:2px;}
-.pill.ok   {background:var(--status-ok-bg);   color:var(--status-ok-fg);}
-.pill.warn {background:var(--status-warn-bg); color:var(--status-warn-fg);}
-.pill.crit {background:var(--status-crit-bg); color:var(--status-crit-fg);}
-.pill.brk  {background:var(--status-break-bg);color:var(--status-break-fg);}
-.pill.done {background:var(--panel);color:var(--text-muted);}
-.pilldot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
-
-.modalbg{position:fixed;inset:0;background:rgba(10,12,10,0.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
-.modalbg.show{display:flex;}
-.modal{background:var(--panel-raised);border:1px solid var(--line);width:100%;max-width:440px;padding:20px;box-shadow:var(--shadow);}
-.modal h3{margin:0 0 4px;font-size:16px;}
-.modal .sub{font-size:12px;color:var(--text-muted);margin-bottom:16px;}
-.fieldrow{display:flex;gap:10px;}
-.fieldrow .field{flex:1;}
-.field{margin-bottom:12px;}
-.field label{display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:5px;}
-.field input{width:100%;padding:8px 10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;}
-.field input[type="time"]{font-family:'IBM Plex Mono',monospace;}
-.modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;align-items:center;}
-.linkbtn{background:none;border:none;color:var(--status-crit-fg);font-family:inherit;font-size:13px;cursor:pointer;text-decoration:underline;padding:0;}
-
-/* ============================================================
-   PRINT STYLES (Landscape mode, shows all columns)
-   ============================================================ */
-@media print {
-  @page { 
-    margin: 10mm; 
-    size: A4 landscape; 
-  }
-  body { 
-    background: #fff !important; 
-    color: #000 !important; 
-    font-size: 10px !important; 
-  }
-  
-  .header, .filterbar, .alertstrip, .controls, .action-group, .rowedit, .search-box, .liveclock { 
-    display: none !important; 
-  }
-  
-  .app { padding: 0; max-width: 100%; }
-  .tablewrap { border: none !important; box-shadow: none !important; overflow: visible !important; }
-  table { width: 100% !important; min-width: 0 !important; border-collapse: collapse !important; }
-  th, td { 
-    border: 1px solid #000 !important; 
-    padding: 4px 6px !important; 
-    color: #000 !important; 
-    font-size: 10px !important; 
-  }
-  th { background: #eee !important; }
-  
-  .pill { border: 1px solid #000 !important; background: none !important; color: #000 !important; padding: 2px 4px !important; }
-  .pilldot { display: none !important; }
-  
-  th:nth-last-child(1), td:nth-last-child(1),
-  th:nth-last-child(2), td:nth-last-child(2) { 
-    display: none !important; 
-  }
-  
-  tbody tr { opacity: 1 !important; background: none !important; border-left: none !important; }
-}
-</style>
 </head>
 <body>
 
-<div class="app" id="app" style="display:none;">
-  <div class="header">
-    <div class="brand">
-      <img class="arch" src="../shared/200.webp" alt="McDonald's">
-      <h1>Pointages</h1>
-      <span class="restaurant-badge" id="restaurantBadge" style="display:none;"></span>
-      <span id="dataDate"></span>
+<div class="top-nav">
+  <div class="nav-left">
+    <div class="nav-brand">mngmt.tech</div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link active">🏠 Time Punch</a>
+      <a href="planning.html" class="nav-link">📅 Planning</a>
+      <a href="#" class="nav-link" onclick="return false;">📈 Forecast</a>
+      <a href="staff.html" class="nav-link">👤 Staff</a>
     </div>
-    <div class="headerside">
-      <div class="liveclock">
-        <span class="lbl">HEURE SYSTÈME</span>
-        <span id="clockNow">--:--:--</span>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn" id="btnLogout">↻ Déconnexion</button>
+  </div>
+</div>
+
+<div class="container" id="app" style="display:none;">
+  
+  <div class="page-header">
+    <div class="page-title">
+      Pointages
+      <span class="restaurant-badge" id="restaurantBadge">Chargement...</span>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <div class="input-group" style="background:#F3F4F6; border-color:#E5E7EB; padding-right:8px;">
+        <span id="clockNow" class="mono" style="font-weight:600; font-size:14px; margin-right:8px;">--:--:--</span>
+        <button class="btn btn-secondary btn-sm" id="btnSetTime" style="padding:2px 8px;">Régler</button>
       </div>
-      <div class="controls">
-        <button class="btn" id="btnSetTime">Régler l'heure</button>
-        <button class="btn" id="btnAutoTime">Heure auto</button>
-        <a class="btn" href="planning.html">Planning</a>
-        <a class="btn" href="staff.html">Employés</a>
-        <a class="btn" href="daily-import.html">Importer</a>
-        <button class="btn" id="btnAdd">Ajouter</button>
-        <button class="btn btn-primary" id="btnPrint">Imprimer</button>
-        <button class="btn btn-danger" id="btnClearDay">Vider le tableau</button>
-        <button class="btn" id="btnLogout">Déconnexion</button>
-      </div>
+      <a href="daily-import.html" class="btn btn-secondary">⬇ Importer SOTEC</a>
+      <button class="btn btn-secondary" id="btnPrint">🖨 Imprimer</button>
+      <button class="btn btn-primary" id="btnAdd">+ Ajouter</button>
+      <button class="btn btn-danger" id="btnClearDay">Vider</button>
     </div>
   </div>
 
-  <div class="alertstrip" id="alertStrip"></div>
-
-  <div class="filterbar">
-    <div class="filter-group">
-      <span style="font-size:12px;font-weight:600;color:var(--text-muted);margin-right:2px;">Filtrer :</span>
-      <button class="filter-btn active" data-filter="all">Tous</button>
-      <button class="filter-btn" data-filter="working">En poste <span class="badge-count" id="countWorking">0</span></button>
-      <button class="filter-btn" data-filter="break">En pause <span class="badge-count" id="countBreak">0</span></button>
-      <button class="filter-btn" data-filter="action">Action requise <span class="badge-count" id="countAction">0</span></button>
+  <div class="flex justify-between items-center gap-3" style="margin-bottom: 20px;">
+    <div class="flex gap-2">
+      <input type="date" class="input" id="dateDisplay" disabled>
+      <div style="display:flex; border:1px solid var(--border-light); border-radius:4px; overflow:hidden;">
+        <button class="filter-btn active" data-filter="all" style="border:none; background:var(--teal); color:#fff; padding:8px 16px;">Tous</button>
+        <button class="filter-btn" data-filter="working" style="border:none; border-left:1px solid var(--border-light); background:#fff; color:var(--text-main); padding:8px 16px;">En poste</button>
+        <button class="filter-btn" data-filter="break" style="border:none; border-left:1px solid var(--border-light); background:#fff; color:var(--text-main); padding:8px 16px;">En pause</button>
+        <button class="filter-btn" data-filter="action" style="border:none; border-left:1px solid var(--border-light); background:#fff; color:var(--text-main); padding:8px 16px;">Action</button>
+      </div>
     </div>
-    <div class="search-box">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input type="text" id="searchInput" placeholder="Rechercher (Nom, Badge)...">
+    
+    <div class="input-group" style="width: 300px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Rechercher nom ou badge...">
     </div>
   </div>
 
-  <div class="tablewrap">
-    <table id="empTable">
+  <div class="table-container">
+    <table>
       <thead>
         <tr>
           <th>Badge</th>
           <th>Nom</th>
+          <th>Fonction</th>
           <th>Entrée</th>
-          <th>Pause Sugg.</th>
-          <th>Pause Eff.</th>
-          <th>Retour Sugg.</th>
-          <th>Retour Eff.</th>
+          <th class="bg-blue">Pause<br>Sugg.</th>
+          <th class="bg-blue">Pause<br>Eff.</th>
+          <th>Retour<br>Sugg.</th>
+          <th class="bg-blue">Retour<br>Eff.</th>
           <th>Sortie Sugg.</th>
-          <th>Sortie</th>
-          <th>Heures Tot.</th>
+          <th class="bg-blue">Sortie</th>
+          <th>Heures</th>
           <th>Statut</th>
           <th>Actions</th>
           <th></th>
@@ -220,37 +83,45 @@ tbody tr.st-done{opacity:0.55;}
       </thead>
       <tbody id="empBody"></tbody>
     </table>
+    <div id="emptyState" style="text-align:center; padding: 60px 20px; color:var(--text-muted); display:none;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2" style="margin-bottom:12px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+      <div>No data</div>
+    </div>
   </div>
 </div>
 
-<dialog class="timedlg" id="timeDlg">
-  <form id="timeForm" method="dialog">
-    <h2>Régler l'heure du système</h2>
-    <p>L'heure choisie remplace celle de l'appareil et continue de défiler. Le réglage ne concerne que cet appareil.</p>
-    <input type="time" id="timeInput" required aria-label="Nouvelle heure">
-    <div class="trow">
-      <button type="button" class="btn" id="timeCancel">Annuler</button>
-      <button type="submit" class="btn btn-primary">Appliquer</button>
-    </div>
-  </form>
+<!-- Time Dialog -->
+<dialog class="modal" id="timeDlg" style="border:none; margin:auto; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);">
+  <h3>Régler l'heure</h3>
+  <div class="sub">L'heure choisie remplace celle de l'appareil.</div>
+  <div class="field">
+    <input type="time" id="timeInput" required>
+  </div>
+  <div class="modalactions">
+    <button class="btn btn-secondary" id="timeCancel">Annuler</button>
+    <button class="btn btn-primary" id="timeSave">Appliquer</button>
+  </div>
 </dialog>
 
+<!-- Add/Edit Modal -->
 <div class="modalbg" id="modalBg">
   <div class="modal">
     <h3 id="modalTitle">Modifier le pointage</h3>
     <div class="sub" id="modalSub">Corrigez les heures ci-dessous.</div>
-    <div class="fieldrow">
-      <div class="field"><label>N° Badge</label><input type="text" id="fBadge" placeholder="4021"></div>
-      <div class="field"><label>Date</label><input type="date" id="fDate"></div>
+    
+    <div class="flex gap-3">
+      <div class="field" style="flex:1;"><label>N° Badge</label><input type="text" id="fBadge"></div>
+      <div class="field" style="flex:1;"><label>Date</label><input type="date" id="fDate"></div>
     </div>
-    <div class="field"><label>Nom & Prénom</label><input type="text" id="fName" placeholder="Nom de l'employé"></div>
-    <div class="fieldrow">
-      <div class="field"><label>Entrées (séparées par virgule)</label><input type="text" id="fIn" placeholder="08:00, 13:00"></div>
-      <div class="field"><label>Sorties (séparées par virgule)</label><input type="text" id="fOut" placeholder="12:00, 17:00"></div>
+    <div class="field"><label>Nom & Prénom</label><input type="text" id="fName"></div>
+    <div class="flex gap-3">
+      <div class="field" style="flex:1;"><label>Entrées (virgule)</label><input type="text" id="fIn" placeholder="08:00"></div>
+      <div class="field" style="flex:1;"><label>Sorties (virgule)</label><input type="text" id="fOut" placeholder="17:00"></div>
     </div>
+    
     <div class="modalactions">
-      <button class="linkbtn" id="btnDelete" style="margin-right:auto;display:none;">Supprimer</button>
-      <button class="btn" id="btnCancel">Annuler</button>
+      <button class="btn btn-danger" id="btnDelete" style="margin-right:auto; display:none;">Supprimer</button>
+      <button class="btn btn-secondary" id="btnCancel">Annuler</button>
       <button class="btn btn-primary" id="btnSave">Enregistrer</button>
     </div>
   </div>
@@ -264,51 +135,20 @@ tbody tr.st-done{opacity:0.55;}
 <script>
 (function(){
   'use strict';
-
   const $ = function(id){ return document.getElementById(id); };
   const R = window.CSMRules;
 
-  // ---------- Time offset ----------
   let timeOffsetMs = 0;
-  const TIME_KEY = 'csct_time_offset';
-  try{ const v = parseInt(localStorage.getItem(TIME_KEY) || '0', 10); if(isFinite(v)) timeOffsetMs = v; }catch(e){}
-
+  try { timeOffsetMs = parseInt(localStorage.getItem('csct_time_offset') || '0', 10) || 0; } catch(e){}
+  
   function appNow(){ return new Date(Date.now() + timeOffsetMs); }
   function nowMinutes(){ const d = appNow(); return d.getHours() * 60 + d.getMinutes(); }
-
-  function paintTimeMode(){
-    const manual = timeOffsetMs !== 0;
-    const box = document.querySelector('.liveclock');
-    if(box) box.classList.toggle('manual', manual);
-    $('btnSetTime').classList.toggle('btn-primary', manual);
-    $('btnAutoTime').classList.toggle('btn-primary', !manual);
-  }
-
-  $('btnSetTime').addEventListener('click', function(){
+  function tickClock(){
     const d = appNow();
-    $('timeInput').value = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-    $('timeDlg').showModal();
-  });
-  $('timeCancel').addEventListener('click', function(){ $('timeDlg').close(); });
-  $('timeForm').addEventListener('submit', function(e){
-    e.preventDefault();
-    const v = $('timeInput').value;
-    if(!v) return;
-    const p = v.split(':').map(Number);
-    const d = new Date();
-    d.setHours(p[0], p[1], 0, 0);
-    timeOffsetMs = d.getTime() - Date.now();
-    try{ localStorage.setItem(TIME_KEY, String(timeOffsetMs)); }catch(err){}
-    $('timeDlg').close();
-    paintTimeMode(); tickClock(); render();
-  });
-  $('btnAutoTime').addEventListener('click', function(){
-    timeOffsetMs = 0;
-    try{ localStorage.removeItem(TIME_KEY); }catch(err){}
-    paintTimeMode(); tickClock(); render();
-  });
+    if($('clockNow')) $('clockNow').textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+  }
+  setInterval(tickClock, 1000);
 
-  // ---------- State ----------
   let shifts = [];
   let currentFilter = 'all';
   let searchQuery = '';
@@ -317,402 +157,249 @@ tbody tr.st-done{opacity:0.55;}
   let unsubDaily = null;
   let currentDataDate = null;
 
-  function suggestedTimes(shift){
-    let inP = shift.inPunches || (shift.clockIn != null ? [shift.clockIn] : []);
-    let outP = shift.outPunches || [];
-    if(shift.breakStart != null) outP.push(shift.breakStart);
-    if(shift.clockOut != null) outP.push(shift.clockOut);
-    outP.sort((a,b)=>a-b);
+  $('btnSetTime').addEventListener('click', () => {
+    const d = appNow();
+    $('timeInput').value = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    $('timeDlg').showModal();
+  });
+  $('timeCancel').addEventListener('click', () => $('timeDlg').close());
+  $('timeSave').addEventListener('click', () => {
+    const v = $('timeInput').value;
+    if(v) {
+      const p = v.split(':').map(Number);
+      const d = new Date(); d.setHours(p[0], p[1], 0, 0);
+      timeOffsetMs = d.getTime() - Date.now();
+      localStorage.setItem('csct_time_offset', String(timeOffsetMs));
+      tickClock(); render();
+    }
+    $('timeDlg').close();
+  });
 
-    const ci = inP.length > 0 ? inP[0] : null;
-    if(ci === null) return { pause: null, retour: null, sortie: null };
-
-    const hasBreak = outP.length > 0;
-    const hasReturn = inP.length > 1;
-    const SEGMENT = 4 * 60 + 50;
-    const BREAK = 30;
-
-    const pause = ci + SEGMENT;
-    const retour = (hasBreak && !hasReturn) ? outP[0] + BREAK : (pause + BREAK);
-    const sortie = hasReturn ? inP[1] + SEGMENT : (ci + 10 * 60 + 10);
-
-    return { pause, retour, sortie };
-  }
-
-  // ============================================================
-  // Auth gate
-  // ============================================================
-  let started = false;
-  auth.onAuthStateChanged(function(user){
-    if(!user){ window.location.replace('login.html'); return; }
-    if(started) return;
-    started = true;
-
-    db.collection('managerRestaurants').doc(user.uid).get().then(function(doc){
-      if(!doc.exists){
-        auth.signOut().then(function(){ window.location.replace('login.html'); });
-        return;
-      }
-      return Promise.race([
-        CSM.ready,
-        new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Délai dépassé')); }, 8000); })
-      ]).then(function(){
+  auth.onAuthStateChanged(user => {
+    if(!user) { window.location.replace('login.html'); return; }
+    db.collection('managerRestaurants').doc(user.uid).get().then(doc => {
+      if(!doc.exists) { auth.signOut(); return; }
+      return CSM.ready.then(() => {
         $('app').style.display = 'block';
-        $('restaurantBadge').textContent = CSM.restaurantName || CSM.restaurantId;
-        $('restaurantBadge').style.display = 'inline-block';
-        paintTimeMode();
+        $('restaurantBadge').textContent = CSM.restaurantName || 'McDo Ketia Agadir Session Fayssal';
         tickClock();
-        setInterval(tickClock, 1000);
-        setInterval(function(){ if($('app').style.display !== 'none') render(); }, 15000);
-        watchDailyImport();
+        
+        CSM.refs.dailyImport('current').onSnapshot(snap => {
+          let dateIso = R.todayKey();
+          if(snap.exists && snap.data().date) {
+            const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(snap.data().date);
+            if(m) dateIso = m[3] + '-' + m[2] + '-' + m[1];
+          }
+          if(dateIso !== currentDataDate) {
+            currentDataDate = dateIso;
+            $('dateDisplay').value = currentDataDate;
+            if(unsubShifts) unsubShifts();
+            unsubShifts = CSM.refs.shifts().where('date', '==', currentDataDate).onSnapshot(s => {
+              shifts = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
+              render();
+            });
+          }
+        });
       });
-    }).catch(function(err){
-      console.error('Auth gating:', err);
-      alert('Erreur de chargement : ' + err.message);
     });
   });
 
-  $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
-
-  // ============================================================
-  // Clock
-  // ============================================================
-  function tickClock(){
-    const d = appNow();
-    $('clockNow').textContent =
-      String(d.getHours()).padStart(2,'0') + ':' +
-      String(d.getMinutes()).padStart(2,'0') + ':' +
-      String(d.getSeconds()).padStart(2,'0');
-  }
-
-  // ============================================================
-  // Data
-  // ============================================================
-  function watchDailyImport(){
-    if(unsubDaily) unsubDaily();
-    unsubDaily = CSM.refs.dailyImport('current').onSnapshot(function(doc){
-      let dateIso = R.todayKey();
-      if(doc.exists && doc.data().date){
-        const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(doc.data().date);
-        if(m) dateIso = m[3] + '-' + m[2] + '-' + m[1];
-      }
-      if(dateIso !== currentDataDate){
-        currentDataDate = dateIso;
-        updateDateLabel();
-        watchShiftsFor(dateIso);
-      }
-    }, function(err){
-      console.warn('dailyImport listener:', err);
-      if(!currentDataDate){
-        currentDataDate = R.todayKey();
-        updateDateLabel();
-        watchShiftsFor(currentDataDate);
-      }
-    });
-  }
-
-  function watchShiftsFor(dateIso){
-    if(unsubShifts) unsubShifts();
-    unsubShifts = CSM.refs.shifts().where('date', '==', dateIso).onSnapshot(function(snap){
-      shifts = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+  $('btnLogout').addEventListener('click', () => auth.signOut());
+  
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('active'); b.style.background = '#fff'; b.style.color = 'var(--text-main)';
+      });
+      btn.classList.add('active'); btn.style.background = 'var(--teal)'; btn.style.color = '#fff';
+      currentFilter = btn.dataset.filter;
       render();
     });
-  }
+  });
 
-  function updateDateLabel(){
-    const el = $('dataDate');
-    if(!el) return;
-    if(!currentDataDate) { el.textContent = ''; return; }
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(currentDataDate);
-    const pretty = m ? (m[3] + '/' + m[2] + '/' + m[1]) : currentDataDate;
-    const today = R.todayKey();
-    el.textContent = (currentDataDate === today) ? '· ' + pretty + ' (aujourd\'hui)' : '· ' + pretty;
-  }
+  $('searchInput').addEventListener('input', e => { searchQuery = e.target.value; render(); });
 
-  // ============================================================
-  // Render
-  // ============================================================
-  function statusMeta(status){
-    return ({
-      ok:        {pill:'ok',   row:'st-ok'},
-      warn:      {pill:'warn', row:'st-warn'},
-      crit:      {pill:'crit', row:'st-crit'},
-      break:     {pill:'brk',  row:'st-break'},
-      breakover: {pill:'brk',  row:'st-break'},
-      done:      {pill:'done', row:'st-done'},
-      notpunched:{pill:'done', row:'st-done'},
-      nodata:    {pill:'done', row:'st-done'}
-    })[status] || {pill:'done', row:''};
-  }
-
-  function actionButtonsFor(shift, calc){
-    if(calc.status === 'done') return '<span class="dash">Terminé</span>';
-    if(calc.status === 'break' || calc.status === 'breakover'){
-      return '<button class="btn-action return-btn" data-act="return" data-id="'+shift.id+'">Retour pause</button>' +
-             '<button class="btn-action out-btn"     data-act="out"    data-id="'+shift.id+'">Sortie</button>';
-    }
-    return '<button class="btn-action break-btn" data-act="break" data-id="'+shift.id+'">Départ pause</button>' +
-           '<button class="btn-action out-btn"   data-act="out"   data-id="'+shift.id+'">Sortie</button>';
-  }
-
-  function render(){
-    if($('app').style.display === 'none') return;
-
-    const body = $('empBody');
-    body.innerHTML = '';
-    const alerts = [];
+  function render() {
+    if(!currentDataDate) return;
+    const body = $('empBody'); body.innerHTML = '';
     
-    let activeCount = 0, breakCount = 0, actionCount = 0;
+    let filtered = shifts.filter(s => {
+      const calc = R.shiftState(s, currentDataDate);
+      s._calc = calc;
 
-    const processed = shifts.map(function(s){
-      return { shift: s, calc: R.shiftState(s, currentDataDate), sugg: suggestedTimes(s) };
-    });
-
-    const filtered = processed.filter(function(item){
-      const { shift, calc } = item;
-      if(calc.status === 'ok' || calc.status === 'warn' || calc.status === 'crit') { activeCount++; }
-      else if(calc.status === 'break' || calc.status === 'breakover') { breakCount++; }
-      if(calc.status === 'warn' || calc.status === 'crit') { actionCount++; }
-
-      if(currentFilter === 'working' && !(calc.status === 'ok' || calc.status === 'warn' || calc.status === 'crit')) return false;
-      if(currentFilter === 'break'   && !(calc.status === 'break' || calc.status === 'breakover')) return false;
-      if(currentFilter === 'action'  && !(calc.status === 'warn' || calc.status === 'crit')) return false;
-      if(searchQuery.trim() !== ''){
+      if(currentFilter === 'working' && !['ok', 'warn', 'crit'].includes(calc.status)) return false;
+      if(currentFilter === 'break' && !['break', 'breakover'].includes(calc.status)) return false;
+      if(currentFilter === 'action' && !['warn', 'crit', 'breakover'].includes(calc.status)) return false;
+      
+      if(searchQuery) {
         const q = searchQuery.toLowerCase();
-        if(!(shift.name || '').toLowerCase().includes(q) && !(String(shift.badge || '')).toLowerCase().includes(q)) return false;
+        if(!(s.name||'').toLowerCase().includes(q) && !String(s.badge).includes(q)) return false;
       }
       return true;
     });
 
-    $('countWorking').textContent = activeCount;
-    $('countBreak').textContent = breakCount;
-    $('countAction').textContent = actionCount;
+    $('emptyState').style.display = filtered.length === 0 ? 'block' : 'none';
 
-    const rank = function(s){ return ({crit:0, warn:1, breakover:2, break:2, ok:3, done:4}[s] || 5); };
-    
-    filtered.sort(function(a, b){
-      return rank(a.calc.status) - rank(b.calc.status) || ((a.shift.clockIn ?? 999) - (b.shift.clockIn ?? 999));
-    }).forEach(function(item){
-      const { shift, calc, sugg } = item;
-      const meta = statusMeta(calc.status);
-
-      if(calc.status === 'crit') { alerts.push({ shift, kind: 'crit' }); }
-      else if(calc.status === 'warn') { alerts.push({ shift, kind: 'warn' }); }
-
-      const buttons = actionButtonsFor(shift, calc);
-
-      let inP = shift.inPunches || (shift.clockIn != null ? [shift.clockIn] : []);
-      let outP = shift.outPunches || [];
-      if(shift.breakStart != null) outP.push(shift.breakStart);
-      if(shift.clockOut != null) outP.push(shift.clockOut);
+    filtered.forEach(s => {
+      const calc = s._calc;
+      const sugg = getSuggestions(s);
+      
+      let inP = s.inPunches || (s.clockIn != null ? [s.clockIn] : []);
+      let outP = s.outPunches || [];
+      if(s.breakStart != null) outP.push(s.breakStart);
+      if(s.clockOut != null) outP.push(s.clockOut);
       outP.sort((a,b)=>a-b);
 
-      const inStr = (inP.length > 0) ? R.minToHM(inP[0]) : '—';
-      
+      const inStr = inP.length > 0 ? R.minToHM(inP[0]) : '—';
       const pauseEff = outP.length > 0 ? R.minToHM(outP[0]) : '—';
       const retourEff = inP.length > 1 ? R.minToHM(inP[1]) : '—';
       const sortieEff = (outP.length >= inP.length && outP.length > 0) ? R.minToHM(outP[outP.length-1]) : '—';
 
+      let statClass = 'badge-gray';
+      if(calc.status === 'ok') statClass = 'badge-green';
+      else if(calc.status === 'warn') statClass = 'badge-yellow';
+      else if(calc.status === 'crit') statClass = 'badge-red';
+      else if(calc.status === 'break' || calc.status === 'breakover') statClass = 'badge-blue';
+
+      let actionsHtml = '';
+      if(calc.status !== 'done') {
+        if(['break', 'breakover'].includes(calc.status)) {
+          actionsHtml = `<button class="btn btn-primary btn-sm" onclick="doAction('${s.id}','return')">Retour</button>
+                         <button class="btn btn-danger btn-sm" onclick="doAction('${s.id}','out')">Sortie</button>`;
+        } else {
+          actionsHtml = `<button class="btn btn-warning btn-sm" onclick="doAction('${s.id}','break')">Pause</button>
+                         <button class="btn btn-danger btn-sm" onclick="doAction('${s.id}','out')">Sortie</button>`;
+        }
+      } else {
+        actionsHtml = '<span class="text-muted">Terminé</span>';
+      }
+
       const tr = document.createElement('tr');
-      tr.className = meta.row;
-      tr.innerHTML =
-        '<td class="mono">' + esc(shift.badge || '—') + '</td>' +
-        '<td class="name">' + esc(shift.name || 'Sans nom') + '</td>' +
-        '<td class="mono">' + inStr + '</td>' +
-        '<td class="sugg">' + (esc(R.minToHM(sugg.pause)) || '—') + '</td>' +
-        '<td class="mono">' + pauseEff + '</td>' +
-        '<td class="sugg">' + (esc(R.minToHM(sugg.retour)) || '—') + '</td>' +
-        '<td class="mono">' + retourEff + '</td>' +
-        '<td class="sugg">' + (esc(R.minToHM(sugg.sortie)) || '—') + '</td>' +
-        '<td class="mono">' + sortieEff + '</td>' +
-        '<td class="mono totalhrs">' + R.fmtHrs(calc.workedMinutes || 0) + '</td>' +
-        '<td><span class="pill ' + meta.pill + '"><span class="pilldot"></span>' + esc(calc.statusLabel || '') + '</span></td>' +
-        '<td><div class="action-group">' + buttons + '</div></td>' +
-        '<td><button class="rowedit" data-id="' + shift.id + '" title="Modifier">✎</button></td>';
+      tr.innerHTML = `
+        <td>${s.badge || '—'}</td>
+        <td style="font-weight:600;">${s.name || 'Sans nom'}</td>
+        <td><span class="badge badge-blue">Crew</span></td>
+        <td class="mono">${inStr}</td>
+        <td class="bg-blue mono">${R.minToHM(sugg.pause) || '—'}</td>
+        <td class="bg-blue mono">${pauseEff}</td>
+        <td class="mono">${R.minToHM(sugg.retour) || '—'}</td>
+        <td class="bg-blue mono">${retourEff}</td>
+        <td class="mono">${R.minToHM(sugg.sortie) || '—'}</td>
+        <td class="bg-blue mono" style="font-weight:600;">${sortieEff}</td>
+        <td class="mono" style="font-weight:700;">${R.fmtHrs(calc.workedMinutes || 0)}</td>
+        <td><span class="badge ${statClass}">${calc.statusLabel}</span></td>
+        <td><div class="flex gap-2">${actionsHtml}</div></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="openModal('${s.id}')">✎</button></td>
+      `;
       body.appendChild(tr);
     });
-
-    document.querySelectorAll('.btn-action[data-act]').forEach(function(b){
-      b.addEventListener('click', function(){
-        const id = b.dataset.id;
-        const act = b.dataset.act;
-        if(act === 'break')       { doAction(id, 'break'); }
-        else if(act === 'return') { doAction(id, 'return'); }
-        else if(act === 'out')    { doAction(id, 'out'); }
-      });
-    });
-    document.querySelectorAll('.rowedit').forEach(function(b){
-      b.addEventListener('click', function(){ openModal(b.dataset.id); });
-    });
-
-    renderAlerts(alerts);
   }
 
-  function renderAlerts(alerts){
-    const strip = $('alertStrip');
-    strip.innerHTML = '';
-    if(alerts.length === 0){ strip.classList.remove('show'); return; }
-    strip.classList.add('show');
-    const crit = alerts.filter(a => a.kind === 'crit');
-    const warn = alerts.filter(a => a.kind === 'warn');
-    if(crit.length) { strip.innerHTML += `<div class="alertrow crit"><span class="alertdot"></span>Limite 4h55 atteinte : ${crit.map(a=>a.shift.name).join(', ')}</div>`; }
-    if(warn.length) { strip.innerHTML += `<div class="alertrow warn"><span class="alertdot"></span>Limite 4h50 proche : ${warn.map(a=>a.shift.name).join(', ')}</div>`; }
+  function getSuggestions(s) {
+    let inP = s.inPunches || (s.clockIn != null ? [s.clockIn] : []);
+    let outP = s.outPunches || [];
+    if(s.breakStart != null) outP.push(s.breakStart);
+    if(s.clockOut != null) outP.push(s.clockOut);
+    outP.sort((a,b)=>a-b);
+
+    const ci = inP.length > 0 ? inP[0] : null;
+    if(ci === null) return { pause: null, retour: null, sortie: null };
+    const hasBreak = outP.length > 0;
+    const hasReturn = inP.length > 1;
+    
+    const pause = ci + 4*60 + 50;
+    const retour = (hasBreak && !hasReturn) ? outP[0] + 30 : (pause + 30);
+    const sortie = hasReturn ? inP[1] + 4*60 + 50 : (ci + 10*60 + 10);
+    return { pause, retour, sortie };
   }
 
-  // ============================================================
-  // Actions
-  // ============================================================
-  function doAction(shiftId, act){
-    const t = nowMinutes();
-    const s = shifts.find(x => x.id === shiftId);
+  window.doAction = function(id, act) {
+    const s = shifts.find(x => x.id === id);
     if(!s) return;
-
+    const t = nowMinutes();
     let inP = s.inPunches || (s.clockIn != null ? [s.clockIn] : []);
     let outP = s.outPunches || [];
     if(s.breakStart != null) outP.push(s.breakStart);
     if(s.clockOut != null) outP.push(s.clockOut);
 
-    if(act === 'break') {
-      outP.push(t);
-    } else if(act === 'return') {
-      inP.push(t);
-    } else if(act === 'out') {
-      outP.push(t);
-    }
+    if(act === 'break') outP.push(t);
+    else if(act === 'return') inP.push(t);
+    else if(act === 'out') outP.push(t);
 
     inP.sort((a,b)=>a-b); outP.sort((a,b)=>a-b);
     const state = R.shiftState({ inPunches: inP, outPunches: outP, date: s.date }, currentDataDate);
-
-    CSM.refs.shift(shiftId).update({
-      inPunches: inP,
-      outPunches: outP,
+    
+    CSM.refs.shift(id).update({
+      inPunches: inP, outPunches: outP,
       totalMinutes: state.workedMinutes,
       status: act === 'out' ? 'closed' : 'open'
-    }).catch(function(err){ alert('Erreur : ' + err.message); });
-  }
+    });
+  };
 
-  // ============================================================
-  // Edit modal
-  // ============================================================
   const modalBg = $('modalBg');
-
-  function openModal(id){
-    editingId = id || null;
+  window.openModal = function(id) {
+    editingId = id;
     const shift = id ? shifts.find(s => s.id === id) : null;
     $('modalTitle').textContent = shift ? 'Modifier le pointage' : 'Ajouter un pointage';
-    $('modalSub').textContent = shift ? 'Corrigez les heures ci-dessous.' : 'Créez un pointage manuellement.';
     $('fBadge').value = shift ? shift.badge || '' : '';
-    $('fDate').value  = shift ? shift.date || currentDataDate : (currentDataDate || R.todayKey());
+    $('fDate').value  = shift ? shift.date || currentDataDate : currentDataDate;
     $('fName').value  = shift ? shift.name || '' : '';
     
     let inP = shift ? (shift.inPunches || (shift.clockIn != null ? [shift.clockIn] : [])) : [];
     let outP = shift ? (shift.outPunches || []) : [];
     if(shift && shift.breakStart != null) outP.push(shift.breakStart);
     if(shift && shift.clockOut != null) outP.push(shift.clockOut);
-    
     $('fIn').value = inP.map(m=>R.minToHM(m)).join(', ');
     $('fOut').value = outP.map(m=>R.minToHM(m)).join(', ');
     
-    $('btnDelete').style.display = shift ? 'inline' : 'none';
+    $('btnDelete').style.display = shift ? 'inline-flex' : 'none';
     modalBg.classList.add('show');
   }
 
-  function closeModal(){ modalBg.classList.remove('show'); editingId = null; }
+  $('btnAdd').addEventListener('click', () => openModal(null));
+  $('btnCancel').addEventListener('click', () => modalBg.classList.remove('show'));
+  modalBg.addEventListener('click', e => { if(e.target === modalBg) modalBg.classList.remove('show'); });
 
-  $('btnAdd').addEventListener('click', function(){ openModal(null); });
-  $('btnCancel').addEventListener('click', closeModal);
-  modalBg.addEventListener('click', function(e){ if(e.target === modalBg) closeModal(); });
-
-  $('btnSave').addEventListener('click', function(){
+  $('btnSave').addEventListener('click', () => {
     const badge = $('fBadge').value.trim();
-    const date  = $('fDate').value.trim() || currentDataDate || R.todayKey();
-    if(!badge){ alert('Le numéro de badge est requis.'); return; }
-
-    const parseTimes = str => str.split(',').map(s => R.hmToMin(s.trim())).filter(m => m !== null);
-    const inPunches = parseTimes($('fIn').value);
-    const outPunches = parseTimes($('fOut').value);
+    const date  = $('fDate').value.trim() || currentDataDate;
+    if(!badge){ alert('Badge requis.'); return; }
+    
+    const parse = str => str.split(',').map(s => R.hmToMin(s.trim())).filter(m => m !== null);
+    const inPunches = parse($('fIn').value);
+    const outPunches = parse($('fOut').value);
     const state = R.shiftState({ inPunches, outPunches, date }, date);
 
     const rec = {
-      badge: badge,
-      name: $('fName').value.trim(),
-      date: date,
-      inPunches: inPunches,
-      outPunches: outPunches,
+      badge, name: $('fName').value.trim(), date, inPunches, outPunches,
       totalMinutes: state.workedMinutes || 0,
       status: (outPunches.length >= inPunches.length && inPunches.length > 0) ? 'closed' : 'open',
       updatedAt: new Date().toISOString()
     };
 
-    if(editingId){
-      CSM.refs.shift(editingId).update(rec).then(closeModal).catch(err => alert('Erreur : ' + err.message));
+    if(editingId) {
+      CSM.refs.shift(editingId).update(rec).then(() => modalBg.classList.remove('show'));
     } else {
-      rec.createdAt = new Date().toISOString();
-      rec.source = 'manual';
-      CSM.refs.shifts().add(rec).then(closeModal).catch(err => alert('Erreur : ' + err.message));
+      rec.createdAt = new Date().toISOString(); rec.source = 'manual';
+      CSM.refs.shifts().add(rec).then(() => modalBg.classList.remove('show'));
     }
   });
 
-  $('btnDelete').addEventListener('click', function(){
+  $('btnDelete').addEventListener('click', () => {
     if(!editingId) return;
-    if(!confirm('Supprimer ce pointage ? Cette action est irréversible.')) return;
-    CSM.refs.shift(editingId).delete().then(closeModal).catch(err => alert('Erreur : ' + err.message));
-  });
-
-  // ============================================================
-  // Filters + search + print
-  // ============================================================
-  document.querySelectorAll('.filter-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentFilter = btn.dataset.filter;
-      render();
-    });
-  });
-  $('searchInput').addEventListener('input', function(e){
-    searchQuery = e.target.value;
-    render();
-  });
-
-  $('btnPrint').addEventListener('click', function(){ window.print(); });
-
-  $('btnClearDay').addEventListener('click', async function(){
-    if(shifts.length === 0){ alert('Le tableau est déjà vide.'); return; }
-    const n = shifts.length;
-    const dateLabel = currentDataDate || R.todayKey();
-    const ok = confirm('Effacer tous les pointages de cette journée ?\n\n' + n + ' pointage(s) seront supprimés.\n\nCette action est irréversible.');
-    if(!ok) return;
-
-    const btn = $('btnClearDay');
-    btn.disabled = true; btn.textContent = 'Suppression…';
-
-    let deleted = 0;
-    for(const s of shifts){
-      try{ await CSM.refs.shift(s.id).delete(); deleted++; }catch(err){ console.error(err); }
+    if(confirm('Supprimer ce pointage ?')) {
+      CSM.refs.shift(editingId).delete().then(() => modalBg.classList.remove('show'));
     }
-
-    try{
-      const impSnap = await CSM.refs.dailyImport('current').get();
-      if(impSnap.exists && impSnap.data().date === dateLabel) await CSM.refs.dailyImport('current').delete();
-    }catch(e){}
-
-    btn.disabled = false; btn.textContent = 'Vider le tableau';
-    alert('✓ ' + deleted + ' pointage(s) supprimé(s).');
   });
 
-  function esc(s){
-    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-
+  $('btnPrint').addEventListener('click', () => window.print());
+  $('btnClearDay').addEventListener('click', async () => {
+    if(!shifts.length) return;
+    if(!confirm(`Effacer les ${shifts.length} pointages de cette journée ?`)) return;
+    for(const s of shifts) await CSM.refs.shift(s.id).delete();
+    await CSM.refs.dailyImport('current').delete();
+  });
 })();
-</script>
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('service-worker.js').catch(function(){});
-  });
-}
 </script>
 </body>
 </html>
