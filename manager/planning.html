@@ -163,9 +163,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     <div class="controls">
       <a class="btn" href="index.html">← Tableau de bord</a>
       <a class="btn" href="staff.html">Employés</a>
-      <a class="btn" href="requests.html">Demandes</a>
       <button class="btn" id="btnPrint">Imprimer ce jour</button>
-      <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
       <button class="btn" id="btnLogout">Déconnexion</button>
     </div>
   </div>
@@ -304,29 +302,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
   const $ = function(id){ return document.getElementById(id); };
   const R = window.CSMRules;
-
-  (function(){
-    const K = 'csct_manager_theme';
-    function apply(){
-      let t = 'light';
-      try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-      document.documentElement.classList.toggle('theme-light', t === 'light');
-      document.documentElement.classList.toggle('theme-dark', t === 'dark');
-      const b = document.getElementById('btnTheme');
-      if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
-    }
-    apply();
-    const btn = document.getElementById('btnTheme');
-    if(btn){
-      btn.addEventListener('click', function(){
-        let t = 'light';
-        try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-        const next = t === 'light' ? 'dark' : 'light';
-        try{ localStorage.setItem(K, next); }catch(e){}
-        apply();
-      });
-    }
-  })();
 
   if(window['pdfjsLib']){
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';

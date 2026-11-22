@@ -84,11 +84,9 @@
     <div class="controls">
       <a class="btn" href="index.html">← Tableau de bord</a>
       <a class="btn" href="planning.html">Planning</a>
-      <a class="btn" href="requests.html">Demandes</a>
       <button class="btn" id="btnImportBase" style="background:var(--panel);border:1px solid var(--line);color:var(--text);">📥 Importer la base employés (PDF)</button>
       <input type="file" id="baseFileInput" accept="application/pdf" style="display:none;">
       <button class="btn btn-primary" id="btnAdd">+ Ajouter un employé</button>
-      <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
       <button class="btn" id="btnLogout">Déconnexion</button>
     </div>
   </div>
@@ -161,29 +159,6 @@
   if(window['pdfjsLib']){
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
-
-  (function(){
-    const K = 'csct_manager_theme';
-    function apply(){
-      let t = 'light';
-      try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-      document.documentElement.classList.toggle('theme-light', t === 'light');
-      document.documentElement.classList.toggle('theme-dark', t === 'dark');
-      const b = document.getElementById('btnTheme');
-      if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
-    }
-    apply();
-    const btn = document.getElementById('btnTheme');
-    if(btn){
-      btn.addEventListener('click', function(){
-        let t = 'light';
-        try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-        const next = t === 'light' ? 'dark' : 'light';
-        try{ localStorage.setItem(K, next); }catch(e){}
-        apply();
-      });
-    }
-  })();
 
   let staff = [];
   let unsubscribeStaff = null;
