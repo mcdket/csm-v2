@@ -62,8 +62,11 @@
 .tablewrap{border:1px solid var(--line);overflow-x:auto;background:var(--panel);box-shadow:var(--shadow);}
 table{width:100%;border-collapse:collapse;table-layout:auto;}
 thead th{text-align:left;font-size:11px;font-weight:600;letter-spacing:0.03em;color:var(--text-muted);padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel);position:sticky;top:0;}
+th.bold-header { font-weight: 700; color: var(--text); }
+
 tbody td{padding:11px 8px;font-size:13px;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
 tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
+td.bold-time { font-weight: 700; color: var(--text); }
 tbody td.sugg{color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 tbody td.name{font-weight:600;white-space:normal;}
 tbody tr{border-left:4px solid transparent;}
@@ -72,7 +75,9 @@ tbody tr.st-ok{border-left-color:var(--status-ok-line);}
 tbody tr.st-warn{border-left-color:var(--status-warn-line);background:var(--status-warn-bg);}
 tbody tr.st-crit{border-left-color:var(--status-crit-line);background:var(--status-crit-bg);}
 tbody tr.st-break{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
+tbody tr.st-break td.name { color: var(--status-break-fg); font-weight: 700; } /* Blue Name */
 tbody tr.st-breakover{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
+tbody tr.st-breakover td.name { color: var(--status-break-fg); font-weight: 700; }
 tbody tr.st-done{opacity:0.55;}
 .totalhrs{font-weight:700;color:var(--accent-strong);}
 .dash{color:var(--text-muted);}
@@ -92,6 +97,10 @@ tbody tr.st-done{opacity:0.55;}
 .pill.brk  {background:var(--status-break-bg);color:var(--status-break-fg);}
 .pill.done {background:var(--panel);color:var(--text-muted);}
 .pilldot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.02em;}
+.badge-blue {background:#E0F2FE;color:#0284C7;}
 
 /* Modals */
 .modalbg{position:fixed;inset:0;background:rgba(10,12,10,0.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
@@ -148,7 +157,6 @@ tbody tr.st-done{opacity:0.55;}
     <div style="display:flex; align-items:center; gap:12px;">
       <h1 class="page-title">Pointages</h1>
       <span class="restaurant-badge" id="restaurantBadge" style="display:none;">McDo Ketia Agadir Session Fayssal</span>
-      <!-- Date hidden as requested -->
       <span id="dataDate" style="display:none;"></span>
     </div>
     
@@ -192,13 +200,14 @@ tbody tr.st-done{opacity:0.55;}
           <tr>
             <th>Badge</th>
             <th>Nom</th>
-            <th>Entrée</th>
+            <th>Fonction</th>
+            <th class="bold-header">Entrée</th>
             <th>Pause Sugg.</th>
-            <th>Pause Eff.</th>
+            <th class="bold-header">Pause Eff.</th>
             <th>Retour Sugg.</th>
-            <th>Retour Eff.</th>
+            <th class="bold-header">Retour Eff.</th>
             <th>Sortie Sugg.</th>
-            <th>Sortie</th>
+            <th class="bold-header">Sortie</th>
             <th>Heures Tot.</th>
             <th>Statut</th>
             <th>Actions</th>
@@ -298,11 +307,13 @@ tbody tr.st-done{opacity:0.55;}
 
   // ---------- State ----------
   let shifts = [];
+  let staffByBadge = {}; // NEW: Store staff data
   let currentFilter = 'all';
   let searchQuery = '';
   let editingId = null;
   let unsubShifts = null;
   let unsubDaily = null;
+  let unsubStaff = null;
   let currentDataDate = null;
 
   function suggestedTimes(shift){
@@ -317,7 +328,7 @@ tbody tr.st-done{opacity:0.55;}
 
     const hasBreak = outP.length > 0;
     const hasReturn = inP.length > 1;
-    const SEGMENT = 4 * 60 + 50;
+    const SEGMENT = 4 * 60 + 55; // Updated to 4h55
     const BREAK = 30;
 
     const pause = ci + SEGMENT;
@@ -352,6 +363,7 @@ tbody tr.st-done{opacity:0.55;}
         tickClock();
         setInterval(tickClock, 1000);
         setInterval(function(){ if($('app').style.display !== 'none') render(); }, 15000);
+        watchStaff();
         watchDailyImport();
       });
     }).catch(function(err){
@@ -376,6 +388,18 @@ tbody tr.st-done{opacity:0.55;}
   // ============================================================
   // Data
   // ============================================================
+  function watchStaff() {
+    if(unsubStaff) unsubStaff();
+    unsubStaff = CSM.refs.staffColl().onSnapshot(function(snap){
+      staffByBadge = {};
+      snap.forEach(function(doc){
+        const s = Object.assign({ _id: doc.id }, doc.data());
+        staffByBadge[String(s.badge)] = s;
+      });
+      render();
+    });
+  }
+
   function watchDailyImport(){
     if(unsubDaily) unsubDaily();
     unsubDaily = CSM.refs.dailyImport('current').onSnapshot(function(doc){
@@ -425,7 +449,7 @@ tbody tr.st-done{opacity:0.55;}
       warn:      {pill:'warn', row:'st-warn'},
       crit:      {pill:'crit', row:'st-crit'},
       break:     {pill:'brk',  row:'st-break'},
-      breakover: {pill:'brk',  row:'st-break'},
+      breakover: {pill:'brk',  row:'st-breakover'},
       done:      {pill:'done', row:'st-done'},
       notpunched:{pill:'done', row:'st-done'},
       nodata:    {pill:'done', row:'st-done'}
@@ -433,11 +457,23 @@ tbody tr.st-done{opacity:0.55;}
   }
 
   function actionButtonsFor(shift, calc){
-    if(calc.status === 'done') return '<span class="dash">Terminé</span>';
-    if(calc.status === 'break' || calc.status === 'breakover'){
+    const inP = shift.inPunches || (shift.clockIn != null ? [shift.clockIn] : []);
+    const outP = shift.outPunches || [];
+
+    if (shift.status === 'closed' || (outP.length >= inP.length && outP.length > 0 && shift.status !== 'break' && calc.status === 'done')) {
+      return '<span class="dash">Terminé</span>';
+    }
+    
+    if (shift.status === 'break' || (inP.length === 1 && outP.length === 1)) {
       return '<button class="btn-action return-btn" data-act="return" data-id="'+shift.id+'">Retour pause</button>' +
              '<button class="btn-action out-btn"     data-act="out"    data-id="'+shift.id+'">Sortie</button>';
     }
+    
+    if (inP.length > 1) {
+      // Already took a break and returned. Only allow Sortie.
+      return '<button class="btn-action out-btn" data-act="out" data-id="'+shift.id+'">Sortie</button>';
+    }
+
     return '<button class="btn-action break-btn" data-act="break" data-id="'+shift.id+'">Départ pause</button>' +
            '<button class="btn-action out-btn"   data-act="out"   data-id="'+shift.id+'">Sortie</button>';
   }
@@ -498,20 +534,25 @@ tbody tr.st-done{opacity:0.55;}
       
       const pauseEff = outP.length > 0 ? R.minToHM(outP[0]) : '—';
       const retourEff = inP.length > 1 ? R.minToHM(inP[1]) : '—';
-      const sortieEff = (outP.length >= inP.length && outP.length > 0) ? R.minToHM(outP[outP.length-1]) : '—';
+      const sortieEff = (shift.status === 'closed' || (outP.length >= inP.length && outP.length > 1)) ? R.minToHM(outP[outP.length-1]) : '—';
+
+      // Fetch role from Staff
+      const staff = staffByBadge[String(shift.badge)];
+      const role = staff ? (staff.role || 'Crew') : 'Crew';
 
       const tr = document.createElement('tr');
       tr.className = meta.row;
       tr.innerHTML =
         '<td class="mono">' + esc(shift.badge || '—') + '</td>' +
         '<td class="name">' + esc(shift.name || 'Sans nom') + '</td>' +
-        '<td class="mono">' + inStr + '</td>' +
+        '<td><span class="badge badge-blue">' + esc(role) + '</span></td>' +
+        '<td class="mono bold-time">' + inStr + '</td>' +
         '<td class="sugg">' + (esc(R.minToHM(sugg.pause)) || '—') + '</td>' +
-        '<td class="mono">' + pauseEff + '</td>' +
+        '<td class="mono bold-time">' + pauseEff + '</td>' +
         '<td class="sugg">' + (esc(R.minToHM(sugg.retour)) || '—') + '</td>' +
-        '<td class="mono">' + retourEff + '</td>' +
+        '<td class="mono bold-time">' + retourEff + '</td>' +
         '<td class="sugg">' + (esc(R.minToHM(sugg.sortie)) || '—') + '</td>' +
-        '<td class="mono">' + sortieEff + '</td>' +
+        '<td class="mono bold-time">' + sortieEff + '</td>' +
         '<td class="mono totalhrs">' + R.fmtHrs(calc.workedMinutes || 0) + '</td>' +
         '<td><span class="pill ' + meta.pill + '"><span class="pilldot"></span>' + esc(calc.statusLabel || '') + '</span></td>' +
         '<td><div class="action-group">' + buttons + '</div></td>' +
@@ -542,8 +583,8 @@ tbody tr.st-done{opacity:0.55;}
     strip.classList.add('show');
     const crit = alerts.filter(a => a.kind === 'crit');
     const warn = alerts.filter(a => a.kind === 'warn');
-    if(crit.length) { strip.innerHTML += `<div class="alertrow crit"><span class="alertdot"></span>Limite 4h55 atteinte : ${crit.map(a=>a.shift.name).join(', ')}</div>`; }
-    if(warn.length) { strip.innerHTML += `<div class="alertrow warn"><span class="alertdot"></span>Limite 4h50 proche : ${warn.map(a=>a.shift.name).join(', ')}</div>`; }
+    if(crit.length) { strip.innerHTML += `<div class="alertrow crit"><span class="alertdot"></span>Limite 5h00 atteinte : ${crit.map(a=>a.shift.name).join(', ')}</div>`; }
+    if(warn.length) { strip.innerHTML += `<div class="alertrow warn"><span class="alertdot"></span>Limite 4h55 proche : ${warn.map(a=>a.shift.name).join(', ')}</div>`; }
   }
 
   // ============================================================
@@ -559,22 +600,27 @@ tbody tr.st-done{opacity:0.55;}
     if(s.breakStart != null) outP.push(s.breakStart);
     if(s.clockOut != null) outP.push(s.clockOut);
 
+    let newStatus = 'open';
+
     if(act === 'break') {
       outP.push(t);
+      newStatus = 'break';
     } else if(act === 'return') {
       inP.push(t);
+      newStatus = 'open';
     } else if(act === 'out') {
       outP.push(t);
+      newStatus = 'closed';
     }
 
     inP.sort((a,b)=>a-b); outP.sort((a,b)=>a-b);
-    const state = R.shiftState({ inPunches: inP, outPunches: outP, date: s.date }, currentDataDate);
+    const state = R.shiftState({ inPunches: inP, outPunches: outP, date: s.date, status: newStatus }, currentDataDate);
 
     CSM.refs.shift(shiftId).update({
       inPunches: inP,
       outPunches: outP,
       totalMinutes: state.workedMinutes,
-      status: act === 'out' ? 'closed' : 'open'
+      status: newStatus
     }).catch(function(err){ alert('Erreur : ' + err.message); });
   }
 
@@ -618,7 +664,8 @@ tbody tr.st-done{opacity:0.55;}
     const parseTimes = str => str.split(',').map(s => R.hmToMin(s.trim())).filter(m => m !== null);
     const inPunches = parseTimes($('fIn').value);
     const outPunches = parseTimes($('fOut').value);
-    const state = R.shiftState({ inPunches, outPunches, date }, date);
+    const status = outPunches.length >= inPunches.length && outPunches.length > 0 ? 'closed' : 'open';
+    const state = R.shiftState({ inPunches, outPunches, date, status }, date);
 
     const rec = {
       badge: badge,
@@ -627,7 +674,7 @@ tbody tr.st-done{opacity:0.55;}
       inPunches: inPunches,
       outPunches: outPunches,
       totalMinutes: state.workedMinutes || 0,
-      status: (outPunches.length >= inPunches.length && inPunches.length > 0) ? 'closed' : 'open',
+      status: status,
       updatedAt: new Date().toISOString()
     };
 
