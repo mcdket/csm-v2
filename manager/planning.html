@@ -35,10 +35,8 @@
 
 /* Expected / Stats */
 .expected{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px;margin-bottom:20px;}
-.expected-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
-.expected-count{min-width:22px;height:22px;padding:0 7px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
-.expected-count:empty{display:none;}
-.role-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.expected-title{font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px;}
+.role-stats{display:flex;gap:8px;flex-wrap:wrap;}
 .role-stat-pill{background:var(--panel-raised);border:1px solid var(--line);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;color:var(--text);}
 .role-stat-pill span{font-weight:800;color:var(--accent);margin-left:4px;}
 
@@ -50,8 +48,8 @@
 .exp-time{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
 .exp-mid{flex:1;min-width:0;}
 .exp-name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.exp-phone{font-size:12px;color:var(--accent);text-decoration:none;font-family:'IBM Plex Mono',monospace;margin-top:2px;display:inline-block;}
-.exp-status{font-size:12.5px;color:var(--text-muted);}
+.exp-role{font-size:11px;font-weight:700;background:#E0F2FE;color:#0284C7;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:4px;}
+.exp-status{font-size:12.5px;color:var(--text-muted);margin-top:2px;}
 .exp-item.soon .exp-status{color:var(--status-warn-fg);font-weight:600;}
 .exp-item.late .exp-status{color:var(--status-crit-fg);font-weight:600;}
 .exp-btn{padding:7px 11px;font-size:12px;}
@@ -69,7 +67,6 @@
 .dayoff-name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dayoff-role{font-size:11px;font-weight:700;background:#E0F2FE;color:#0284C7;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:4px;}
 .dayoff-phone{font-size:12px;color:var(--accent);text-decoration:none;font-family:'IBM Plex Mono',monospace;margin-top:2px;display:block;}
-.dayoff-phone.muted{color:var(--text-muted);pointer-events:none;}
 .dayoff-empty{grid-column:1 / -1;font-size:13px;color:var(--text-muted);padding:4px 0;}
 
 /* Import */
@@ -124,7 +121,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 .spill.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);border-color:var(--status-crit-line);}
 .spill.brk{background:var(--status-break-bg);color:var(--status-break-fg);border-color:var(--status-break-line);}
 .spill.mut{background:var(--panel-raised);color:var(--text-muted);border-color:var(--line);}
-.iconact{background:transparent;border:1px solid var(--line);color:var(--text-muted);font-size:13px;padding:4px 8px;margin-left:4px;cursor:pointer;font-family:inherit;}
+.iconact{background:transparent;border:1px solid var(--line);color:var(--text-muted);font-size:12px;font-weight:700;padding:4px 8px;margin-left:4px;cursor:pointer;font-family:inherit;}
 .iconact:hover{border-color:var(--accent);color:var(--accent);}
 .empty-plan{text-align:center;padding:50px 20px;color:var(--text-muted);font-size:14px;}
 .empty-plan b{display:block;color:var(--text);font-size:16px;margin-bottom:6px;font-weight:600;}
@@ -206,8 +203,10 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
     <!-- EXPECTED & STATS -->
     <section class="expected">
-      <div class="expected-title">Effectif prévu <span class="expected-count" id="expectedCount"></span></div>
-      <div class="role-stats" id="roleStats"></div>
+      <div class="expected-title">
+        <div>Effectif prévu</div>
+        <div class="role-stats" id="roleStats"></div>
+      </div>
       <div class="expected-list" id="expectedList"></div>
     </section>
 
@@ -245,7 +244,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
 </div>
 
-<!-- Modals (Unchanged) -->
+<!-- Modals -->
 <div class="modalbg" id="editBg">
   <div class="modalbox">
     <h3 id="editTitle">Modifier l'horaire</h3>
@@ -362,6 +361,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   let timeOffsetMs = 0;
   let staffList = [];
   let showDayoff = true;
+  let currentWatchedDate = null;
 
   try { timeOffsetMs = parseInt(localStorage.getItem('csct_time_offset') || '0', 10) || 0; } catch(e){}
   function appNow(){ return new Date(Date.now() + timeOffsetMs); }
@@ -375,7 +375,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         $('app').style.display = 'block';
         loadStaff();
         startListeners();
-        setInterval(() => { renderExpected(); renderDayOff(); renderWeek(); }, 15000);
+        setInterval(() => { renderExpected(); renderWeek(); }, 15000);
       });
     });
   });
@@ -408,9 +408,18 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       if(!schedule || schedule.start !== prevStart) selDay = null;
       renderAll();
     });
+  }
 
-    const today = R.todayKey();
-    unsubShifts = CSM.refs.shifts().where('date', '==', today).onSnapshot(snap => {
+  function watchShiftsForDay(dayIndex){
+    if(!schedule) return;
+    const d = dayDate(dayIndex);
+    const dateIso = d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+    
+    if (currentWatchedDate === dateIso) return;
+    currentWatchedDate = dateIso;
+    
+    if(unsubShifts) unsubShifts();
+    unsubShifts = CSM.refs.shifts().where('date', '==', dateIso).onSnapshot(snap => {
       employees = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
       renderAll();
     });
@@ -419,7 +428,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   function renderAll(){
     renderPlanSub();
     renderExpected();
-    if(showDayoff) renderDayOff();
+    renderDayOff();
     renderWeek();
   }
 
@@ -453,7 +462,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   }
 
   function arrivedFor(emp){
-    const key = 'd' + todayIdx() + '_' + emp.n;
+    const key = 'd' + selDay + '_' + emp.n;
     if(schedule.dismissed && schedule.dismissed[key]) return true;
     const schedStaff = findStaff(emp.name);
     return employees.some(e => {
@@ -464,9 +473,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     });
   }
 
-  // ============================================================
-  // RENDER DAY OFF (UPDATED: Pulls from staff database)
-  // ============================================================
   function renderDayOff(){
     const list = $('dayoffList'), count = $('dayoffCount');
     list.innerHTML = '';
@@ -477,18 +483,23 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       return;
     }
 
-    // Get badges of everyone scheduled for this day
+    // Get everyone scheduled for the selected day
     const scheduledBadges = new Set();
+    const scheduledNames = [];
     (schedule.employees || []).forEach(emp => {
       const sh = emp.d && emp.d[selDay];
       if (sh && sh.s) {
-        const staffMatch = findStaff(emp.name);
-        if (staffMatch) scheduledBadges.add(String(staffMatch.badge));
+        scheduledNames.push(emp.name);
+        const staff = findStaff(emp.name);
+        if (staff) scheduledBadges.add(String(staff.badge));
       }
     });
 
-    // Filter staff database to find those NOT in scheduledBadges
-    const onRest = staffList.filter(s => !scheduledBadges.has(String(s.badge)));
+    // Filter staff database for those NOT scheduled
+    const onRest = staffList.filter(s => {
+      if (scheduledBadges.has(String(s.badge))) return false;
+      return !scheduledNames.some(n => R.sameName(n, s.name));
+    });
 
     if(!onRest.length){
       list.innerHTML = '<div class="dayoff-empty">Tout le monde travaille ce jour-là.</div>';
@@ -518,7 +529,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         const phoneEl = document.createElement('a');
         phoneEl.className = 'dayoff-phone';
         phoneEl.href = 'tel:' + s.phone;
-        phoneEl.textContent = '📞 ' + s.phone;
+        phoneEl.textContent = s.phone; // Removed emoji
         mid.appendChild(phoneEl);
       }
 
@@ -527,58 +538,56 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     });
   }
 
-  // ============================================================
-  // RENDER EXPECTED (UPDATED: Role Stats)
-  // ============================================================
   function renderExpected(){
-    const list = $('expectedList'), count = $('expectedCount'), stats = $('roleStats');
+    const list = $('expectedList'), stats = $('roleStats');
     list.innerHTML = '';
-    count.textContent = '';
     stats.innerHTML = '';
     
     if(!schedule){
       list.innerHTML = '<div class="exp-empty">Importez le planning pour voir les employés attendus.</div>';
       return;
     }
-    const ti = todayIdx();
-    if(ti < 0 || ti > 6 || selDay !== ti){
-      list.innerHTML = '<div class="exp-empty">Rien à afficher pour ce jour.</div>';
-      return;
-    }
 
+    const ti = todayIdx();
+    const isToday = selDay === ti;
     const nowMin = nowMinutes();
     const items = [];
     const roleCounts = {};
+    let totalExpected = 0;
 
     (schedule.employees || []).forEach(emp => {
       const sh = emp.d && emp.d[selDay];
       if(!sh || sh.st) return;
-      const dt = toMin(sh.s) - nowMin;
-      if(dt > EXPECT_LEAD_MIN || dt < -EXPECT_LATE_MIN) return;
-      if(arrivedFor(emp)) return;
       
       const staff = findStaff(emp.name);
       const role = (staff && staff.role) ? staff.role : 'Crew';
-      
+
+      totalExpected++;
       roleCounts[role] = (roleCounts[role] || 0) + 1;
-      items.push({ emp, sh, dt, key: 'd' + ti + '_' + emp.n, staff, role });
+
+      if (isToday) {
+        const dt = toMin(sh.s) - nowMin;
+        if(dt <= EXPECT_LEAD_MIN && dt >= -EXPECT_LATE_MIN && !arrivedFor(emp)) {
+          items.push({ emp: emp, sh: sh, dt: dt, key: 'd' + selDay + '_' + emp.n, staff, role });
+        }
+      }
     });
 
-    if(!items.length){
-      list.innerHTML = '<div class="exp-empty">Personne n\'est attendu dans l\'heure qui vient.</div>';
-      return;
+    // Render Stats
+    if (totalExpected > 0) {
+      let statsHtml = `<div class="role-stat-pill" style="background:var(--accent); color:#fff; border:none;">Total <span style="color:#fff">${totalExpected}</span></div>`;
+      Object.keys(roleCounts).forEach(role => {
+        statsHtml += `<div class="role-stat-pill">${esc(role)} <span>${roleCounts[role]}</span></div>`;
+      });
+      stats.innerHTML = statsHtml;
     }
 
-    count.textContent = String(items.length);
-
-    // Render Role Stats
-    let statsHtml = `<div class="role-stat-pill" style="background:var(--accent); color:#fff; border:none;">Total <span style="color:#fff">${items.length}</span></div>`;
-    Object.keys(roleCounts).forEach(role => {
-      statsHtml += `<div class="role-stat-pill">${esc(role)} <span>${roleCounts[role]}</span></div>`;
-    });
-    stats.innerHTML = statsHtml;
-
     // Render List
+    if(!items.length){
+      list.innerHTML = '<div class="exp-empty">Aucun employé attendu dans l\'heure qui vient.</div>';
+      return;
+    }
+    
     items.sort((a,b) => (a.dt - b.dt) || a.emp.name.localeCompare(b.emp.name));
     items.forEach(it => {
       const state = it.dt > 15 ? 'up' : (it.dt > -EXPECT_GRACE_MIN ? 'soon' : 'late');
@@ -594,7 +603,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       mid.appendChild(nameEl);
 
       const roleEl = document.createElement('div');
-      roleEl.className = 'dayoff-role';
+      roleEl.className = 'exp-role';
       roleEl.textContent = it.role;
       mid.appendChild(roleEl);
 
@@ -622,9 +631,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     });
   }
 
-  // ============================================================
-  // RENDER WEEK (UPDATED: Role Column)
-  // ============================================================
   function renderWeek(){
     const tabs = $('dayTabs'), list = $('dayList'), sum = $('daySum');
     list.innerHTML = '';
@@ -641,6 +647,9 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 
     const ti = todayIdx();
     if(selDay === null) selDay = (ti >= 0 && ti <= 6) ? ti : 0;
+    
+    // Watch shifts for the selected day
+    watchShiftsForDay(selDay);
 
     const sig = schedule.start + '|' + selDay + '|' + ti;
     if(tabs._sig !== sig){
@@ -657,7 +666,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         b.addEventListener('click', () => { 
           selDay = i; 
           renderWeek(); 
-          renderDayOff(); // Update Day Off when changing tabs
+          renderDayOff(); 
           renderExpected();
         });
         tabs.appendChild(b);
@@ -700,7 +709,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     table.className = 'plan';
     const thead = document.createElement('thead');
     const hr = document.createElement('tr');
-    ['Début','Fin','Employé','Fonction','Téléphone'].concat(isToday ? ['Statut'] : []).concat(['']).forEach(h => {
+    ['Début','Fin','Employé','Fonction','Téléphone','Statut',''].forEach(h => {
       const th = document.createElement('th');
       th.textContent = h;
       hr.appendChild(th);
@@ -721,7 +730,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       const head = document.createElement('tr');
       head.className = 'grp';
       const td = document.createElement('td');
-      td.colSpan = isToday ? 7 : 6; // Updated colspan for new column
+      td.colSpan = 7; // Updated colspan
       td.textContent = g[0] + ' (' + gr.length + ')';
       head.appendChild(td);
       tbody.appendChild(head);
@@ -771,15 +780,14 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         }
         tr.appendChild(tdP);
 
-        if(isToday){
-          const st = statusFor(r.emp, r.sh, nowMin);
-          const tdSt = document.createElement('td');
-          const sp = document.createElement('span');
-          sp.className = 'spill ' + st.cls;
-          sp.textContent = st.text;
-          tdSt.appendChild(sp);
-          tr.appendChild(tdSt);
-        }
+        // NEW STATUS COLUMN
+        const st = statusFor(r.emp, r.sh, nowMin, isToday);
+        const tdSt = document.createElement('td');
+        const sp = document.createElement('span');
+        sp.className = 'spill ' + st.cls;
+        sp.textContent = st.text;
+        tdSt.appendChild(sp);
+        tr.appendChild(tdSt);
         
         const tdA = document.createElement('td');
         tdA.className = 'act';
@@ -787,14 +795,14 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         bEdit.className = 'iconact';
         bEdit.type = 'button';
         bEdit.title = 'Modifier';
-        bEdit.textContent = '✎';
+        bEdit.textContent = 'Modifier'; // Removed emoji
         bEdit.addEventListener('click', () => { openEditModal(r); });
         
         const bStat = document.createElement('button');
         bStat.className = 'iconact';
         bStat.type = 'button';
         bStat.title = 'Marquer (absent, maladie, etc.)';
-        bStat.textContent = '⊘';
+        bStat.textContent = 'Statut'; // Removed emoji
         bStat.addEventListener('click', () => { openStatusModal(r); });
         
         tdA.appendChild(bEdit);
@@ -808,19 +816,24 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     list.appendChild(table);
   }
 
-  function statusFor(emp, sh, nowMin){
+  function statusFor(emp, sh, nowMin, isToday){
     if(sh.st === 'absent')    return { cls: 'mut', text: 'Absent' };
     if(sh.st === 'sick')      return { cls: 'warn', text: 'Maladie' };
     if(sh.st === 'cancelled') return { cls: 'crit', text: 'Annulé' };
     if(sh.st === 'replaced')  return { cls: 'brk', text: 'Remplacé' };
-    if(arrivedFor(emp))       return { cls: 'ok', text: 'Arrivé' };
-    if(sh.e && nowMin >= toMin(sh.e)) return { cls: '', text: 'Non pointé' };
-    const dt = toMin(sh.s) - nowMin;
-    if(dt > EXPECT_LEAD_MIN) return { cls: '', text: 'À venir' };
-    if(dt > 0)               return { cls: 'brk', text: 'Dans ' + fmtDur(dt) };
-    if(dt > -EXPECT_GRACE_MIN) return { cls: 'warn', text: 'Maintenant' };
-    if(dt >= -EXPECT_LATE_MIN) return { cls: 'crit', text: 'En retard de ' + fmtDur(-dt) };
-    return { cls: 'crit', text: 'Non pointé' };
+    
+    if(isToday) {
+      if(arrivedFor(emp))       return { cls: 'ok', text: 'Arrivé' };
+      if(sh.e && nowMin >= toMin(sh.e)) return { cls: '', text: 'Non pointé' };
+      const dt = toMin(sh.s) - nowMin;
+      if(dt > EXPECT_LEAD_MIN) return { cls: '', text: 'À venir' };
+      if(dt > 0)               return { cls: 'brk', text: 'Dans ' + fmtDur(dt) };
+      if(dt > -EXPECT_GRACE_MIN) return { cls: 'warn', text: 'Maintenant' };
+      if(dt >= -EXPECT_LATE_MIN) return { cls: 'crit', text: 'En retard de ' + fmtDur(-dt) };
+      return { cls: 'crit', text: 'Non pointé' };
+    } else {
+      return { cls: '', text: 'Prévu' };
+    }
   }
 
   function dismissExpected(key){
