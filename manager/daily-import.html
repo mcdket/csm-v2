@@ -238,7 +238,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
       header: 1, defval: '', blankrows: true, raw: false
     });
 
-    // --- 1. Locate the header row (contains "Bno" and "Empl-No") ---
     let headerIdx = -1;
     for(let i = 0; i < Math.min(rows.length, 30); i++){
       const rowStr = (rows[i] || []).map(c => String(c || '')).join('|');
@@ -248,10 +247,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
     }
     if(headerIdx < 0) throw new Error('Ligne d\'en-tête "Bno" / "Empl-No" introuvable. Est-ce bien un export Time Recorder ?');
 
-    // --- 2. Auto-detect In / Break / Out columns ---
-    // (The header row is unreliable — the data is offset by 1-3 columns.
-    //  We scan the first ~60 data rows for pattern evidence instead.)
-    let inCol = 10, brkCol = 13, outCol = 12;   // Defaults from Kronos layout
+    let inCol = 10, brkCol = 13, outCol = 12;
     let bestIn = 0, bestBrk = 0;
 
     for(let c = 0; c < 25; c++){
@@ -267,19 +263,16 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
       if(pCount > bestBrk){ bestBrk = pCount; brkCol = c; }
     }
 
-    // Out column sits between In and Break (usually Break - 1)
     if(bestBrk > 0 && brkCol > inCol){
       outCol = brkCol - 1;
     } else {
-      outCol = inCol + 2; // Fallback for files without any break punches
+      outCol = inCol + 2;
     }
 
     log('Colonnes détectées → In: ' + colLetter(inCol)
         + ' · Out: ' + colLetter(outCol)
         + ' · Break: ' + colLetter(brkCol), 'info');
 
-    // --- 3. Find date ---
-    // Primary: cell E2 (index 4 of row 1, 0-based)
     let date = null;
     if(rows[1] && rows[1][4]){
       const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(rows[1][4]).trim());
@@ -288,7 +281,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
                String(parseInt(m[2],10)).padStart(2,'0') + '/' + m[3];
       }
     }
-    // Fallback: scan header area for any DD/MM/YYYY
     if(!date){
       for(let i = 0; i < headerIdx; i++){
         const row = rows[i] || [];
@@ -304,7 +296,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
         if(date) break;
       }
     }
-    // Fallback: first employee row's date column (assume H = index 7)
     if(!date){
       for(let i = headerIdx + 1; i < rows.length; i++){
         const cell = String((rows[i] || [])[7] || '').trim();
@@ -318,17 +309,13 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
     }
     if(!date) throw new Error('Date introuvable dans le fichier.');
 
-    // --- 4. Iterate employee rows ---
     const result = [];
 
     for(let i = headerIdx + 1; i < rows.length; i++){
       const row = rows[i] || [];
-
-      // Employee row detection: col A is a pure number (badge)
       const bno = String(row[0] || '').trim();
       if(!/^\d+$/.test(bno)) continue;
 
-      // Name is in col D, format "29761    YOUNESS EL GHACHI"
       const emplCell = String(row[3] || '').trim();
       const nameMatch = /^(\d+)\s+(.+?)\s*$/.exec(emplCell);
       if(!nameMatch) continue;
@@ -336,7 +323,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
       const employeeNum = nameMatch[1];
       const name = nameMatch[2].trim();
 
-      // Role: look 1–3 rows down for "(Role)" pattern in col A
       let role = null;
       for(const off of [1, 2, 3]){
         const nextRow = rows[i + off];
@@ -346,11 +332,9 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
           role = firstCell.replace(/^\(|\)$/g, '').trim();
           break;
         }
-        // Stop at the next employee row (don't steal its role)
         if(/^\d+$/.test(firstCell)) break;
       }
 
-      // Parse the three time columns
       const inPunches    = parseTimes(String(row[inCol]  || ''), 'G');
       const outPunches   = parseTimes(String(row[outCol] || ''), 'G');
       const breakPunches = parseTimes(String(row[brkCol] || ''), 'P');
@@ -360,13 +344,12 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
       const breakStart  = breakPunches[0] ?? null;
       const clockOut    = outPunches[0]   ?? null;
 
-      // Skip rows with no punch data at all
       if(clockIn === null && breakStart === null && clockOut === null) continue;
 
       result.push({
         rawNum: bno,
         employeeNum: employeeNum,
-        namePdf: name,          // keep field name for existing code
+        namePdf: name,
         role: role,
         clockIn: clockIn,
         breakStart: breakStart,
@@ -380,7 +363,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
     return { date: date, rows: result };
   }
 
-  // Split "<br>"-joined cells, filter by suffix (G / P), return minutes-since-midnight
   function parseTimes(raw, expectedSuffix){
     if(!raw) return [];
     const parts = String(raw).split(/<br\s*\/?>|\n/i);
@@ -391,7 +373,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
       const m = /^(\d{1,2}):(\d{2})([A-Za-z]?)/.exec(s);
       if(!m) continue;
       const cellSuffix = (m[3] || '').toUpperCase();
-      // Accept matching suffix OR no suffix (some exports drop it)
       if(expectedSuffix && cellSuffix && cellSuffix !== expectedSuffix) continue;
       const h = parseInt(m[1], 10);
       const mn = parseInt(m[2], 10);
@@ -408,9 +389,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
     return String.fromCharCode(64 + Math.floor(idx / 26)) + String.fromCharCode(65 + (idx % 26));
   }
 
-  // ============================================================
-  // STAFF MATCHING (unchanged)
-  // ============================================================
   function matchAgainstStaff(){
     if(!currentImport) return;
     currentImport.rows.forEach(row => {
@@ -428,9 +406,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
   function effectiveLevel(row){ return row.chosenBadge ? 'ok' : (row.match ? row.match.level : 'crit'); }
   function chosenBadge(row){ return row.chosenBadge || (row.match && row.match.badge); }
 
-  // ============================================================
-  // RENDER
-  // ============================================================
   function render(){
     if(!currentImport){ $('previewWrap').style.display = 'none'; $('emptyState').style.display = 'block'; return; }
     $('previewWrap').style.display = 'block'; $('emptyState').style.display = 'none';
@@ -497,9 +472,6 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
     CSM.refs.dailyImport('current').delete();
   });
 
-  // ============================================================
-  // SAVE TO FIRESTORE (unchanged)
-  // ============================================================
   $('btnSaveAll').addEventListener('click', async function(){
     const rows = currentImport.rows;
     if(!rows.length) return;
