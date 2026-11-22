@@ -7,54 +7,52 @@
 <link rel="icon" type="image/webp" href="../shared/200.webp">
 <link rel="apple-touch-icon" href="../shared/200.webp">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#C9701F">
+<meta name="theme-color" content="#067A8C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/styles.css">
 <style>
-.app{max-width:100%;margin:0 auto;padding:20px;}
+.app{max-width:100%;margin:0 auto;padding:0;}
 
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:20px;flex-wrap:wrap;
-  background:var(--panel-raised);
-  border-bottom:3px solid var(--accent);
-  box-shadow:0 3px 0 rgba(201,162,39,0.55), var(--shadow);
-  padding:16px 20px;margin-bottom:18px;
-}
-.brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.brand .arch{width:34px;height:34px;object-fit:cover;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
-.brand h1{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--accent);}
-.brand .restaurant-badge{color:#2A1F00;font-size:12px;font-weight:700;background:var(--brand-yellow);padding:4px 10px;}
-.brand #dataDate{font-size:12px;color:var(--text-muted);margin-left:6px;}
-.headerside{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
-.controls{display:flex;gap:8px;flex-wrap:wrap;}
-.liveclock{display:flex;flex-direction:column;line-height:1;}
-.liveclock .lbl{font-size:9.5px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;margin-bottom:2px;}
-.liveclock #clockNow{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;letter-spacing:-0.02em;}
+/* Top Nav */
+.top-nav{background:var(--accent);color:#FFF;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:60px;}
+.nav-brand{font-weight:700;font-size:20px;}
+.nav-links{display:flex;gap:24px;}
+.nav-links a{color:#FFF;text-decoration:none;font-weight:600;font-size:14px;opacity:0.9;transition:opacity 0.2s;}
+.nav-links a:hover{opacity:1;}
+.nav-links a.active{opacity:1;font-weight:700;}
+.btn-logout{background:transparent;border:none;color:#FFF;font-weight:600;cursor:pointer;font-size:14px;opacity:0.9;}
+.btn-logout:hover{opacity:1;}
 
-.filterbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+/* Page Header */
+.page-header{display:flex;justify-content:space-between;align-items:center;padding:24px 20px 16px 20px;flex-wrap:wrap;gap:16px;background:var(--panel);}
+.page-title{font-size:28px;font-weight:700;color:var(--accent);margin:0;display:flex;align-items:center;gap:12px;}
+.restaurant-badge{background:var(--brand-yellow);color:#854D0E;padding:4px 10px;border-radius:4px;font-size:14px;font-weight:700;}
+
+/* Header Controls */
+.header-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.clock-box{display:flex;align-items:center;background:#F3F4F6;border:1px solid var(--line);border-radius:4px;padding:4px 8px;gap:8px;border-left:none;}
+.clock-box span{font-size:16px;font-weight:700;color:var(--text);}
+.clock-box button{padding:2px 8px;font-size:13px;}
+.btn-import{background:var(--panel-raised);border:1.5px solid var(--line);color:var(--text);padding:8px 16px;border-radius:4px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
+.btn-import:hover{border-color:var(--accent);}
+
+/* Filter Bar */
+.filter-bar{display:flex;justify-content:space-between;align-items:center;padding:0 20px 16px 20px;flex-wrap:wrap;gap:12px;background:var(--panel);}
 .filter-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-.filter-btn{
-  border:1px solid var(--line);background:var(--panel);color:var(--text-muted);
-  padding:6px 12px;font-size:12px;font-weight:600;transition:all .15s ease;
-  cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;
-}
+.filter-btn{border:1px solid var(--line);background:var(--panel);color:var(--text-muted);padding:6px 12px;font-size:12px;font-weight:600;transition:all .15s ease;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;}
 .filter-btn:hover{border-color:var(--accent);color:var(--text);}
 .filter-btn.active{background:var(--accent);color:#FFF;border-color:var(--accent);}
-
-.badge-count{
-  background:rgba(0,0,0,0.08);padding:1px 6px;border-radius:10px;
-  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
-}
+.badge-count{background:rgba(0,0,0,0.08);padding:1px 6px;border-radius:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;}
 .filter-btn.active .badge-count{background:rgba(255,255,255,0.25);}
-
 .search-box{display:flex;align-items:center;background:var(--panel-raised);border:1px solid var(--line);padding:4px 10px;min-width:240px;}
 .search-box svg{width:14px;height:14px;color:var(--text-muted);margin-right:6px;flex:none;}
 .search-box input{border:none;background:transparent;color:var(--text);font-size:12px;width:100%;outline:none;font-family:inherit;}
 
-.alertstrip{display:none;flex-direction:column;gap:6px;margin-bottom:16px;}
+/* Table */
+.table-wrap{padding:0 20px 20px 20px;}
+.alertstrip{display:none;flex-direction:column;gap:6px;margin:0 20px 16px 20px;}
 .alertstrip.show{display:flex;}
 .alertrow{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;font-weight:600;border:1px solid transparent;}
 .alertrow.crit{background:var(--status-crit-bg);color:var(--status-crit-fg);border-color:var(--status-crit-line);}
@@ -68,7 +66,6 @@ tbody td{padding:11px 8px;font-size:13px;border-bottom:1px solid var(--line-soft
 tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 tbody td.sugg{color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 tbody td.name{font-weight:600;white-space:normal;}
-
 tbody tr{border-left:4px solid transparent;}
 tbody tr:hover{background:var(--panel-raised);}
 tbody tr.st-ok{border-left-color:var(--status-ok-line);}
@@ -77,10 +74,8 @@ tbody tr.st-crit{border-left-color:var(--status-crit-line);background:var(--stat
 tbody tr.st-break{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
 tbody tr.st-breakover{border-left-color:var(--status-break-line);background:var(--status-break-bg);}
 tbody tr.st-done{opacity:0.55;}
-
 .totalhrs{font-weight:700;color:var(--accent-strong);}
 .dash{color:var(--text-muted);}
-
 .action-group{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
 .btn-action{padding:7px 10px;font-size:11px;font-weight:700;border:1.5px solid var(--line);background:var(--panel-raised);color:var(--text);white-space:nowrap;transition:all 0.15s ease;cursor:pointer;font-family:inherit;}
 .btn-action:hover{border-color:var(--accent);transform:translateY(-1px);}
@@ -90,7 +85,6 @@ tbody tr.st-done{opacity:0.55;}
 .btn-action.out-btn:hover{background:var(--status-crit-bg);}
 .rowedit{border:1px solid var(--line);background:transparent;color:var(--text-muted);width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;}
 .rowedit:hover{border-color:var(--accent);color:var(--accent);}
-
 .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:11px;font-weight:700;letter-spacing:.02em;border-radius:2px;}
 .pill.ok   {background:var(--status-ok-bg);   color:var(--status-ok-fg);}
 .pill.warn {background:var(--status-warn-bg); color:var(--status-warn-fg);}
@@ -99,6 +93,7 @@ tbody tr.st-done{opacity:0.55;}
 .pill.done {background:var(--panel);color:var(--text-muted);}
 .pilldot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
 
+/* Modals */
 .modalbg{position:fixed;inset:0;background:rgba(10,12,10,0.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
 .modalbg.show{display:flex;}
 .modal{background:var(--panel-raised);border:1px solid var(--line);width:100%;max-width:440px;padding:20px;box-shadow:var(--shadow);}
@@ -113,43 +108,20 @@ tbody tr.st-done{opacity:0.55;}
 .modalactions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;align-items:center;}
 .linkbtn{background:none;border:none;color:var(--status-crit-fg);font-family:inherit;font-size:13px;cursor:pointer;text-decoration:underline;padding:0;}
 
-/* ============================================================
-   PRINT STYLES (Landscape mode, shows all columns)
-   ============================================================ */
+/* Print */
 @media print {
-  @page { 
-    margin: 10mm; 
-    size: A4 landscape; 
-  }
-  body { 
-    background: #fff !important; 
-    color: #000 !important; 
-    font-size: 10px !important; 
-  }
-  
-  .header, .filterbar, .alertstrip, .controls, .action-group, .rowedit, .search-box, .liveclock { 
-    display: none !important; 
-  }
-  
+  @page { margin: 10mm; size: A4 landscape; }
+  body { background: #fff !important; color: #000 !important; font-size: 10px !important; }
+  .top-nav, .page-header, .filter-bar, .alertstrip, .action-group, .rowedit, .search-box, .liveclock { display: none !important; }
   .app { padding: 0; max-width: 100%; }
+  .table-wrap { padding: 0; }
   .tablewrap { border: none !important; box-shadow: none !important; overflow: visible !important; }
   table { width: 100% !important; min-width: 0 !important; border-collapse: collapse !important; }
-  th, td { 
-    border: 1px solid #000 !important; 
-    padding: 4px 6px !important; 
-    color: #000 !important; 
-    font-size: 10px !important; 
-  }
+  th, td { border: 1px solid #000 !important; padding: 4px 6px !important; color: #000 !important; font-size: 10px !important; }
   th { background: #eee !important; }
-  
   .pill { border: 1px solid #000 !important; background: none !important; color: #000 !important; padding: 2px 4px !important; }
   .pilldot { display: none !important; }
-  
-  th:nth-last-child(1), td:nth-last-child(1),
-  th:nth-last-child(2), td:nth-last-child(2) { 
-    display: none !important; 
-  }
-  
+  th:nth-last-child(1), td:nth-last-child(1), th:nth-last-child(2), td:nth-last-child(2) { display: none !important; }
   tbody tr { opacity: 1 !important; background: none !important; border-left: none !important; }
 }
 </style>
@@ -157,76 +129,92 @@ tbody tr.st-done{opacity:0.55;}
 <body>
 
 <div class="app" id="app" style="display:none;">
-  <div class="header">
-    <div class="brand">
-      <img class="arch" src="../shared/200.webp" alt="McDonald's">
-      <h1>Pointages</h1>
-      <span class="restaurant-badge" id="restaurantBadge" style="display:none;"></span>
-      <span id="dataDate"></span>
+  
+  <!-- TOP NAV BAR -->
+  <div class="top-nav">
+    <div style="display:flex; align-items:center; gap:30px;">
+      <div class="nav-brand">mngmt.tech</div>
+      <div class="nav-links">
+        <a href="index.html" class="active">Time Punch</a>
+        <a href="planning.html">Planning</a>
+        <a href="staff.html">Staff</a>
+      </div>
     </div>
-    <div class="headerside">
-      <div class="liveclock">
-        <span class="lbl">HEURE SYSTÈME</span>
+    <button class="btn-logout" id="btnLogout">Déconnexion</button>
+  </div>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <h1 class="page-title">Pointages</h1>
+      <span class="restaurant-badge" id="restaurantBadge" style="display:none;">McDo Ketia Agadir Session Fayssal</span>
+      <!-- Date hidden as requested -->
+      <span id="dataDate" style="display:none;"></span>
+    </div>
+    
+    <div class="header-controls">
+      <div class="liveclock clock-box">
         <span id="clockNow">--:--:--</span>
+        <button class="btn" id="btnSetTime">Régler</button>
       </div>
-      <div class="controls">
-        <button class="btn" id="btnSetTime">Régler l'heure</button>
-        <button class="btn" id="btnAutoTime">Heure auto</button>
-        <a class="btn" href="planning.html">Planning</a>
-        <a class="btn" href="staff.html">Employés</a>
-        <a class="btn" href="daily-import.html">Importer</a>
-        <button class="btn" id="btnAdd">Ajouter</button>
-        <button class="btn btn-primary" id="btnPrint">Imprimer</button>
-        <button class="btn btn-danger" id="btnClearDay">Vider le tableau</button>
-        <button class="btn" id="btnLogout">Déconnexion</button>
-      </div>
+      <button class="btn" id="btnAutoTime" style="display:none;">Heure auto</button>
+      
+      <a class="btn-import" href="daily-import.html">Importer SOTEC</a>
+      <button class="btn" id="btnPrint">Imprimer</button>
+      <button class="btn btn-primary" id="btnAdd">+ Ajouter</button>
+      <button class="btn btn-danger" id="btnClearDay">Vider</button>
     </div>
   </div>
 
-  <div class="alertstrip" id="alertStrip"></div>
-
-  <div class="filterbar">
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
     <div class="filter-group">
-      <span style="font-size:12px;font-weight:600;color:var(--text-muted);margin-right:2px;">Filtrer :</span>
       <button class="filter-btn active" data-filter="all">Tous</button>
       <button class="filter-btn" data-filter="working">En poste <span class="badge-count" id="countWorking">0</span></button>
       <button class="filter-btn" data-filter="break">En pause <span class="badge-count" id="countBreak">0</span></button>
-      <button class="filter-btn" data-filter="action">Action requise <span class="badge-count" id="countAction">0</span></button>
+      <button class="filter-btn" data-filter="action">Action <span class="badge-count" id="countAction">0</span></button>
     </div>
+    
     <div class="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input type="text" id="searchInput" placeholder="Rechercher (Nom, Badge)...">
+      <input type="text" id="searchInput" placeholder="Rechercher nom ou badge...">
     </div>
   </div>
 
-  <div class="tablewrap">
-    <table id="empTable">
-      <thead>
-        <tr>
-          <th>Badge</th>
-          <th>Nom</th>
-          <th>Entrée</th>
-          <th>Pause Sugg.</th>
-          <th>Pause Eff.</th>
-          <th>Retour Sugg.</th>
-          <th>Retour Eff.</th>
-          <th>Sortie Sugg.</th>
-          <th>Sortie</th>
-          <th>Heures Tot.</th>
-          <th>Statut</th>
-          <th>Actions</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="empBody"></tbody>
-    </table>
+  <!-- ALERTS -->
+  <div class="alertstrip" id="alertStrip"></div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="tablewrap">
+      <table id="empTable">
+        <thead>
+          <tr>
+            <th>Badge</th>
+            <th>Nom</th>
+            <th>Entrée</th>
+            <th>Pause Sugg.</th>
+            <th>Pause Eff.</th>
+            <th>Retour Sugg.</th>
+            <th>Retour Eff.</th>
+            <th>Sortie Sugg.</th>
+            <th>Sortie</th>
+            <th>Heures Tot.</th>
+            <th>Statut</th>
+            <th>Actions</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="empBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <dialog class="timedlg" id="timeDlg">
   <form id="timeForm" method="dialog">
     <h2>Régler l'heure du système</h2>
-    <p>L'heure choisie remplace celle de l'appareil et continue de défiler. Le réglage ne concerne que cet appareil.</p>
+    <p>L'heure choisie remplace celle de l'appareil et continue de défiler.</p>
     <input type="time" id="timeInput" required aria-label="Nouvelle heure">
     <div class="trow">
       <button type="button" class="btn" id="timeCancel">Annuler</button>
@@ -245,8 +233,8 @@ tbody tr.st-done{opacity:0.55;}
     </div>
     <div class="field"><label>Nom & Prénom</label><input type="text" id="fName" placeholder="Nom de l'employé"></div>
     <div class="fieldrow">
-      <div class="field"><label>Entrées (séparées par virgule)</label><input type="text" id="fIn" placeholder="08:00, 13:00"></div>
-      <div class="field"><label>Sorties (séparées par virgule)</label><input type="text" id="fOut" placeholder="12:00, 17:00"></div>
+      <div class="field"><label>Entrées (virgule)</label><input type="text" id="fIn" placeholder="08:00, 13:00"></div>
+      <div class="field"><label>Sorties (virgule)</label><input type="text" id="fOut" placeholder="12:00, 17:00"></div>
     </div>
     <div class="modalactions">
       <button class="linkbtn" id="btnDelete" style="margin-right:auto;display:none;">Supprimer</button>
@@ -425,8 +413,7 @@ tbody tr.st-done{opacity:0.55;}
     if(!currentDataDate) { el.textContent = ''; return; }
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(currentDataDate);
     const pretty = m ? (m[3] + '/' + m[2] + '/' + m[1]) : currentDataDate;
-    const today = R.todayKey();
-    el.textContent = (currentDataDate === today) ? '· ' + pretty + ' (aujourd\'hui)' : '· ' + pretty;
+    el.textContent = pretty;
   }
 
   // ============================================================
