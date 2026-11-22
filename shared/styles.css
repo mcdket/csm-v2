@@ -1,26 +1,24 @@
 /* ============================================================
-   Contract Social Manager — Clean Corporate UI
+   Contract Social Manager — New Corporate UI
    ============================================================ */
 
 :root {
   --teal: #067A8C;
   --teal-dark: #056473;
-  --teal-light: #E6F2F5;
-  --bg-body: #F4F7F9;
+  --bg-body: #F7F9FA;
   --bg-panel: #FFFFFF;
-  --text-main: #1F2937;
+  --text-main: #333333;
   --text-muted: #6B7280;
   --border-light: #E5E7EB;
   --border-dark: #D1D5DB;
   
-  --blue-bg: #E0F2FE;
-  --blue-text: #0284C7;
-  --green-bg: #DCFCE7;
-  --green-text: #166534;
-  --yellow-bg: #FEF9C3;
-  --yellow-text: #854D0E;
-  --yellow-border: #FDE047;
-  --red-text: #DC2626;
+  --badge-blue-bg: #E3F2FD;
+  --badge-blue-text: #1976D2;
+  --badge-green-bg: #E8F5E9;
+  --badge-green-text: #2E7D32;
+  
+  --warning-text: #D4A32A;
+  --warning-border: #F3D9A4;
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
@@ -30,18 +28,18 @@ html, body { margin: 0; padding: 0; background-color: var(--bg-body); }
 
 body {
   color: var(--text-main);
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
-.mono { font-family: 'Courier New', Courier, monospace; }
+.mono { font-family: monospace; }
 a { text-decoration: none; color: var(--teal); }
 button { font-family: inherit; cursor: pointer; }
 input, select { font-family: inherit; }
 
 /* ============================================================
-   Navigation Bar
+   Top Navigation
    ============================================================ */
 .top-nav {
   background-color: var(--teal);
@@ -62,8 +60,7 @@ input, select { font-family: inherit; }
   display: flex;
   align-items: center;
   gap: 8px;
-  opacity: 0.8;
-  transition: opacity 0.2s;
+  opacity: 0.9;
 }
 .nav-link:hover { opacity: 1; }
 .nav-link.active { opacity: 1; font-weight: 600; }
@@ -76,7 +73,7 @@ input, select { font-family: inherit; }
   display: flex;
   align-items: center;
   gap: 8px;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 .nav-btn:hover { opacity: 1; }
 
@@ -94,7 +91,7 @@ input, select { font-family: inherit; }
 }
 .restaurant-badge {
   font-size: 14px; font-weight: 500;
-  background-color: var(--yellow-bg); color: var(--yellow-text);
+  background-color: #FFF7D6; color: #D49A3A;
   padding: 4px 10px; border-radius: 4px;
 }
 
@@ -109,11 +106,11 @@ input, select { font-family: inherit; }
 }
 .btn-primary { background: var(--teal); color: #FFFFFF; }
 .btn-primary:hover { background: var(--teal-dark); }
-.btn-secondary { background: #FFFFFF; border-color: var(--border-dark); color: var(--text-main); }
-.btn-secondary:hover { background: #F9FAFB; }
-.btn-danger { background: #FFFFFF; border-color: var(--red-text); color: var(--red-text); }
+.btn-secondary { background: #FFFFFF; border-color: var(--teal); color: var(--teal); }
+.btn-secondary:hover { background: #F0F9FA; }
+.btn-danger { background: #FFFFFF; border-color: #EF4444; color: #EF4444; }
 .btn-danger:hover { background: #FEF2F2; }
-.btn-warning { background: #FFFFFF; border-color: var(--yellow-border); color: var(--yellow-text); }
+.btn-warning { background: #FFFFFF; border-color: var(--warning-border); color: var(--warning-text); }
 .btn-warning:hover { background: #FFFBEB; }
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 
@@ -123,11 +120,10 @@ input, select { font-family: inherit; }
 .input, .select {
   padding: 8px 12px; font-size: 14px; border: 1px solid var(--border-dark);
   border-radius: 4px; background: #FFFFFF; color: var(--text-main);
-  outline: none;
 }
-.input:focus, .select:focus { border-color: var(--teal); box-shadow: 0 0 0 2px var(--teal-light); }
+.input:focus, .select:focus { outline: 2px solid var(--teal); outline-offset: -1px; border-color: transparent; }
 .input-group { display: flex; align-items: center; border: 1px solid var(--border-dark); border-radius: 4px; background: #FFFFFF; padding-left: 12px; }
-.input-group input { border: none; outline: none; padding: 8px 12px 8px 8px; width: 100%; font-size: 14px; background: transparent; }
+.input-group input { border: none; outline: none; padding: 8px 12px 8px 8px; width: 100%; font-size: 14px; }
 .input-group svg { color: var(--text-muted); }
 
 /* ============================================================
@@ -142,20 +138,20 @@ th {
   background: #F9FAFB; color: #4B5563; font-size: 13px; font-weight: 600;
   padding: 14px 16px; border-bottom: 1px solid var(--border-light); white-space: nowrap;
 }
-th.bg-blue { background: var(--teal-light); color: var(--teal-dark); }
+th.bg-blue { background: #EAF3F8; color: #1E3A8A; }
 td {
   padding: 14px 16px; font-size: 14px; color: var(--text-main);
   border-bottom: 1px solid var(--border-light); vertical-align: middle;
 }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: #F9FAFB; }
-td.bg-blue { background: #F8FCFD; }
+td.bg-blue { background: #F4F9FC; }
 
 /* Badges */
-.badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; display: inline-block; }
-.badge-blue { background: var(--blue-bg); color: var(--blue-text); }
-.badge-green { background: var(--green-bg); color: var(--green-text); }
-.badge-yellow { background: var(--yellow-bg); color: var(--yellow-text); }
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+.badge-blue { background: var(--badge-blue-bg); color: var(--badge-blue-text); }
+.badge-green { background: var(--badge-green-bg); color: var(--badge-green-text); }
+.badge-yellow { background: #FFF7D6; color: #D49A3A; }
 .badge-red { background: #FEE2E2; color: #B91C1C; }
 .badge-gray { background: #F3F4F6; color: #4B5563; }
 
