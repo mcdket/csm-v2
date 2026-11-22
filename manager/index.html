@@ -68,7 +68,6 @@ tbody td{padding:11px 8px;font-size:13px;border-bottom:1px solid var(--line-soft
 tbody td.mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 tbody td.sugg{color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
 tbody td.name{font-weight:600;white-space:normal;}
-tbody td.post{font-weight:700;color:var(--accent-strong);text-transform:uppercase;font-size:11.5px;}
 
 tbody tr{border-left:4px solid transparent;}
 tbody tr:hover{background:var(--panel-raised);}
@@ -128,7 +127,6 @@ tbody tr.st-done{opacity:0.55;}
     font-size: 10px !important; 
   }
   
-  /* Hide all UI elements */
   .header, .filterbar, .alertstrip, .controls, .action-group, .rowedit, .search-box, .liveclock { 
     display: none !important; 
   }
@@ -144,17 +142,14 @@ tbody tr.st-done{opacity:0.55;}
   }
   th { background: #eee !important; }
   
-  /* Make status pills readable on B&W */
   .pill { border: 1px solid #000 !important; background: none !important; color: #000 !important; padding: 2px 4px !important; }
   .pilldot { display: none !important; }
   
-  /* Hide the last 2 columns (Actions and Edit icon) */
   th:nth-last-child(1), td:nth-last-child(1),
   th:nth-last-child(2), td:nth-last-child(2) { 
     display: none !important; 
   }
   
-  /* Keep row colors light so they don't use too much ink */
   tbody tr { opacity: 1 !important; background: none !important; border-left: none !important; }
 }
 </style>
@@ -179,9 +174,7 @@ tbody tr.st-done{opacity:0.55;}
         <button class="btn" id="btnAutoTime">Heure auto</button>
         <a class="btn" href="planning.html">Planning</a>
         <a class="btn" href="staff.html">Employés</a>
-        <a class="btn" href="football-field.html" style="color:var(--accent);font-weight:700;">⚽ Football Field</a>
         <a class="btn" href="daily-import.html">Importer</a>
-        <button class="btn" id="btnTheme" title="Changer le thème">🌙</button>
         <button class="btn" id="btnAdd">Ajouter</button>
         <button class="btn btn-primary" id="btnPrint">Imprimer</button>
         <button class="btn btn-danger" id="btnClearDay">Vider le tableau</button>
@@ -212,7 +205,6 @@ tbody tr.st-done{opacity:0.55;}
         <tr>
           <th>Badge</th>
           <th>Nom</th>
-          <th>Poste</th>
           <th>Entrée</th>
           <th>Pause Sugg.</th>
           <th>Pause Eff.</th>
@@ -276,30 +268,6 @@ tbody tr.st-done{opacity:0.55;}
   const $ = function(id){ return document.getElementById(id); };
   const R = window.CSMRules;
 
-  // ---------- Theme ----------
-  (function(){
-    const K = 'csct_manager_theme';
-    function apply(){
-      let t = 'light';
-      try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-      document.documentElement.classList.toggle('theme-light', t === 'light');
-      document.documentElement.classList.toggle('theme-dark', t === 'dark');
-      const b = document.getElementById('btnTheme');
-      if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
-    }
-    apply();
-    const btn = document.getElementById('btnTheme');
-    if(btn){
-      btn.addEventListener('click', function(){
-        let t = 'light';
-        try{ t = localStorage.getItem(K) || 'light'; }catch(e){}
-        const next = t === 'light' ? 'dark' : 'light';
-        try{ localStorage.setItem(K, next); }catch(e){}
-        apply();
-      });
-    }
-  })();
-
   // ---------- Time offset ----------
   let timeOffsetMs = 0;
   const TIME_KEY = 'csct_time_offset';
@@ -342,13 +310,11 @@ tbody tr.st-done{opacity:0.55;}
 
   // ---------- State ----------
   let shifts = [];
-  let assignments = {};
   let currentFilter = 'all';
   let searchQuery = '';
   let editingId = null;
   let unsubShifts = null;
   let unsubDaily = null;
-  let unsubAssignments = null;
   let currentDataDate = null;
 
   function suggestedTimes(shift){
@@ -399,7 +365,6 @@ tbody tr.st-done{opacity:0.55;}
         setInterval(tickClock, 1000);
         setInterval(function(){ if($('app').style.display !== 'none') render(); }, 15000);
         watchDailyImport();
-        watchAssignments();
       });
     }).catch(function(err){
       console.error('Auth gating:', err);
@@ -450,14 +415,6 @@ tbody tr.st-done{opacity:0.55;}
     if(unsubShifts) unsubShifts();
     unsubShifts = CSM.refs.shifts().where('date', '==', dateIso).onSnapshot(function(snap){
       shifts = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
-      render();
-    });
-  }
-
-  function watchAssignments(){
-    if(unsubAssignments) unsubAssignments();
-    unsubAssignments = CSM.refs.restaurant().collection('assignments').doc('current').onSnapshot(function(doc){
-      assignments = doc.exists ? doc.data() : {};
       render();
     });
   }
@@ -544,35 +501,23 @@ tbody tr.st-done{opacity:0.55;}
 
       const buttons = actionButtonsFor(shift, calc);
 
-      // Extract arrays for multi-part shifts
       let inP = shift.inPunches || (shift.clockIn != null ? [shift.clockIn] : []);
       let outP = shift.outPunches || [];
       if(shift.breakStart != null) outP.push(shift.breakStart);
       if(shift.clockOut != null) outP.push(shift.clockOut);
       outP.sort((a,b)=>a-b);
 
-      // Only show the first clock-in time for the entry
       const inStr = (inP.length > 0) ? R.minToHM(inP[0]) : '—';
       
       const pauseEff = outP.length > 0 ? R.minToHM(outP[0]) : '—';
       const retourEff = inP.length > 1 ? R.minToHM(inP[1]) : '—';
       const sortieEff = (outP.length >= inP.length && outP.length > 0) ? R.minToHM(outP[outP.length-1]) : '—';
-      
-      // Find post safely
-      let post = '—';
-      for (const [key, val] of Object.entries(assignments)) {
-        if (String(val).trim() === String(shift.badge).trim()) {
-          post = key;
-          break;
-        }
-      }
 
       const tr = document.createElement('tr');
       tr.className = meta.row;
       tr.innerHTML =
         '<td class="mono">' + esc(shift.badge || '—') + '</td>' +
         '<td class="name">' + esc(shift.name || 'Sans nom') + '</td>' +
-        '<td class="post">' + esc(post) + '</td>' +
         '<td class="mono">' + inStr + '</td>' +
         '<td class="sugg">' + (esc(R.minToHM(sugg.pause)) || '—') + '</td>' +
         '<td class="mono">' + pauseEff + '</td>' +
