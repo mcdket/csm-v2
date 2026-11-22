@@ -1,66 +1,71 @@
 /* ============================================================
    Contract Social Manager — shared design tokens & base styles
+   (UPDATED COLORS ONLY - LAYOUT PRESERVED)
    ============================================================ */
 
 :root{
-  --bg:#14181D;
-  --panel:#1B2129;
-  --panel-raised:#232B35;
-  --line:#2C333C;
-  --line-soft:#242A32;
-  --text:#F1F3F6;
-  --text-muted:#8B94A3;
-  --accent:#D9822E;
-  --accent-strong:#A85A15;
-  --brand-yellow:#F0B94A;
-  --brand-yellow-strong:#D89B2E;
-
-  --status-ok-bg:#DCEEE1;   --status-ok-fg:#1E7A46;   --status-ok-line:#3DAE72;
-  --status-warn-bg:#FFF2C6; --status-warn-fg:#8A5A00; --status-warn-line:#FFC72C;
-  --status-crit-bg:#FBDAD3; --status-crit-fg:#8C2A17; --status-crit-line:#DA291C;
-  --status-break-bg:#D9E8FB;--status-break-fg:#1E4F8C;--status-break-line:#3D8EE8;
-
-  --shadow: 0 4px 20px rgba(0,0,0,0.35);
-}
-
-.theme-light{
-  --bg:#F7F9FB;
+  --bg:#F4F7F9;
   --panel:#FFFFFF;
   --panel-raised:#FFFFFF;
-  --line:#E3E8EE;
-  --line-soft:#EEF2F6;
-  --text:#1E2A38;
-  --text-muted:#64748B;
-  --accent:#C9701F;
-  --accent-strong:#A85A15;
-  --brand-yellow:#C9A227;
-  --brand-yellow-strong:#A9850F;
+  --line:#E5E7EB;
+  --line-soft:#F3F4F6;
+  --text:#1F2937;
+  --text-muted:#6B7280;
+  
+  /* NEW TEAL ACCENTS */
+  --accent:#067A8C;
+  --accent-strong:#056473;
+  --brand-yellow:#FEF9C3;
+  --brand-yellow-strong:#D4A32A;
 
-  --status-ok-bg:#DCEEE1;   --status-ok-fg:#1E7A46;   --status-ok-line:#3DAE72;
-  --status-warn-bg:#FFF1C2; --status-warn-fg:#8A5A00; --status-warn-line:#FFC72C;
-  --status-crit-bg:#FBDAD3; --status-crit-fg:#B31F14; --status-crit-line:#DA291C;
-  --status-break-bg:#D9E8FB;--status-break-fg:#1E4F8C;--status-break-line:#3D8EE8;
+  /* STATUS COLORS */
+  --status-ok-bg:#DCFCE7;   --status-ok-fg:#166534;   --status-ok-line:#22C55E;
+  --status-warn-bg:#FEF9C3; --status-warn-fg:#854D0E; --status-warn-line:#FDE047;
+  --status-crit-bg:#FEE2E2; --status-crit-fg:#991B1B; --status-crit-line:#EF4444;
+  --status-break-bg:#E0F2FE;--status-break-fg:#0284C7;--status-break-line:#0EA5E9;
 
   --shadow: 0 1px 2px rgba(30,42,56,0.06), 0 4px 14px rgba(30,42,56,0.08);
 }
 
-.theme-dark{
-  --bg:#14181D;
-  --panel:#1B2129;
-  --panel-raised:#232B35;
-  --line:#2C333C;
-  --line-soft:#242A32;
-  --text:#F1F3F6;
-  --text-muted:#8B94A3;
-  --accent:#D9822E;
-  --accent-strong:#F0954A;
-  --brand-yellow:#E3C25E;
-  --brand-yellow-strong:#F0D480;
+.theme-light{
+  --bg:#F4F7F9;
+  --panel:#FFFFFF;
+  --panel-raised:#FFFFFF;
+  --line:#E5E7EB;
+  --line-soft:#F3F4F6;
+  --text:#1F2937;
+  --text-muted:#6B7280;
+  --accent:#067A8C;
+  --accent-strong:#056473;
+  --brand-yellow:#FEF9C3;
+  --brand-yellow-strong:#D4A32A;
 
-  --status-ok-bg:rgba(61,174,114,0.16);   --status-ok-fg:#6FD79C;   --status-ok-line:#3DAE72;
-  --status-warn-bg:rgba(255,199,44,0.18); --status-warn-fg:#FFD75E; --status-warn-line:#FFC72C;
-  --status-crit-bg:rgba(255,68,51,0.18);  --status-crit-fg:#FF8B77; --status-crit-line:#FF4433;
-  --status-break-bg:rgba(61,142,232,0.16);--status-break-fg:#7FB6F5;--status-break-line:#3D8EE8;
+  --status-ok-bg:#DCFCE7;   --status-ok-fg:#166534;   --status-ok-line:#22C55E;
+  --status-warn-bg:#FEF9C3; --status-warn-fg:#854D0E; --status-warn-line:#FDE047;
+  --status-crit-bg:#FEE2E2; --status-crit-fg:#991B1B; --status-crit-line:#EF4444;
+  --status-break-bg:#E0F2FE;--status-break-fg:#0284C7;--status-break-line:#0EA5E9;
+
+  --shadow: 0 1px 2px rgba(30,42,56,0.06), 0 4px 14px rgba(30,42,56,0.08);
+}
+
+/* Keep the dark theme in case you switch back, but updated to match the vibe */
+.theme-dark{
+  --bg:#111827;
+  --panel:#1F2937;
+  --panel-raised:#374151;
+  --line:#4B5563;
+  --line-soft:#374151;
+  --text:#F9FAFB;
+  --text-muted:#9CA3AF;
+  --accent:#0EA5E9;
+  --accent-strong:#38BDF8;
+  --brand-yellow:#FDE047;
+  --brand-yellow-strong:#EAB308;
+
+  --status-ok-bg:rgba(34,197,94,0.16);   --status-ok-fg:#4ADE80;   --status-ok-line:#22C55E;
+  --status-warn-bg:rgba(234,179,8,0.18); --status-warn-fg:#FDE047; --status-warn-line:#EAB308;
+  --status-crit-bg:rgba(239,68,68,0.18); --status-crit-fg:#F87171; --status-crit-line:#EF4444;
+  --status-break-bg:rgba(14,165,233,0.16);--status-break-fg:#7DD3FC;--status-break-line:#0EA5E9;
 
   --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
 }
