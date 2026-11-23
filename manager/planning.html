@@ -154,19 +154,37 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
 .dot-replace{background:#7A4DAB;}
 .dot-clear{background:#4C9A5D;}
 
+/* ============================================================
+   PRINT STYLES (Only Print Scheduled Employees, Start Time, and Function)
+   ============================================================ */
 @media print{
   @page{margin:14mm;}
-  body{background:#fff;color:#000;}
-  .top-nav,.page-header,.plansub,.expected,.dayoff,.import,.week-head,.daytabs,.daysum,.addrow,.plan td.act{display:none !important;}
+  body{background:#fff;color:#000;font-size:12px;}
+  
+  /* Hide all UI elements */
+  .top-nav, .page-header, .plansub, .expected, .dayoff, .import, .week-head, .daytabs, .daysum, .addrow, .plan td.act { 
+    display: none !important; 
+  }
+  
   .app{max-width:none;padding:0;}
   .content{padding:0;}
   .week{background:none;border:0;padding:0;box-shadow:none;}
   .tablewrap{overflow:visible;}
-  table.plan{font-size:13px;}
-  .plan th{color:#000;border-bottom:2px solid #000;}
-  .plan td{border-bottom:1px solid #888;padding:7px 8px;color:#000;}
-  .plan tr.grp td{background:#eee !important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  
+  table.plan{width:100%;border-collapse:collapse;font-size:12px;}
+  .plan th{color:#000;border-bottom:2px solid #000; padding: 8px;}
+  .plan td{border-bottom:1px solid #888;padding:8px;color:#000;}
+  
+  .plan tr.grp td{background:#eee !important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact; font-size: 12px;}
   .plan tr{break-inside:avoid;}
+  
+  /* Hide specific columns: Fin (2), Téléphone (5), Statut (6), Actions (7) */
+  .plan th:nth-child(2), .plan td:nth-child(2),
+  .plan th:nth-child(5), .plan td:nth-child(5),
+  .plan th:nth-child(6), .plan td:nth-child(6),
+  .plan th:nth-child(7), .plan td:nth-child(7) {
+    display: none !important;
+  }
 }
 </style>
 </head>
@@ -381,6 +399,11 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
   });
 
   $('btnLogout').addEventListener('click', () => auth.signOut());
+  
+  // Print Button Listener
+  $('btnPrint').addEventListener('click', function() {
+    window.print();
+  });
 
   $('btnToggleDayOff').addEventListener('click', () => {
     showDayoff = !showDayoff;
@@ -483,7 +506,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       return;
     }
 
-    // Get everyone scheduled for the selected day
     const scheduledBadges = new Set();
     const scheduledNames = [];
     (schedule.employees || []).forEach(emp => {
@@ -495,7 +517,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       }
     });
 
-    // Filter staff database for those NOT scheduled
     const onRest = staffList.filter(s => {
       if (scheduledBadges.has(String(s.badge))) return false;
       return !scheduledNames.some(n => R.sameName(n, s.name));
@@ -529,7 +550,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         const phoneEl = document.createElement('a');
         phoneEl.className = 'dayoff-phone';
         phoneEl.href = 'tel:' + s.phone;
-        phoneEl.textContent = s.phone; // Removed emoji
+        phoneEl.textContent = s.phone;
         mid.appendChild(phoneEl);
       }
 
@@ -573,7 +594,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       }
     });
 
-    // Render Stats
     if (totalExpected > 0) {
       let statsHtml = `<div class="role-stat-pill" style="background:var(--accent); color:#fff; border:none;">Total <span style="color:#fff">${totalExpected}</span></div>`;
       Object.keys(roleCounts).forEach(role => {
@@ -582,7 +602,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       stats.innerHTML = statsHtml;
     }
 
-    // Render List
     if(!items.length){
       list.innerHTML = '<div class="exp-empty">Aucun employé attendu dans l\'heure qui vient.</div>';
       return;
@@ -648,7 +667,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
     const ti = todayIdx();
     if(selDay === null) selDay = (ti >= 0 && ti <= 6) ? ti : 0;
     
-    // Watch shifts for the selected day
     watchShiftsForDay(selDay);
 
     const sig = schedule.start + '|' + selDay + '|' + ti;
@@ -730,7 +748,7 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
       const head = document.createElement('tr');
       head.className = 'grp';
       const td = document.createElement('td');
-      td.colSpan = 7; // Updated colspan
+      td.colSpan = 7;
       td.textContent = g[0] + ' (' + gr.length + ')';
       head.appendChild(td);
       tbody.appendChild(head);
@@ -761,7 +779,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         }
         tr.appendChild(tdN);
 
-        // NEW ROLE COLUMN
         const staff = findStaff(displayName);
         const roleStr = (staff && staff.role) ? staff.role : 'Crew';
         const tdRole = document.createElement('td');
@@ -780,7 +797,6 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         }
         tr.appendChild(tdP);
 
-        // NEW STATUS COLUMN
         const st = statusFor(r.emp, r.sh, nowMin, isToday);
         const tdSt = document.createElement('td');
         const sp = document.createElement('span');
@@ -795,14 +811,14 @@ table.plan{width:100%;border-collapse:collapse;font-size:14px;}
         bEdit.className = 'iconact';
         bEdit.type = 'button';
         bEdit.title = 'Modifier';
-        bEdit.textContent = 'Modifier'; // Removed emoji
+        bEdit.textContent = 'Modifier';
         bEdit.addEventListener('click', () => { openEditModal(r); });
         
         const bStat = document.createElement('button');
         bStat.className = 'iconact';
         bStat.type = 'button';
         bStat.title = 'Marquer (absent, maladie, etc.)';
-        bStat.textContent = 'Statut'; // Removed emoji
+        bStat.textContent = 'Statut';
         bStat.addEventListener('click', () => { openStatusModal(r); });
         
         tdA.appendChild(bEdit);
