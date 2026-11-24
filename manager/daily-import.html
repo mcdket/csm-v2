@@ -31,6 +31,18 @@
 
 /* Content */
 .content{padding:0 20px 40px 20px;}
+
+/* Sync Banner */
+.sync-banner{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent);padding:12px 16px;margin-bottom:20px;box-shadow:var(--shadow);font-size:13.5px;flex-wrap:wrap;gap:12px;}
+.sync-banner.auto { border-left-color: #0284C7; } /* Blue for auto */
+.sync-banner.manual { border-left-color: #D4A32A; } /* Yellow for manual */
+.sync-info { display:flex; flex-direction:column; gap:4px; }
+.sync-info strong { color: var(--text); font-weight: 700; }
+.sync-source { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+.sync-source.auto { background: #E0F2FE; color: #0284C7; }
+.sync-source.manual { background: #FEF9C3; color: #854D0E; }
+
+/* Import */
 .import{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);padding:18px;margin-bottom:20px;}
 .dropzone{border:1.5px dashed var(--line);padding:36px 16px;text-align:center;color:var(--text-muted);font-size:14px;cursor:pointer;background:var(--panel-raised);}
 .dropzone:hover{border-color:var(--accent);background:var(--status-break-bg);}
@@ -108,6 +120,16 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
   </div>
 
   <div class="content">
+    
+    <!-- SYNC BANNER (NEW) -->
+    <div class="sync-banner" id="syncBanner" style="display:none;">
+      <div class="sync-info">
+        <div>Dernier import : <strong id="lastSyncTime">—</strong></div>
+        <div>Source : <span class="sync-source" id="lastSyncSource">—</span></div>
+      </div>
+      <button class="btn" id="btnRefresh" style="padding:6px 16px; font-size:13px; border:1px solid var(--line); background:var(--panel-raised);">Actualiser</button>
+    </div>
+
     <div class="import">
       <div class="dropzone" id="dropzone">
         <div><b>Déposez le fichier Excel ici</b> ou cliquez</div>
@@ -185,6 +207,55 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
 
   $('btnLogout').addEventListener('click', function(){ auth.signOut(); });
 
+  // Refresh Button logic
+  $('btnRefresh').addEventListener('click', async function() {
+    this.textContent = '...';
+    try {
+      const doc = await CSM.refs.dailyImport('current').get();
+      if(doc.exists && doc.data().rows && doc.data().rows.length) {
+        currentImport = Object.assign({ _id: 'current' }, doc.data());
+        updateSyncBanner(currentImport);
+        matchAgainstStaff(); 
+        render();
+      } else {
+        currentImport = null; 
+        updateSyncBanner(null);
+        render();
+      }
+    } catch(e) {
+      console.error(e);
+    }
+    this.textContent = 'Actualiser';
+  });
+
+  function updateSyncBanner(data) {
+    const banner = $('syncBanner');
+    if (!data || !data.importedAt) {
+      banner.style.display = 'none';
+      return;
+    }
+    
+    banner.style.display = 'flex';
+    
+    // Format Date
+    const d = new Date(data.importedAt);
+    const dateStr = d.toLocaleDateString('fr-FR') + ' à ' + d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+    $('lastSyncTime').textContent = dateStr;
+    
+    // Format Source
+    const src = data.source || 'excel-import';
+    const srcEl = $('lastSyncSource');
+    if (src === 'email-import') {
+      srcEl.textContent = 'Automatique (Email)';
+      srcEl.className = 'sync-source auto';
+      banner.className = 'sync-banner auto';
+    } else {
+      srcEl.textContent = 'Manuel (Excel)';
+      srcEl.className = 'sync-source manual';
+      banner.className = 'sync-banner manual';
+    }
+  }
+
   function loadStaff(){
     return CSM.refs.staffColl().get().then(function(snap){
       staffList = []; staffByBadge = {};
@@ -202,9 +273,13 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
     unsubImport = CSM.refs.dailyImport('current').onSnapshot(function(doc){
       if(doc.exists && doc.data().rows && doc.data().rows.length){
         currentImport = Object.assign({ _id: 'current' }, doc.data());
-        matchAgainstStaff(); render();
+        updateSyncBanner(currentImport);
+        matchAgainstStaff(); 
+        render();
       } else {
-        currentImport = null; render();
+        currentImport = null; 
+        updateSyncBanner(null);
+        render();
       }
     });
   }
@@ -253,7 +328,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
         importedAt: new Date().toISOString(),
         importedBy: auth.currentUser.uid,
         savedAt: null, savedCount: 0,
-        source: 'excel-import'
+        source: 'excel-import' // MANUAL
       };
       await CSM.refs.dailyImport('current').set(payload);
     }catch(err){
@@ -522,10 +597,9 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
       if(!badge) continue;
 
       let staff = staffByBadge[badge];
-      const importedRole = row.role || 'Crew'; // Fallback to Crew if empty
+      const importedRole = row.role || 'Crew';
 
       if(!staff && effectiveLevel(row) === 'new'){
-        // CREATE NEW STAFF WITH ROLE
         const newStaff = { 
           badge, 
           name: row.namePdf, 
@@ -537,13 +611,12 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
         await CSM.refs.staff(badge).set(newStaff);
         staff = newStaff;
       } else if (staff) {
-        // UPDATE EXISTING STAFF IF ROLE CHANGED
         if (row.role && staff.role !== row.role) {
           await CSM.refs.staff(badge).update({ 
             role: row.role,
             updatedAt: new Date().toISOString()
           });
-          staff.role = row.role; // Update local cache
+          staff.role = row.role; 
         }
       }
 
