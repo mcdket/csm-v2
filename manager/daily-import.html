@@ -544,7 +544,7 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
       tr.className = 'flagged-' + level;
       tr.innerHTML =
         '<td class="mono"><b>'+esc(badgeDisp)+'</b></td>'+
-        '<td class="name">'+esc(row.namePdf)+'</td>'+
+        '<td class="name">'+esc(cleanName(row.namePdf))+'</td>'+
         '<td>'+(row.role ? '<span class="role-tag">'+esc(row.role)+'</span>' : '—')+'</td>'+
         '<td>'+cellHtml+'</td>'+
         '<td class="mono">'+(R.minToHM(row.clockIn)||'—')+'</td>'+
@@ -670,6 +670,11 @@ table.preview{width:100%;border-collapse:collapse;min-width:1200px;font-size:13p
     const el = $('importLog');
     el.innerHTML = '';
     el.classList.remove('show');
+  }
+  function cleanName(name) {
+    if (!name) return '';
+    // Removes any 5 or 6 digit number at the start of the name
+    return name.replace(/^\d{5,6}\s+/, '').trim();
   }
 })();
 </script>
